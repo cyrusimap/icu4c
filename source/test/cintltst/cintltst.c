@@ -29,6 +29,7 @@
 #include "unicode/ucnv.h"
 #include "unicode/ures.h"
 #include "unicode/uclean.h"
+#include "unicode/ucal.h"
 
 #ifdef XP_MAC_CONSOLE
 #   include <console.h>
@@ -75,9 +76,13 @@ int main(int argc, const char* const argv[])
 {
     int nerrors = 0;
     int warnOnMissingData = 0;
-    int i;
+    int i, j;
     TestNode *root;
     const char *warnOrErr = "Failure"; 
+#if !UCONFIG_NO_FORMATTING
+    const char *zone = "America/Los_Angeles";
+#endif
+    const char** argv2;
 
     /* initial check for the default converter */
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -87,13 +92,46 @@ int main(int argc, const char* const argv[])
     /* This must be tested before using anything! */
     gMutexInitialized = umtx_isInitialized(NULL);
 
+    argv2 = (const char**) malloc(sizeof(char*) * argc);
+    if (argv2 == NULL) {
+      printf("*** Error: Out of memory (too many cmd line args?)\n");
+      return 1;
+    }
+    argv2[0] = argv[0];
+
     /* Checkargs */
-    for(i=1;i<argc;i++) {
+    for(i=1,j=1;i<argc;i++) {
+        argv2[j++] = argv[i];
         if(!strcmp(argv[i],"-w")) {
             warnOnMissingData = 1;
             warnOrErr = "Warning";
         }
+#if !UCONFIG_NO_FORMATTING
+        else if (strcmp( argv[i], "-tz") == 0) {
+          zone = 0;
+          if ((i+1) < argc) {
+            switch (argv[i+1][0]) {
+            case 0:
+              ++i; /* consume empty string in {-tz ""} */
+              break;
+            case '-':
+            case '/':
+              break; /* don't process next arg if it is -x or /x */
+            default:
+              zone = argv[++i]; /* next arg is zone */
+              break;
+            }
+          }
+          /* Consume args so processArgs doesn't see them (below).
+           * This is ugly but it will get fixed when we do the reorg
+           * of arg processing...later.  We can't do all this in
+           * processArgs because that library (ctestfw) doesn't link
+           * common nor i18n, by design. */
+          --j;
+        }
+#endif
     }
+    argc = j;
 
     while (REPEAT_TESTS > 0) {
 
@@ -168,14 +206,33 @@ int main(int argc, const char* const argv[])
         }
 
         fprintf(stdout, "Default locale for this run is %s\n", uloc_getDefault());
-
+#if !UCONFIG_NO_FORMATTING
+        /* Set the default time zone */
+        if (zone != 0) {
+          UErrorCode ec = U_ZERO_ERROR;
+          UChar zoneID[256];
+          u_uastrncpy(zoneID, zone, 255);
+          zoneID[255] = 0;
+          ucal_setDefaultTimeZone(zoneID, &ec);
+          if (U_FAILURE(ec)) {
+            printf("*** Error: Failed to set default time zone to \"%s\": %s\n",
+                      zone, u_errorName(ec));
+            u_cleanup();
+            return 1;
+          }
+        }
+        fprintf(stdout, "Default time zone for this run is %s\n",
+                  (zone!=0) ? zone : "UNSET");
+#endif
+ 
         root = NULL;
         addAllTests(&root);
-        nerrors = processArgs(root, argc, argv);
+        nerrors = processArgs(root, argc, argv2);
         if (--REPEAT_TESTS > 0) {
             printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
         }
         cleanUpTestTree(root);
+	free((char **)argv2); /* cast away const to silence the compiler */
 #ifdef CTST_LEAK_CHECK
         ctst_freeAll();
 

@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-solaris,v 1.30 2002/07/30 02:46:10 grhoten-oss Exp $
+## $Id: mh-solaris,v 1.32 2003/08/08 23:53:43 grhoten-oss Exp $
 
 ## Flags for position independent code
 SHAREDLIBCFLAGS = -KPIC
@@ -18,8 +18,8 @@ GEN_DEPS.cc= $(CXX) -xM $(DEFS) $(CPPFLAGS)
 CPPFLAGS += -libmil
 
 # -mt means 'compiles and links a multithreaded program'
-CFLAGS += -mt
-CXXFLAGS += -mt
+THREADSCFLAGS += -mt
+THREADSCXXFLAGS += -mt
 
 ## Commands to link
 ## For Sun Workshop, use CC to link to bring in C++ runtime
@@ -53,8 +53,6 @@ STATIC_O = o
 %.o: $(srcdir)/%.cpp
 	$(COMPILE.cc) $(DYNAMICCPPFLAGS) $(DYNAMICCXXFLAGS) -o $@ $<
 
-../data/%.o: ../data/%.c
-	$(COMPILE.c) $(DYNAMICCPPFLAGS) $(DYNAMICCFLAGS) -o $@ $<
 
 ## Dependency rules
 %.d : $(srcdir)/%.c

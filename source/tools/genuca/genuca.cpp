@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "unicode/utypes.h"
 #include "unicode/udata.h"
+#include "unicode/uclean.h"
 #include "ucol_imp.h"
 #include "genuca.h"
 #include "uoptions.h"
@@ -217,10 +218,58 @@ static void addToExistingInverse(UCAElements *element, uint32_t position, UError
       }
 }
 
+/* 
+ * Takes two CEs (lead and continuation) and 
+ * compares them as CEs should be compared:
+ * primary vs. primary, secondary vs. secondary
+ * tertiary vs. tertiary
+ */
+static int32_t compareCEs(uint32_t *source, uint32_t *target) {
+  uint32_t s1 = source[0], s2, t1 = target[0], t2;
+  if(isContinuation(source[1])) {
+    s2 = source[1];
+  } else {
+    s2 = 0;
+  }
+  if(isContinuation(target[1])) {
+    t2 = target[1];
+  } else {
+    t2 = 0;
+  }
+  
+  uint32_t s = 0, t = 0;
+  if(s1 == t1 && s2 == t2) {
+    return 0;
+  }
+  s = (s1 & 0xFFFF0000)|((s2 & 0xFFFF0000)>>16); 
+  t = (t1 & 0xFFFF0000)|((t2 & 0xFFFF0000)>>16); 
+  if(s < t) {
+    return -1;
+  } else if(s > t) {
+    return 1;
+  } else {
+    s = (s1 & 0x0000FF00) | (s2 & 0x0000FF00)>>8;
+    t = (t1 & 0x0000FF00) | (t2 & 0x0000FF00)>>8;
+    if(s < t) {
+      return -1;
+    } else if(s > t) {
+      return 1;
+    } else {
+      s = (s1 & 0x000000FF)<<8 | (s2 & 0x000000FF);
+      t = (t1 & 0x000000FF)<<8 | (t2 & 0x000000FF);
+      if(s < t) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
+  }
+}
+
 static uint32_t addToInverse(UCAElements *element, UErrorCode *status) {
-  uint32_t comp = 0;
   uint32_t position = inversePos;
   uint32_t saveElement = element->CEs[0];
+  int32_t compResult = 0;
   element->CEs[0] &= 0xFFFFFF3F;
   if(element->noOfCEs == 1) {
     element->CEs[1] = 0;
@@ -228,42 +277,17 @@ static uint32_t addToInverse(UCAElements *element, UErrorCode *status) {
   if(inversePos == 0) {
     inverseTable[0][0] = inverseTable[0][1] = inverseTable[0][2] = 0;
     addNewInverse(element, status);
-  } else if(inverseTable[inversePos][0] > element->CEs[0]) {
-    while(inverseTable[--position][0] > element->CEs[0]) {}
-        if(VERBOSE) { fprintf(stdout, "p:%i ", position); }
-    if(inverseTable[position][0] == element->CEs[0]) {
-      if(isContinuation(element->CEs[1])) {
-        comp = element->CEs[1];
-        } else {
-          comp = 0;
-        }
-        if(inverseTable[position][1] > comp) {
-          while(inverseTable[--position][1] > comp) {}
-        }
-        if(inverseTable[position][1] == comp) {
-        addToExistingInverse(element, position, status);
-        } else {
-        insertInverse(element, position+1, status);
-        }
-      } else {
-      if(VERBOSE) { fprintf(stdout, "ins"); }
+  } else if(compareCEs(inverseTable[inversePos], element->CEs) > 0) {
+    while((compResult = compareCEs(inverseTable[--position], element->CEs)) > 0);
+    if(VERBOSE) { fprintf(stdout, "p:%i ", position); }
+    if(compResult == 0) {
+      addToExistingInverse(element, position, status);
+    } else {
       insertInverse(element, position+1, status);
     }
-  } else if(inverseTable[inversePos][0] == element->CEs[0]) {
-    if(element->noOfCEs > 1 && isContinuation(element->CEs[1])) {
-      comp = element->CEs[1];
-        if(inverseTable[position][1] > comp) {
-          while(inverseTable[--position][1] > comp) {}
-        }
-        if(inverseTable[position][1] == comp) {
-        addToExistingInverse(element, position, status);
-        } else {
-        insertInverse(element, position+1, status);
-        }
-      } else {
-        addToExistingInverse(element, inversePos, status);
-      } 
-    } else {
+  } else if(compareCEs(inverseTable[inversePos], element->CEs) == 0) {
+    addToExistingInverse(element, inversePos, status);
+  } else {
     addNewInverse(element, status);
   }
   element->CEs[0] = saveElement;
@@ -280,6 +304,7 @@ static InverseUCATableHeader *assembleInverseTable(UErrorCode *status)
   uint32_t i = 0;
 
   result = (InverseUCATableHeader *)uprv_malloc(headerByteSize + inverseTableByteSize + contsByteSize);
+  uprv_memset(result, 0, headerByteSize + inverseTableByteSize + contsByteSize);
   if(result != NULL) {
     result->byteSize = headerByteSize + inverseTableByteSize + contsByteSize;
 
@@ -290,7 +315,7 @@ static InverseUCATableHeader *assembleInverseTable(UErrorCode *status)
     inversePos++;
 
     for(i = 2; i<inversePos; i++) {
-      if(inverseTable[i-1][0] > inverseTable[i][0]) {
+      if(compareCEs(inverseTable[i-1], inverseTable[i]) > 0) { 
         fprintf(stderr, "Error at %i: %08X & %08X\n", i, inverseTable[i-1][0], inverseTable[i][0]);
       } else if(inverseTable[i-1][0] == inverseTable[i][0] && !(inverseTable[i-1][1] < inverseTable[i][1])) {
         fprintf(stderr, "Continuation error at %i: %08X %08X & %08X %08X\n", i, inverseTable[i-1][0], inverseTable[i-1][1], inverseTable[i][0], inverseTable[i][1]);
@@ -377,7 +402,7 @@ UCAElements *readAnElement(FILE *data, tempUCATable *t, UCAConstants *consts, UE
     char *endCodePoint = NULL;
     char *spacePointer = NULL;
     char *result = fgets(buffer, 2048, data);
-    int32_t buflen = uprv_strlen(buffer);
+    int32_t buflen = (int32_t)uprv_strlen(buffer);
     if(U_FAILURE(*status)) {
         return 0;
     }
@@ -620,7 +645,8 @@ UCAElements *readAnElement(FILE *data, tempUCATable *t, UCAConstants *consts, UE
 
     // we don't want any strange stuff after useful data!
     while(pointer < commentStart)  {
-        if(*pointer != ' ') {
+        if(*pointer != ' ' && *pointer != '\t')
+        {
             *status=U_INVALID_FORMAT_ERROR;
             break;
         }
@@ -628,7 +654,7 @@ UCAElements *readAnElement(FILE *data, tempUCATable *t, UCAConstants *consts, UE
     }
 
     if(U_FAILURE(*status)) {
-        fprintf(stderr, "problem putting stuff in hash table\n");
+        fprintf(stderr, "problem putting stuff in hash table %s\n", u_errorName(*status));
         *status = U_INTERNAL_PROGRAM_ERROR;
         return NULL;
     }
@@ -651,6 +677,9 @@ void writeOutData(UCATableHeader *data,
 
     uint32_t size = data->size;
 
+    data->UCAConsts = data->size;
+    data->size += paddedsize(sizeof(UCAConstants));
+
     if(noOfcontractions != 0) {
       contractions[noOfcontractions][0] = 0;
       contractions[noOfcontractions][1] = 0;
@@ -658,9 +687,9 @@ void writeOutData(UCATableHeader *data,
       noOfcontractions++;
 
 
-      data->UCAConsts = data->size;
-      data->size += paddedsize(sizeof(UCAConstants));
       data->contractionUCACombos = data->size;
+      data->contractionUCACombosWidth = 3;
+      data->contractionUCACombosSize = noOfcontractions;
       data->size += paddedsize((noOfcontractions*3*sizeof(UChar)));
     }
 
@@ -721,6 +750,7 @@ write_uca_table(const char *filename,
 		fclose(data);
 		return 0;
 	}
+    uprv_memset(myD, 0, sizeof(UCATableHeader));
     UColOptionSet *opts = (UColOptionSet *)uprv_malloc(sizeof(UColOptionSet));
     /* test for NULL */
 	if(opts == NULL) {
@@ -729,7 +759,9 @@ write_uca_table(const char *filename,
 		fclose(data);
 		return 0;
 	}
+    uprv_memset(opts, 0, sizeof(UColOptionSet));
     UChar contractionCEs[256][3];
+    uprv_memset(contractionCEs, 0, 256*3*sizeof(UChar));
     uint32_t noOfContractions = 0;
     UCAConstants consts;
 #if 0
@@ -770,7 +802,7 @@ write_uca_table(const char *filename,
         return -1;
     }
 
-    memset(inverseTable, 0xDA, sizeof(int32_t)*3*0xFFFF);
+    uprv_memset(inverseTable, 0xDA, sizeof(int32_t)*3*0xFFFF);
 
     opts->variableTopValue = variableTopValue;
     opts->strength = UCOL_TERTIARY;
@@ -780,9 +812,10 @@ write_uca_table(const char *filename,
     opts->caseLevel = UCOL_OFF;         /* do we have an extra case level */
     opts->normalizationMode = UCOL_OFF; /* attribute for normalization */
     opts->hiraganaQ = UCOL_OFF; /* attribute for JIS X 4061, used only in Japanese */
+    opts->numericCollation = UCOL_OFF;
     myD->jamoSpecial = FALSE;
 
-    tempUCATable *t = uprv_uca_initTempTable(myD, opts, NULL, IMPLICIT_TAG, status);
+    tempUCATable *t = uprv_uca_initTempTable(myD, opts, NULL, IMPLICIT_TAG, LEAD_SURROGATE_TAG, status);
     if(U_FAILURE(*status))
     {
         fprintf(stderr, "Failed to init UCA temp table: %s\n", u_errorName(*status));
@@ -816,7 +849,7 @@ struct {
       {0x2F800, 0x2FA1D, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)  },  //7 CJK_IMPLICIT_TAG,   /* 0x2F800-0x2FA1D*/
 #endif
       {0xAC00, 0xD7B0, UCOL_SPECIAL_FLAG | (HANGUL_SYLLABLE_TAG << 24) },  //0 HANGUL_SYLLABLE_TAG,/* AC00-D7AF*/
-      {0xD800, 0xDC00, UCOL_SPECIAL_FLAG | (LEAD_SURROGATE_TAG << 24)  },  //1 LEAD_SURROGATE_TAG,  /* D800-DBFF*/
+      //{0xD800, 0xDC00, UCOL_SPECIAL_FLAG | (LEAD_SURROGATE_TAG << 24)  },  //1 LEAD_SURROGATE_TAG,  /* D800-DBFF*/
       {0xDC00, 0xE000, UCOL_SPECIAL_FLAG | (TRAIL_SURROGATE_TAG << 24) },  //2 TRAIL_SURROGATE DC00-DFFF
       // Now directly handled in the collation code by the swapCJK function. 
       //{0x3400, 0x4DB6, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)    },  //3 CJK_IMPLICIT_TAG,   /* 0x3400-0x4DB5*/
@@ -883,7 +916,9 @@ struct {
       fprintf(stderr, "UCA version not specified. Cannot create data file!\n");
       return -1;
     }
-
+/*    {
+        uint32_t trieWord = utrie_get32(t->mapping, 0xDC01, NULL);
+    }*/
 
     if (VERBOSE) {
         fprintf(stdout, "\nLines read: %i\n", line);
@@ -898,7 +933,7 @@ struct {
 
     /* produce canonical closure for table */
     /* first set up constants for implicit calculation */
-    uprv_uca_initImplicitConstants(consts.UCA_PRIMARY_IMPLICIT_MIN);
+    uprv_uca_initImplicitConstants(consts.UCA_PRIMARY_IMPLICIT_MIN, consts.UCA_PRIMARY_IMPLICIT_MAX, status);
     /* do the closure */
     int32_t noOfClosures = uprv_uca_canonicalClosure(t, status);
     if(noOfClosures != 0) {
@@ -914,6 +949,11 @@ struct {
         fprintf(stdout, "Number of contractions: %i\n", noOfContractions);
         fprintf(stdout, "Contraction image size: %i\n", t->image->contractionSize);
         fprintf(stdout, "Expansions size: %i\n", t->expansions->position);
+    }
+
+    if(U_FAILURE(*status)) {
+        fprintf(stderr, "Error creating table: %s\n", u_errorName(*status));
+        return -1;
     }
 
     /* populate the version info struct with version info*/
@@ -1000,7 +1040,6 @@ int main(int argc, char* argv[]) {
             argv[0], u_getDataDirectory());
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
-
     if(options[3].doesOccur) {
       fprintf(stdout, "genuca version %hu.%hu, ICU tool to read UCA text data and create UCA data tables for collation.\n",
 #if UCONFIG_NO_COLLATION
@@ -1026,6 +1065,15 @@ int main(int argc, char* argv[]) {
     if (options[7].doesOccur) {
         u_setDataDirectory(options[7].value);
     }
+    /* Initialize ICU */
+    u_init(&status);
+    if (U_FAILURE(status) && status != U_FILE_ACCESS_ERROR) {
+        fprintf(stderr, "%s: can not initialize ICU.  status = %s\n",
+            argv[0], u_errorName(status));
+        exit(1);
+    }
+    status = U_ZERO_ERROR;
+
 
     /* prepare the filename beginning with the source dir */
     uprv_strcpy(filename, srcDir);

@@ -470,7 +470,7 @@ generateAdditionalProperties(char *filename, const char *suffix, UErrorCode *pEr
     /* parse EastAsianWidth.txt */
     parseSingleEnumFile(filename, basename, suffix, &eawSingleEnum, pErrorCode);
 
-    trie=utrie_open(NULL, NULL, 50000, 0, TRUE);
+    trie=utrie_open(NULL, NULL, 50000, 0, 0, TRUE);
     if(trie==NULL) {
         *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
         upvec_close(pv);
@@ -666,7 +666,7 @@ bidiClassLineFn(void *context,
     /* parse bidi class */
     s=trimTerminateField(fields[1][0], fields[1][1]);
     value=u_getPropertyValueEnum(UCHAR_BIDI_CLASS, s);
-    if(value<0) {
+    if((int32_t)value<0) {
         fprintf(stderr, "genprops error: unknown bidi class in DerivedBidiClass.txt field 1 at %s\n", s);
         exit(U_PARSE_ERROR);
     }

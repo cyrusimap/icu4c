@@ -273,9 +273,12 @@ void TestProperty()
       ICU 2.1 currVersionArray = {0x19, 0x00, 0x03, 0x03};
       ICU 2.2 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.4 currVersionArray = {0x21, 0x40, 0x04, 0x04};
+      ICU 2.6 currVersionArray = {0x21, 0x40, 0x03, 0x03};
     */
-    UVersionInfo currVersionArray = {0x21, 0x40, 0x03, 0x03};
-    UVersionInfo versionArray;
+    UVersionInfo currVersionArray = {0x29, 0x80, 0x04, 0x04};
+    UVersionInfo currUCAVersionArray = {4, 0, 0, 0};
+    UVersionInfo versionArray = {0, 0, 0, 0};
+    UVersionInfo versionUCAArray = {0, 0, 0, 0};
     
     log_verbose("The property tests begin : \n");
     log_verbose("Test ucol_strcoll : \n");
@@ -290,6 +293,15 @@ void TestProperty()
       if (versionArray[i] != currVersionArray[i]) {
         log_err("Testing ucol_getVersion() - unexpected result: %hu.%hu.%hu.%hu\n", 
             versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
+        break;
+      }
+    }
+
+    ucol_getUCAVersion(col, versionUCAArray);
+    for (i=0; i<4; ++i) {
+      if (versionUCAArray[i] != currUCAVersionArray[i]) {
+        log_err("Testing ucol_getUCAVersion() - unexpected result: %hu.%hu.%hu.%hu\n", 
+            versionUCAArray[0], versionUCAArray[1], versionUCAArray[2], versionUCAArray[3]);
         break;
       }
     }
@@ -746,10 +758,12 @@ void TestSortKey()
 {   
     uint8_t *sortk1 = NULL, *sortk2 = NULL, *sortk3 = NULL, *sortkEmpty = NULL;
     uint8_t sortk2_compat[] = { 
+      /* 2.6.1 key */
+        0x26, 0x28, 0x2A, 0x2C, 0x26, 0x01, 
+        0x09, 0x01, 0x09, 0x01, 0x25, 0x01, 
+        0x92, 0x93, 0x94, 0x95, 0x92, 0x00 
         /* 2.2 key */
-        0x1D, 0x1F, 0x21, 0x23, 0x1D, 0x01, 
-        0x09, 0x01, 0x09, 0x01, 0x1C, 0x01, 
-        0x92, 0x93, 0x94, 0x95, 0x92, 0x00
+        /*0x1D, 0x1F, 0x21, 0x23, 0x1D, 0x01, 0x09, 0x01, 0x09, 0x01, 0x1C, 0x01, 0x92, 0x93, 0x94, 0x95, 0x92, 0x00*/
         /* 2.0 key */
         /*0x19, 0x1B, 0x1D, 0x1F, 0x19, 0x01, 0x09, 0x01, 0x09, 0x01, 0x18, 0x01, 0x92, 0x93, 0x94, 0x95, 0x92, 0x00*/
         /* 1.8.1 key.*/
