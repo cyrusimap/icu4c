@@ -379,7 +379,6 @@ SOURCE=.\ucaconf.h
 # Begin Source File
 
 SOURCE=.\strtest.cpp
-# ADD CPP /Ze
 # End Source File
 # Begin Source File
 

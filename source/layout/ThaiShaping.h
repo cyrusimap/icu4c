@@ -46,15 +46,15 @@ public:
         classCount = 19,
 
         // State Transition actions
-        _A  =  0,
-        _C  =  1,
-        _D  =  2,
-        _E  =  3,
-        _F  =  4,
-        _G  =  5,
-        _H  =  6,
-        _R  =  7,
-        _S  =  8
+        tA  =  0,
+        tC  =  1,
+        tD  =  2,
+        tE  =  3,
+        tF  =  4,
+        tG  =  5,
+        tH  =  6,
+        tR  =  7,
+        tS  =  8
     };
 
     struct StateTransition
