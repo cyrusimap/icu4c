@@ -134,7 +134,7 @@ U_CAPI const char* U_EXPORT2 u_getDataDirectory(void);
 /* Set the data directory. */
 U_CAPI void U_EXPORT2 u_setDataDirectory(const char *directory);
 
-/* Return the default codepage for this platform and locale */
+/* Return the default codepage for this platform and locale, the caller owns the storage of the returned string. */
 U_CAPI const char*  U_EXPORT2 uprv_getDefaultCodepage(void);
 
 /* Return the default locale ID string by querying ths system, or

@@ -36,9 +36,7 @@
 
 
 /* include standard headers */
-#ifndef OS390
 #include <time.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,11 +73,6 @@
 #   include <link.h>
 #elif defined(HPUX)
 #   include <dl.h>
-#elif defined(OS390)
-#define _SHR_TIMEZONE 
-#define _SHR_TZNAME
-#define _SHR_DAYLIGHT
-#include <time.h>
 #endif 
 
 /* floating point implementations ------------------------------------------- */
@@ -125,6 +118,9 @@ static char* u_bottomNBytesOfDouble(double* d, int n);
 #   define POSIX
 #endif
 
+#ifdef POSIX
+#include <langinfo.h>
+#endif
 /*---------------------------------------------------------------------------
   Universal Implementations
   These are designed to work on all platforms.  Try these, and if they don't
@@ -997,7 +993,7 @@ u_getDataDirectory(void) {
         char *path;
         int length;
 
-#       if !defined(OS400) && !defined(XP_MAC)
+#       if !defined(XP_MAC)
             /* first try to get the environment variable */
             path=getenv("ICU_DATA");
 /* 	    fprintf(stderr, " ******** ICU_DATA=%s ********** \n", path); */
@@ -1366,6 +1362,8 @@ static char* u_bottomNBytesOfDouble(double* d, int n)
 {
   return U_IS_BIG_ENDIAN ? (char*)(d + 1) - n : (char*)d;
 }
+U_CAPI const char *
+uprv_defaultCodePageForLocale(const char *locale);
 
 const char* uprv_getDefaultCodepage()
 {
@@ -1379,8 +1377,58 @@ const char* uprv_getDefaultCodepage()
   static char codepage[12]={ "cp" };
   uprv_strcpy(codepage+2, _itoa(GetACP(), tempString, 10));
   return codepage;
-#elif defined(POSIX)
+#elif defined(POSIX) 
+#if defined(HPUX)
   return "LATIN_1";
+#else
+    static char codesetName[100];
+    char *name = NULL;
+    char *euro = NULL;
+    char *localeName = NULL;
+ 
+    uprv_memset(codesetName, 0, 100);
+    localeName = setlocale(LC_CTYPE, "");
+    if (localeName != NULL) 
+    {
+        uprv_strcpy(codesetName, localeName);
+        if  ((name = (uprv_strchr(codesetName, (int) '.'))) != NULL) 
+        {
+            /* strip the locale name and look at the suffix only */
+            name++;
+            if ((euro  = (uprv_strchr(name, (int)'@'))) != NULL)
+            {
+               *euro  = 0;
+            }
+            /* if we can find the codset name from setlocale, return that. */
+            if (uprv_strlen(name) != 0) 
+            {
+                return name;
+            }
+        } 
+    }
+    if (strlen(codesetName) != 0) 
+    {
+        uprv_memset(codesetName, 0, 100);
+    }
+#ifdef LINUX
+    if (nl_langinfo(_NL_CTYPE_CODESET_NAME) != NULL)
+        uprv_strcpy(codesetName, nl_langinfo(_NL_CTYPE_CODESET_NAME));     
+#else
+    if (nl_langinfo(CODESET) != NULL)
+        uprv_strcpy(codesetName, nl_langinfo(CODESET));    
+#endif  
+    if (uprv_strlen(codesetName) == 0) 
+    {
+         /* look up in srl's table */
+         uprv_strcpy(codesetName, uprv_defaultCodePageForLocale(localeName));
+     }
+    /* if the table lookup failed, return latin1. */
+    if (uprv_strlen(codesetName) == 0)
+    {
+        uprv_strcpy(codesetName, "LATIN_1");
+    } 
+    return codesetName;
+#endif
 #else
   return "LATIN_1";
 #endif
@@ -1391,15 +1439,20 @@ const char* uprv_getDefaultCodepage()
  * These maps for ASCII to/from EBCDIC are from
  * "UTF-EBCDIC - EBCDIC-Friendly Unicode (or UCS) Transformation Format"
  * at http://www.unicode.org/unicode/reports/tr16/
- * but modified to explicitly exclude the variant graphical characters
- * that are in ASCII at 0xa0 and above.
+ * but modified to explicitly exclude the variant
+ * control and graphical characters that are in ASCII-based
+ * codepages at 0x80 and above.
+ * Also, unlike in Version 6.0 of the UTR on UTF-EBCDIC,
+ * the Line Feed mapping is exactly as described in the CDRA.
+ *
+ * These tables do not establish a converter or a codepage.
  */
 
 static uint8_t asciiFromEbcdic[256]={
-    0x00, 0x01, 0x02, 0x03, 0x9C, 0x09, 0x86, 0x7F, 0x97, 0x8D, 0x8E, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-    0x10, 0x11, 0x12, 0x13, 0x9D, 0x0A, 0x08, 0x87, 0x18, 0x19, 0x92, 0x8F, 0x1C, 0x1D, 0x1E, 0x1F,
-    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x17, 0x1B, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x05, 0x06, 0x07,
-    0x90, 0x91, 0x16, 0x93, 0x94, 0x95, 0x96, 0x04, 0x98, 0x99, 0x9A, 0x9B, 0x14, 0x15, 0x9E, 0x1A,
+    0x00, 0x01, 0x02, 0x03, 0x00, 0x09, 0x00, 0x7F, 0x00, 0x00, 0x00, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x10, 0x11, 0x12, 0x13, 0x00, 0x00, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1C, 0x1D, 0x1E, 0x1F,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x17, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07,
+    0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x14, 0x15, 0x00, 0x1A,
     0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x3C, 0x28, 0x2B, 0x7C,
     0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x24, 0x2A, 0x29, 0x3B, 0x5E,
     0x2D, 0x2F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x25, 0x5F, 0x3E, 0x3F,
@@ -1411,11 +1464,11 @@ static uint8_t asciiFromEbcdic[256]={
     0x7B, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x7D, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x5C, 0x00, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x9F
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 static uint8_t ebcdicFromAscii[256]={
-    0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F, 0x16, 0x05, 0x15, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F, 0x16, 0x05, 0x25, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x3C, 0x3D, 0x32, 0x26, 0x18, 0x19, 0x3F, 0x27, 0x1C, 0x1D, 0x1E, 0x1F,
     0x40, 0x5A, 0x7F, 0x7B, 0x5B, 0x6C, 0x50, 0x7D, 0x4D, 0x5D, 0x5C, 0x4E, 0x6B, 0x60, 0x4B, 0x61,
     0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0x7A, 0x5E, 0x4C, 0x7E, 0x6E, 0x6F,
@@ -1423,8 +1476,8 @@ static uint8_t ebcdicFromAscii[256]={
     0xD7, 0xD8, 0xD9, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xAD, 0xE0, 0xBD, 0x5F, 0x6D,
     0x79, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96,
     0x97, 0x98, 0x99, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xC0, 0x4F, 0xD0, 0xA1, 0x07,
-    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x06, 0x17, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x09, 0x0A, 0x1B,
-    0x30, 0x31, 0x1A, 0x33, 0x34, 0x35, 0x36, 0x08, 0x38, 0x39, 0x3A, 0x3B, 0x04, 0x14, 0x3E, 0xFF,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -1475,7 +1528,7 @@ u_versionFromString(UVersionInfo versionArray, const char *versionString) {
     if(versionString!=NULL) {
         for(;;) {
             versionArray[part]=(uint8_t)uprv_strtoul(versionString, &end, 10);
-            if(*end!=U_VERSION_DELIMITER || ++part==U_MAX_VERSION_LENGTH) {
+            if(end==versionString || ++part==U_MAX_VERSION_LENGTH || *end!=U_VERSION_DELIMITER) {
                 break;
             }
             versionString=end+1;
@@ -1538,3 +1591,114 @@ u_errorName(UErrorCode code) {
         return "[BOGUS UErrorCode]";
     }
 }
+
+struct
+{
+  char loc[20];
+  char charmap[40];
+} 
+_localeToDefaultCharmapTable [] =
+{
+/*
+  See:         http://czyborra.com/charsets/iso8859.html
+*/
+
+/* xx_XX locales first, so they will match: */
+ { "zh_CN", "gb2312" },  /* Chinese (Simplified) */
+ { "zh_TW", "Big5" },    /* Chinese (Traditional) */
+
+ { "af", "iso-8859-1" },  /* Afrikaans */
+ { "ar", "iso-8859-6" },  /* Arabic */
+ { "be", "iso-8859-5" },  /* Byelorussian */
+ { "bg", "iso-8859-5" },  /* Bulgarian */
+ { "ca", "iso-8859-1" },  /* Catalan */
+ { "cs", "iso-8859-2" },  /* Czech */
+ { "da", "iso-8859-1" },  /* Danish */
+ { "de", "iso-8859-1" },  /* German */
+ { "el", "iso-8859-7" },  /* Greek */ 
+ { "en", "iso-8859-1" },  /* English */
+ { "eo", "iso-8859-3" },  /* Esperanto */
+ { "es", "iso-8859-1" },  /* Spanish */
+ { "et", "iso-8859-4" },  /* Estonian  */
+ { "eu", "iso-8859-1" },  /* basque */
+ { "fi", "iso-8859-1" },  /* Finnish */
+ { "fo", "iso-8859-1" },  /* faroese */
+ { "fr", "iso-8859-1" },  /* French */
+ { "ga", "iso-8859-1" },  /* Irish (Gaelic) */
+ { "gd", "iso-8859-1" },  /* Scottish */
+ { "he", "iso-8859-8" },  /* hebrew */
+ { "hr", "iso-8859-2" },  /* Croatian */
+ { "hu", "iso-8859-2" },  /* Hungarian */
+ { "in", "iso-8859-1" },  /* Indonesian */
+ { "is", "iso-8859-1" },  /* Icelandic */
+ { "it", "iso-8859-1" },  /* Italian  */
+ { "iw", "iso-8859-8" },  /* hebrew */
+ { "ja", "Shift_JIS"  },  /* Japanese [was: ja_JP ] */
+ { "ji", "iso-8859-8" },  /* Yiddish */
+ { "kl", "iso-8859-4" },  /* Greenlandic */
+ { "ko", "euc-kr"     },  /* korean [was: ko_KR ] */
+ { "lt", "iso-8859-4" },  /* Lithuanian */
+ { "lv", "iso-8859-4" },  /* latvian (lettish) */
+ { "mk", "iso-8859-5" },  /* Macedonian */
+ { "mt", "iso-8859-3" },  /* Maltese  */
+ { "nl", "iso-8859-1" },  /* dutch */
+ { "no", "iso-8859-1" },  /* Norwegian */
+ { "pl", "iso-8859-2" },  /* Polish */
+ { "pt", "iso-8859-1" },  /* Portugese */
+ { "rm", "iso-8859-1" },  /* Rhaeto-romance */
+ { "ro", "iso-8859-2" },  /* Romanian */
+ { "ru", "iso-8859-5" },  /* Russian */
+ { "sk", "iso-8859-2" },  /* Slovak  */
+ { "sl", "iso-8859-2" },  /* Slovenian */
+ { "sq", "iso-8859-1" },  /* albanian */
+ { "sr", "iso-8859-5" },  /* Serbian */
+ { "sv", "iso-8859-1" },  /* Swedish */
+ { "sw", "iso-8859-1" },  /* Swahili */
+ { "th", "tis-620"    },  /* Thai [windows-874] */
+ { "tr", "iso-8859-9" },  /* Turkish */
+ { "uk", "iso-8859-5" },  /* pre 1990 Ukranian... see: <http://czyborra.com/charsets/cyrillic.html#KOI8-U>  */
+ { "zh", "Big-5"      },  /* Chinese (Traditional) */
+ {  "",  ""           }
+};
+
+/* Not-used list, overridden old data  */
+#if 0
+/**/ { "ar", "ibm-1256"   }, /* arabic */
+/**/ { "ko", "ibm-949"}, /* korean  */
+/**/ { "ru", "ibm-878"  }, /* Russian- koi8-r */
+/**/ { "sk", "ibm-912"  }, 
+#endif
+
+U_CAPI const char *
+uprv_defaultCodePageForLocale(const char *locale)
+{
+  int32_t i;
+  int32_t locale_len;
+
+  if (locale == NULL) 
+  {
+    return NULL;
+  }
+  locale_len = uprv_strlen(locale);
+
+  if(locale_len < 2)
+    {
+      return NULL; /* non existent. Not a complete check, but it will
+                    * make sure that 'c' doesn't match catalan, etc.
+                    **/
+    }
+  
+  for(i=0; _localeToDefaultCharmapTable[i].loc[0]; i++)
+  {
+    if(uprv_strncmp(locale, _localeToDefaultCharmapTable[i].loc, 
+                    uprv_min(locale_len, 
+                             uprv_strlen(_localeToDefaultCharmapTable[i].loc)))
+       == 0)
+    {
+      return _localeToDefaultCharmapTable[i].charmap;
+    }
+  }
+
+  return NULL;
+}
+

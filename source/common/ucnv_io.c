@@ -18,6 +18,9 @@
 *
 *   Use the binary cnvalias.dat (created from convrtrs.txt) to work
 *   with aliases for converter names.
+*
+*   Date          Name        Description
+*   04/27/2000    helena      Added detection code to look for system default codepage.
 ********************************************************************************
 */
 
@@ -328,7 +331,7 @@ ucnv_io_fillAvailableAliases(const char **aliases, UErrorCode *pErrorCode) {
  */
 
 static char defaultConverterNameBuffer[100];
-static const char *defaultConverterName = NULL;
+static const char *defaultConverterName;
 
 U_CFUNC const char *
 ucnv_io_getDefaultConverterName() {
