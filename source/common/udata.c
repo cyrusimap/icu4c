@@ -31,7 +31,7 @@
 # define HAVE_DLOPEN 0
 #endif
  
-#if !defined(UDATA_DLL) && !defined(UDATA_MAP) &&!defined(UDATA_FILES)
+#if !defined(UDATA_DLL) && !defined(UDATA_MAP)
 #   define UDATA_DLL
 #endif
 
