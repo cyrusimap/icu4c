@@ -267,6 +267,8 @@ void TestDemo1()
         return;
     }
 
+    j = 0;
+    n = 0;
     for (j = 0; j < FIXEDTESTSET; j++)
     {
         for (n = j+1; n < FIXEDTESTSET; n++)
@@ -311,7 +313,8 @@ void TestDemo2()
         log_err( "Demo Test 2 Rule collation object creation failed.: %s\n", myErrorName(status));
         return;
     }
-    for (j = 0; j < TOTALTESTSET; j++)
+    j = 0;
+    for (j; j < TOTALTESTSET; j++)
     {
         for (n = j+1; n < TOTALTESTSET; n++)
         {
@@ -357,6 +360,7 @@ void TestDemo3()
         return;
     }
 
+    j = 0;
     for (j = 0; j < TOTALTESTSET; j++)
     {
         for (n = j+1; n < TOTALTESTSET; n++)
@@ -402,6 +406,7 @@ void TestDemo4()
         log_err( "Demo Test 4 Rule collation object creation failed.: %s\n", myErrorName(status));
         return;
     }
+    j;
     for (j = 0; j < TOTALTESTSET; j++)
     {
         for (n = j+1; n < TOTALTESTSET; n++)

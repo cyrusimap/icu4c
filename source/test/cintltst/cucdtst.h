@@ -8,7 +8,7 @@
 * File CUCDTST.H
 *
 * Modification History:
-*        Name                     Description 
+*        Name                     Description            
 *     Madhu Katragadda            Converted to C, added tests for string functions
 *********************************************************************************
 */
@@ -17,6 +17,9 @@
 #ifndef _CUCDTST
 #define _CUNDTST
 
+
+
+static void addUnicodeTests(TestNode**);
 
 
 static void TestUpperLower(void);
