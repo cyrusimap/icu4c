@@ -1,5 +1,0 @@
-*.d
-libustdio.*
-Debug
-Release
-Makefile
