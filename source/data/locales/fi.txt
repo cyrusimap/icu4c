@@ -729,6 +729,7 @@ fi {
         bad { "banda" }
         bai { "bamileke" }
         bal { "balut\u0161i" }
+        bam { "bambara" }
         ban { "bali" }
         bas { "basa" }
         bat { "muut balttilaiset kielet" }
@@ -744,7 +745,7 @@ fi {
         bin { "bini" }
         bla { "mustajalka" }   // Blackfoot
         bm  { "bambara" }
-        bn  { "bengali" }
+        bn { "bengali" }
         bnt { "bantu" }
         bo  { "tiibet" }
         br  { "bretoni" }

@@ -776,6 +776,7 @@ it {
         bad { "banda" }
         bai { "lingue bamileke" }
         bal { "beluci" }
+        bam { "bambara" }
         ban { "balinese" }
         bas { "basa" }
         bat { "baltica (altra lingua)" }
