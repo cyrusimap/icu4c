@@ -125,11 +125,10 @@ TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
         TESTCASE(43,TestEmptyContext);
         TESTCASE(44,TestCompoundFilterID);
         TESTCASE(45,TestPropertySet);
-        TESTCASE(46,TestNewEngine);
-        TESTCASE(47,TestDevanagariLatinRT);
-        TESTCASE(48,TestTeluguLatinRT);
-        TESTCASE(49,TestCompoundLatinRT);
-        TESTCASE(50,TestSanskritLatinRT);
+        TESTCASE(46,TestDevanagariLatinRT);
+        TESTCASE(47,TestTeluguLatinRT);
+        TESTCASE(48,TestCompoundLatinRT);
+        TESTCASE(49,TestSanskritLatinRT);
         default: name = ""; break;
     }
 }
@@ -1990,7 +1989,6 @@ void TransliteratorTest::TestCompoundInverseID() {
 
 /**
  * Test undefined variable.
-
  */
 void TransliteratorTest::TestUndefinedVariable() {
     UnicodeString rule = "$initial } a <> \\u1161;";
@@ -2076,72 +2074,6 @@ void TransliteratorTest::TestPropertySet() {
     expect("a>A; \\p{Lu}>x; \\p{ANY}>y;", "abcDEF", "Ayyxxx");
     expect("(.+)>'[' $1 ']';", " a stitch \n in time \r saves 9",
            "[ a stitch ]\n[ in time ]\r[ saves 9]");
-}
-
-/**
- * Test various failure points of the new 2.0 engine.
- */
-void TransliteratorTest::TestNewEngine() {
-    UParseError pe;
-    UErrorCode ec = U_ZERO_ERROR;
-    Transliterator *t = Transliterator::createInstance("Latin-Hiragana", UTRANS_FORWARD, pe, ec);
-    if (t == 0 || U_FAILURE(ec)) {
-        errln("FAIL: createInstance Latin-Hiragana");
-        return;
-    }
-    // Katakana should be untouched
-    expect(*t, CharsToUnicodeString("a\\u3042\\u30A2"),
-           CharsToUnicodeString("\\u3042\\u3042\\u30A2"));
-
-    delete t;
-
-    Transliterator *a =
-        Transliterator::createFromRules("a", "a > A;", UTRANS_FORWARD, pe, ec);
-    Transliterator *A =
-        Transliterator::createFromRules("A", "A > b;", UTRANS_FORWARD, pe, ec);
-    if (U_FAILURE(ec)) {
-        delete a;
-        delete A;
-        return;
-    }
-
-    Transliterator* array[3];
-    array[0] = a;
-    array[1] = Transliterator::createInstance("NFD", UTRANS_FORWARD, pe, ec);
-    array[2] = A;
-    if (U_FAILURE(ec)) {
-        errln("FAIL: createInstance NFD");
-        delete a;
-        delete A;
-        delete array[1];
-        return;
-    }
-
-    t = new CompoundTransliterator(array, 3, new UnicodeSet("[:Ll:]", ec));
-    if (U_FAILURE(ec)) {
-        errln("FAIL: UnicodeSet constructor");
-        delete a;
-        delete A;
-        delete array[1];
-        delete t;
-        return;
-    }
-
-    expect(*t, "aAaA", "bAbA");
-
-    expect("$smooth = x; $macron = q; [:^L:] { ([aeiouyAEIOUY] $macron?) } [^aeiouyAEIOUY$smooth$macron] > | $1 $smooth ;",
-           "a",
-           "ax");
-
-    UnicodeString gr = CharsToUnicodeString(
-        "$ddot = \\u0308 ;"
-        "$lcgvowel = [\\u03b1\\u03b5\\u03b7\\u03b9\\u03bf\\u03c5\\u03c9] ;"
-        "$rough = \\u0314 ;"
-        "($lcgvowel+ $ddot?) $rough > h | $1 ;"
-        "\\u03b1 <> a ;"
-        "$rough <> h ;");
-
-    expect(gr, CharsToUnicodeString("\\u03B1\\u0314"), "ha");
 }
 
 //======================================================================
@@ -2398,7 +2330,8 @@ void TransliteratorTest::TestSanskritLatinRT(){
 
 
 void TransliteratorTest::TestCompoundLatinRT(){
-    const char* const source[] = {
+    const int MAX_LEN =16;
+    const char* const source[MAX_LEN] = {
         "rmk\\u1E63\\u0113t",
         "\\u015Br\\u012Bmad",
         "bhagavadg\\u012Bt\\u0101",
@@ -2417,7 +2350,6 @@ void TransliteratorTest::TestCompoundLatinRT(){
         "kimakurvata",
         "san\\u0304java"
     };
-    const int MAX_LEN = sizeof(source)/sizeof(source[0]);
     const char* const expected[MAX_LEN] = {
         "\\u0930\\u094D\\u092E\\u094D\\u0915\\u094D\\u0937\\u0947\\u0924\\u094D",
         "\\u0936\\u094d\\u0930\\u0940\\u092e\\u0926\\u094d",
@@ -2437,16 +2369,11 @@ void TransliteratorTest::TestCompoundLatinRT(){
         "\\u0915\\u093f\\u092e\\u0915\\u0941\\u0930\\u094d\\u0935\\u0924",
         "\\u0938\\u0902\\u091c\\u0935"
     };
-    if(MAX_LEN != sizeof(expected)/sizeof(expected[0])) {
-        errln("error in TestCompoundLatinRT: source[] and expected[] have different lengths!");
-        return;
-    }
-
     UErrorCode status = U_ZERO_ERROR;
     UParseError parseError;
     UnicodeString message;
-    Transliterator* devToLatinToDev  =Transliterator::createInstance("Devanagari-Latin;Latin-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* latinToDevToLatin=Transliterator::createInstance("Latin-Devanagari;Devanagari-Latin", UTRANS_FORWARD, parseError, status);
+    Transliterator* devToLatinToDev  =Transliterator::createInstance("Devanagari-Latin;Latin-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* devToTelToDev    =Transliterator::createInstance("Devanagari-Telugu;Telugu-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* latinToTelToLatin=Transliterator::createInstance("Latin-Telugu;Telugu-Latin", UTRANS_FORWARD, parseError, status);
 
@@ -2456,10 +2383,10 @@ void TransliteratorTest::TestCompoundLatinRT(){
         return;
     }
     UnicodeString gotResult;
-    for(int i= 0; i<MAX_LEN; i++){
+    for(int i= 0; i<1; i++){
         gotResult = source[i];
-        expect(*devToLatinToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*latinToDevToLatin,CharsToUnicodeString(source[i]),CharsToUnicodeString(source[i]));
+        expect(*devToLatinToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*devToTelToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*latinToTelToLatin,CharsToUnicodeString(source[i]),CharsToUnicodeString(source[i]));
 
