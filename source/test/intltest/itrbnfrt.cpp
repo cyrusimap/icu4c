@@ -350,7 +350,7 @@ RbnfRoundTripTest::doTest(const RuleBasedNumberFormat* formatter,
 
 void
 RbnfRoundTripTest::TestRBNFDisabled() {
-	errln("*** RBNF currently disabled on this platform ***\n");
+	logln("*** RBNF currently disabled on this platform ***");
 }
 
 /* U_HAVE_RBNF */
