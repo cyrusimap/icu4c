@@ -678,12 +678,16 @@ icu_getDefaultDataDirectory()
 #endif
 
 #ifdef WIN32
-  return "\\icu\\data\\";
+  char * dpath;
+  dpath = getenv("ICU_DATA");
+  if (!dpath || !*dpath)
+      return "\\icu\\data\\";
+  return dpath;
 #endif
 
 #ifdef OS2
   char * dpath;
-  dpath = getenv("ICUPATH");
+  dpath = getenv("ICU_DATA");
   if (!dpath || !*dpath)
       return "\\icu\\data\\";
   return dpath;
@@ -975,7 +979,7 @@ const char* icu_getDefaultCodepage()
   /* Currently TBD 
      in the future should use thread specific CP
   */
-#elif defined(OS390OE)
+#elif defined(OS390)
   icu_strcpy(DEFAULT_CONVERTER_NAME, "ibm-1047");
 #elif defined(XP_MAC)
   /* TBD */
