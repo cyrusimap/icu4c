@@ -5,14 +5,14 @@
 # *
 # *******************************************************************************
 #
-# File created on Wed Dec 13 10:17:10 1995
+# File created on Wed Dec 13 10:17:26 1995
 #
 # File created by dtcocm version 3.00
-# from source files IBM-1047.RPMAP100 and IBM-1047.TPMAP100
+# from source files IBM-37.RPMAP100 and IBM-37.TPMAP100
 #
 # Table Version : 1.00
 #
-<code_set_name>               "IBM-1047"
+<code_set_name>               "IBM-37-S390"
 <char_name_mask>              "AXXXX"
 <mb_cur_max>                  1
 <mb_cur_min>                  1
@@ -22,7 +22,7 @@
 CHARMAP
 #
 #
-#ISO 10646      IBM-1047
+#ISO 10646      IBM-37
 #_________      _________
 <U0000>         \x00
 <U0001>         \x01
@@ -34,7 +34,7 @@ CHARMAP
 <U0007>         \x2F
 <U0008>         \x16
 <U0009>         \x05
-<U000A>         \x25
+<U000A>         \x15
 <U000B>         \x0B
 <U000C>         \x0C
 <U000D>         \x0D
@@ -173,14 +173,14 @@ CHARMAP
 <U0059>         \xE8                # LY020000
 <UFF3A>         \xE9                # LZ020000
 <U005A>         \xE9                # LZ020000
-<UFF3B>         \xAD                # SM060000
-<U005B>         \xAD                # SM060000
+<UFF3B>         \xBA                # SM060000
+<U005B>         \xBA                # SM060000
 <UFF3C>         \xE0                # SM070000
 <U005C>         \xE0                # SM070000
-<UFF3D>         \xBD                # SM080000
-<U005D>         \xBD                # SM080000
-<UFF3E>         \x5F                # SD150000
-<U005E>         \x5F                # SD150000
+<UFF3D>         \xBB                # SM080000
+<U005D>         \xBB                # SM080000
+<UFF3E>         \xB0                # SD150000
+<U005E>         \xB0                # SD150000
 <UFF3F>         \x6D                # SP090000
 <U005F>         \x6D                # SP090000
 <UFF40>         \x79                # SD130000
@@ -251,7 +251,7 @@ CHARMAP
 <U0082>         \x22
 <U0083>         \x23
 <U0084>         \x24
-<U0085>         \x15
+<U0085>         \x25		
 <U0086>         \x06
 <U0087>         \x17
 <U0088>         \x28
@@ -286,11 +286,11 @@ CHARMAP
 <U00A5>         \xB2                # SC050000
 <U00A6>         \x6A                # SM650000
 <U00A7>         \xB5                # SM240000
-<U00A8>         \xBB                # SD170000
+<U00A8>         \xBD                # SD170000
 <U00A9>         \xB4                # SM520000
 <U00AA>         \x9A                # SM210000
 <U00AB>         \x8A                # SP170000
-<U00AC>         \xB0                # SM660000
+<U00AC>         \x5F                # SM660000
 <U00AD>         \xCA                # SP320000
 <U00AE>         \xAF                # SM530000
 <U203E>         \xBC                # SM150000
@@ -340,7 +340,7 @@ CHARMAP
 <U00DA>         \xFE                # LU120000
 <U00DB>         \xFB                # LU160000
 <U00DC>         \xFC                # LU180000
-<U00DD>         \xBA                # LY120000
+<U00DD>         \xAD                # LY120000
 <U00DE>         \xAE                # LT640000
 <U00DF>         \x59                # LS610000
 <U00E0>         \x44                # LA130000
