@@ -48,7 +48,7 @@ void OpenTypeLayoutEngine::reset()
     // method that's called from here and
     // from our destructor
     if (fFeatureTags != NULL) {
-        uprv_free(fFeatureTags);
+        delete[] fFeatureTags;
         fFeatureTags = NULL;
     }
 }
@@ -142,15 +142,15 @@ le_int32 OpenTypeLayoutEngine::computeGlyphs(const LEUnicode chars[], le_int32 o
     outGlyphCount  = glyphPostProcessing(fakeGlyphs, tempCharIndices, fakeGlyphCount, glyphs, charIndices, success);
 
     if (outChars != chars) {
-        uprv_free(outChars);
+        delete[] outChars;
     }
 
     if (fakeGlyphs != glyphs) {
-        uprv_free(fakeGlyphs);
+        delete[] fakeGlyphs;
     }
 
     if (tempCharIndices != charIndices) {
-        uprv_free(tempCharIndices);
+        delete[] tempCharIndices;
     }
 
     return outGlyphCount;
@@ -211,7 +211,7 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
         delete[] adjustments;
     }
 
-    uprv_free(fFeatureTags);
+    delete[] fFeatureTags;
     fFeatureTags = NULL;
 }
 

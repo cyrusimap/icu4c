@@ -67,17 +67,17 @@ le_int32 ThaiLayoutEngine::computeGlyphs(const LEUnicode chars[], le_int32 offse
     
     // This is enough room for the worst-case expansion
     // (it says here...)
-    outChars = (LEUnicode *)uprv_malloc((count * 2) * sizeof(LEUnicode));
+    outChars = new LEUnicode[count * 2];
 
     if (outChars == NULL) {
         success = LE_MEMORY_ALLOCATION_ERROR;
         return 0;
     }
 
-    charIndices = (le_int32 *)uprv_malloc((count * 2) * sizeof(le_int32));
+    charIndices = new le_int32[count * 2];
 
     if (charIndices == NULL) {
-        uprv_free(outChars);
+        delete[] outChars;
         success = LE_MEMORY_ALLOCATION_ERROR;
         return 0;
     }
@@ -85,7 +85,7 @@ le_int32 ThaiLayoutEngine::computeGlyphs(const LEUnicode chars[], le_int32 offse
     glyphCount = ThaiShaping::compose(chars, offset, count, fGlyphSet, fErrorChar, outChars, charIndices);
     mapCharsToGlyphs(outChars, 0, glyphCount, false, false, glyphs, charIndices, success);
 
-    uprv_free(outChars);
+    delete[] outChars;
 
     return glyphCount;
 }

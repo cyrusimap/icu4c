@@ -142,7 +142,7 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
  
     requiredFeatureIndex = SWAPW(langSysTable->reqFeatureIndex);
 
-    lookupSelectArray = (LETag *)uprv_malloc(lookupListCount * sizeof(LETag));
+    lookupSelectArray = new LETag[lookupListCount];
 
     for (int i = 0; i < lookupListCount; i += 1) {
         lookupSelectArray[i] = notSelected;
@@ -152,7 +152,7 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
     const FeatureTable *featureTable = 0;
     LETag featureTag;
 
-    lookupOrderArray = (le_uint16 *)uprv_malloc(lookupListCount * sizeof(le_uint16));
+    lookupOrderArray = new le_uint16[lookupListCount];
 
     if (requiredFeatureIndex != 0xFFFF) {
         featureTable = featureListTable->getFeatureTable(requiredFeatureIndex, &featureTag);
@@ -198,8 +198,8 @@ LookupProcessor::LookupProcessor()
 
 LookupProcessor::~LookupProcessor()
 {
-    uprv_free(lookupOrderArray);
-    uprv_free(lookupSelectArray);
+    delete[] lookupOrderArray;
+    delete[] lookupSelectArray;
 };
 
 U_NAMESPACE_END

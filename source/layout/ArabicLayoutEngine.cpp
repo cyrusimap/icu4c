@@ -24,37 +24,15 @@
 
 U_NAMESPACE_BEGIN
 
-class CharSubstitutionFilter : public UObject, public LEGlyphFilter
+class CharSubstitutionFilter : public LEGlyphFilter
 {
 private:
     const LEFontInstance *fFontInstance;
 
-    /**
-     * The address of this static class variable serves as this class's ID
-     * for ICU "poor man's RTTI".
-     */
-    static const char fgClassID;
-
 public:
     CharSubstitutionFilter(const LEFontInstance *fontInstance);
     le_bool accept(LEGlyphID glyph) const;
-
-    /**
-     * ICU "poor man's RTTI", returns a UClassID for the actual class.
-     *
-     * @draft ICU 2.2
-     */
-    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
-
-    /**
-     * ICU "poor man's RTTI", returns a UClassID for this class.
-     *
-     * @draft ICU 2.2
-     */
-    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 };
-
-const char CharSubstitutionFilter::fgClassID=0;
 
 CharSubstitutionFilter::CharSubstitutionFilter(const LEFontInstance *fontInstance)
   : fFontInstance(fontInstance)
@@ -102,7 +80,7 @@ le_int32 ArabicOpenTypeLayoutEngine::characterProcessing(const LEUnicode chars[]
         return 0;
     }
 
-    featureTags = (const LETag **)uprv_malloc(count * sizeof(const LETag *));
+    featureTags = new const LETag*[count];
 
     if (featureTags == NULL) {
         success = LE_MEMORY_ALLOCATION_ERROR;
@@ -176,7 +154,7 @@ UnicodeArabicOpenTypeLayoutEngine::UnicodeArabicOpenTypeLayoutEngine(const LEFon
 
 UnicodeArabicOpenTypeLayoutEngine::~UnicodeArabicOpenTypeLayoutEngine()
 {
-    delete (CharSubstitutionFilter *)fSubstitutionFilter;
+    delete fSubstitutionFilter;
 }
 
 // "glyphs", "indices" -> glyphs, indices
@@ -221,17 +199,17 @@ void UnicodeArabicOpenTypeLayoutEngine::mapCharsToGlyphs(const LEUnicode chars[]
         dir = -1;
     }
 
-    glyphs = (LEGlyphID *)uprv_malloc(count * sizeof(LEGlyphID));
+    glyphs = new LEGlyphID[count];
 
     if (glyphs == NULL) {
         success = LE_MEMORY_ALLOCATION_ERROR;
         return;
     }
 
-    charIndices = (le_int32 *)uprv_malloc(count * sizeof(le_int32));
+    charIndices = new le_int32[count];
 
     if (charIndices == NULL) {
-        uprv_free(glyphs);
+        delete [] glyphs;
         success = LE_MEMORY_ALLOCATION_ERROR;
         return;
     }
