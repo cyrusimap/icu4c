@@ -13,6 +13,4 @@
  * exported by the build...
  */
 
-#ifndef U_HIDE_OBSOLETE_API
 const char ICULayoutEngine::fgClassID=0;
-#endif

@@ -771,6 +771,7 @@ en {
         bad { "Banda" }
         bai { "Bamileke Languages" }
         bal { "Baluchi" }
+        bam { "Bambara" }
         ban { "Balinese" }
         bas { "Basa" }
         bat { "Baltic (Other)" }

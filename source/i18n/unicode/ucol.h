@@ -315,8 +315,11 @@ ucol_openRules( const UChar        *rules,
  *                   state for a locale.
  * @param parseError if not NULL, structure that will get filled with error's pre
  *                   and post context in case of error.
- * @param forceDefaults controls whether the settings that are the same as the collator 
- *                   default settings are set (TRUE) or not (FALSE). If the definition
+ * @param forceDefaults if FALSE, the settings that are the same as the collator 
+ *                   default settings will not be applied (for example, setting
+ *                   French secondary on a French collator would not be executed). 
+ *                   If TRUE, all the settings will be applied regardless of the 
+ *                   collator default value. If the definition
  *                   strings are to be cached, should be set to FALSE.
  * @param status     Error code. Apart from regular error conditions connected to 
  *                   instantiating collators (like out of memory or similar), this
@@ -340,9 +343,12 @@ ucol_openFromShortString( const char *definition,
 
 /**
  * Get a set containing the contractions defined by the collator. The set includes
- * both the UCA contractions and the contractions defined by the collator
+ * both the UCA contractions and the contractions defined by the collator. This set
+ * will contain only strings. If a tailoring explicitly suppresses contractions from 
+ * the UCA (like Russian), removed contractions will not be in the resulting set.
  * @param coll collator 
- * @param conts the set to hold the result
+ * @param conts the set to hold the result. It gets emptied before
+ *              contractions are added. 
  * @param status to hold the error code
  * @return the size of the contraction set
  *
@@ -624,7 +630,9 @@ ucol_getRules(    const    UCollator    *coll,
  *  http://oss.software.ibm.com/icu/userguide/Collate_Concepts.html#Naming_Collators
  *  This API supports preflighting.
  *  @param coll a collator
- *  @param locale locale for the collator.
+ *  @param locale a locale that will appear as a collators locale in the resulting
+ *                short string definition. If NULL, the locale will be harvested 
+ *                from the collator.
  *  @param buffer space to hold the resulting string
  *  @param capacity capacity of the buffer
  *  @param status for returning errors. All the preflighting errors are featured
@@ -652,6 +660,7 @@ ucol_getShortDefinitionString(const UCollator *coll,
  *  @param status     Error code. This API will return an error if an invalid attribute 
  *                    or attribute/value combination is specified. All the preflighting 
  *                    errors are also featured
+ *  @return length of the resulting normalized string.
  *
  *  @see ucol_openFromShortString
  *  @see ucol_getShortDefinitionString
@@ -999,18 +1008,27 @@ ucol_getLocaleByType(const UCollator *coll, ULocDataLocaleType type, UErrorCode 
 U_STABLE USet * U_EXPORT2
 ucol_getTailoredSet(const UCollator *coll, UErrorCode *status);
 
+/**
+ * Returned by ucol_collatorToIdentifier to signify that collator is
+ * not encodable as an identifier.
+ * @internal ICU 3.0
+ */
+#define UCOL_SIT_COLLATOR_NOT_ENCODABLE 0x80000000
 
 /**
  * Get a 31-bit identifier given a collator. 
  * @param coll UCollator
- * @param locale locale for the collator.
- * @param status set U_BUFFER_OVERFLOW_ERROR if collator cannot be encoded
- * @return 31-bit identifier. MSB is not used, hence the 31 bits
+ *  @param locale a locale that will appear as a collators locale in the resulting
+ *                short string definition. If NULL, the locale will be harvested 
+ *                from the collator.
+ * @param status holds error messages
+ * @return 31-bit identifier. MSB is used if the collator cannot be encoded. In that
+ *         case UCOL_SIT_COLLATOR_NOT_ENCODABLE is returned
  * @see ucol_openFromIdentifier
  * @see ucol_identifierToShortString
  * @internal ICU 3.0
  */
-U_CAPI uint32_t U_EXPORT2
+U_INTERNAL uint32_t U_EXPORT2
 ucol_collatorToIdentifier(const UCollator *coll,
                           const char *locale,
                           UErrorCode *status);
@@ -1018,16 +1036,20 @@ ucol_collatorToIdentifier(const UCollator *coll,
 /**
  * Open a collator given a 31-bit identifier
  * @param identifier 31-bit identifier, encoded by calling ucol_collatorToIdentifier
- * @param forceDefaults controls whether the settings that are the same as the collator 
- *                   default settings are set (TRUE) or not (FALSE). If the definition
- *                   strings are to be cached, should be set to FALSE.
+ * @param forceDefaults if FALSE, the settings that are the same as the collator 
+ *                   default settings will not be applied (for example, setting
+ *                   French secondary on a French collator would not be executed). 
+ *                   If TRUE, all the settings will be applied regardless of the 
+ *                   collator default value. If the definition
+ *                   strings that can be produced from a collator instantiated by 
+ *                   calling this API are to be cached, should be set to FALSE.
  * @param status for returning errors
  * @return UCollator object
  * @see ucol_collatorToIdentifier
  * @see ucol_identifierToShortString
  * @internal ICU 3.0
  */
-U_CAPI UCollator* U_EXPORT2
+U_INTERNAL UCollator* U_EXPORT2
 ucol_openFromIdentifier(uint32_t identifier,
                         UBool forceDefaults,
                         UErrorCode *status);
@@ -1049,7 +1071,7 @@ ucol_openFromIdentifier(uint32_t identifier,
  * @see ucol_shortStringToIdentifier
  * @internal ICU 3.0
  */
-U_CAPI int32_t U_EXPORT2
+U_INTERNAL int32_t U_EXPORT2
 ucol_identifierToShortString(uint32_t identifier,
                              char *buffer,
                              int32_t capacity,
@@ -1070,7 +1092,7 @@ ucol_identifierToShortString(uint32_t identifier,
  * @see ucol_identifierToShortString
  * @internal ICU 3.0
  */
-U_CAPI uint32_t U_EXPORT2
+U_INTERNAL uint32_t U_EXPORT2
 ucol_shortStringToIdentifier(const char *definition,
                              UBool forceDefaults,
                              UErrorCode *status);
@@ -1088,7 +1110,7 @@ ucol_shortStringToIdentifier(const char *definition,
  * @see ucol_setAttribute
  * @internal ICU 3.0
  */
-U_CAPI UColAttributeValue  U_EXPORT2
+U_INTERNAL UColAttributeValue  U_EXPORT2
 ucol_getAttributeOrDefault(const UCollator *coll, UColAttribute attr, UErrorCode *status);
 
 /** Check whether two collators are equal. Collators are considered equal if they
@@ -1099,7 +1121,7 @@ ucol_getAttributeOrDefault(const UCollator *coll, UColAttribute attr, UErrorCode
  *  @return TRUE or FALSE
  *  @internal ICU 3.0
  */
-U_CAPI UBool U_EXPORT2
+U_INTERNAL UBool U_EXPORT2
 ucol_equals(const UCollator *source, const UCollator *target);
 
 /** Calculates the set of unsafe code points, given a collator.
@@ -1109,7 +1131,7 @@ ucol_equals(const UCollator *source, const UCollator *target);
  *  @return number of elements in the set
  *  @internal ICU 3.0
  */
-U_CAPI int32_t U_EXPORT2
+U_INTERNAL int32_t U_EXPORT2
 ucol_getUnsafeSet( const UCollator *coll,
                   USet *unsafe,
                   UErrorCode *status);
