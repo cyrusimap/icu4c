@@ -106,38 +106,9 @@ NumberFormatRegressionTest::failure(UErrorCode status, const UnicodeString& msg)
 /**
  * Convert Java-style strings with \u Unicode escapes into UnicodeString objects
  */
-static UnicodeString str(const char *input)
+inline UnicodeString str(const char *input)
 {
-  static const UnicodeString digitString1("0123456789ABCDEF");
-  static const UnicodeString digitString2("0123456789abcdef");
-  
-  UnicodeString result(input);
-  int index = 0;
-  
-  while ((index = result.indexOf("\\u")) != -1)
-    {
-      if (index + 6 <= result.length())
-    {
-      UChar c = 0;
-      for (int i = index + 2; i < index + 6; i++) {
-        UTextOffset value = digitString1.indexOf(result[i]);
-        
-        if (value == -1) {
-          value = digitString2.indexOf(result[i]);
-        }
-        c = (UChar)(c * 16 + value);
-      }
-      UnicodeString replace;
-      replace += c;
-      result.replace(index, 6, replace);
-    }
-      index += 1;
-    }
-
-  //cout << "Converted |" << input << "| to ";
-  //print(result,"");
-
-  return result;
+  return CharsToUnicodeString(input);
 }
 
 /* @bug 4075713
@@ -1153,7 +1124,9 @@ void NumberFormatRegressionTest::Test4061302(void)
         monDecSeparator == 0x0000) {
         errln("getCurrencySymbols failed, got empty string.");
     }
-    logln("Before set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparator);
+    UnicodeString monDecSeparatorStr;
+    monDecSeparatorStr.append(monDecSeparator);
+    logln((UnicodeString)"Before set ==> Currency : " + currency +(UnicodeString)" Intl Currency : " + intlCurrency + (UnicodeString)" Monetary Decimal Separator : " + monDecSeparatorStr);
     fmt->setCurrencySymbol(UnicodeString("XYZ"));
     fmt->setInternationalCurrencySymbol(UnicodeString("ABC"));
     fmt->setMonetaryDecimalSeparator(0x002A/*'*'*/);
@@ -1165,7 +1138,9 @@ void NumberFormatRegressionTest::Test4061302(void)
         monDecSeparator != 0x002A/*'*'*/) {
         errln("setCurrencySymbols failed.");
     }
-    logln("After set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparator);
+    monDecSeparatorStr.remove();
+    monDecSeparatorStr.append(monDecSeparator);
+    logln("After set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparatorStr);
 
     delete fmt;
 }
@@ -1789,15 +1764,15 @@ void
 NumberFormatRegressionTest::Test4162198(void) 
 {
     // for some reason, DBL_MAX will not round trip. (bug in sprintf/atof)
-    double dbl = LONG_MAX * 1000.0;
+    double dbl = INT32_MAX * 1000.0;
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *f = NumberFormat::createInstance(status);
     if(U_FAILURE(status)) {
         errln("Couldn't create number format");
         return;
     }
-    f->setMaximumFractionDigits(LONG_MAX);
-    f->setMaximumIntegerDigits(LONG_MAX);
+    f->setMaximumFractionDigits(INT32_MAX);
+    f->setMaximumIntegerDigits(INT32_MAX);
     UnicodeString s;
     f->format(dbl,s);
     logln(UnicodeString("The number ") + dbl + " formatted to " + s);
@@ -2008,12 +1983,12 @@ void NumberFormatRegressionTest::Test4212072(void) {
     sym.setMinusSign(0x5e);
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format((int32_t)-1, s, pos) != UnicodeString("^1")) {
+    if (fmt.format((int32_t)-1, s, pos) != UNICODE_STRING("^1", 2)) {
         errln(UnicodeString("FAIL: -1 x (minus=^) -> ") + s +
               ", exp ^1");
     }
     s.remove();
-    if (fmt.getNegativePrefix(s) != UnicodeString("^")) {
+    if (fmt.getNegativePrefix(s) != UnicodeString((UChar)0x5e)) {
         errln(UnicodeString("FAIL: (minus=^).getNegativePrefix -> ") +
               s + ", exp ^");
     }
@@ -2024,12 +1999,12 @@ void NumberFormatRegressionTest::Test4212072(void) {
     sym.setPercent(0x5e);
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format(0.25, s, pos) != UnicodeString("25^")) {
+    if (fmt.format(0.25, s, pos) != UNICODE_STRING("25^", 3)) {
         errln(UnicodeString("FAIL: 0.25 x (percent=^) -> ") + s +
               ", exp 25^");
     }
     s.remove();
-    if (fmt.getPositiveSuffix(s) != UnicodeString("^")) {
+    if (fmt.getPositiveSuffix(s) != UnicodeString((UChar)0x5e)) {
         errln(UnicodeString("FAIL: (percent=^).getPositiveSuffix -> ") +
               s + ", exp ^");
     }
@@ -2040,12 +2015,12 @@ void NumberFormatRegressionTest::Test4212072(void) {
     sym.setPerMill(0x5e);
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format(0.25, s, pos) != UnicodeString("250^")) {
+    if (fmt.format(0.25, s, pos) != UNICODE_STRING("250^", 4)) {
         errln(UnicodeString("FAIL: 0.25 x (permill=^) -> ") + s +
               ", exp 250^");
     }
     s.remove();
-    if (fmt.getPositiveSuffix(s) != UnicodeString("^")) {
+    if (fmt.getPositiveSuffix(s) != UnicodeString((UChar)0x5e)) {
         errln(UnicodeString("FAIL: (permill=^).getPositiveSuffix -> ") +
               s + ", exp ^");
     }
@@ -2163,7 +2138,7 @@ void NumberFormatRegressionTest::Test4216742(void) {
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *fmt = (DecimalFormat*) NumberFormat::createInstance(Locale::US, status);
     failure(status, "createInstance");
-    int32_t DATA[] = { LONG_MIN, LONG_MAX, -100000000, 100000000 };
+    int32_t DATA[] = { INT32_MIN, INT32_MAX, -100000000, 100000000 };
     int DATA_length = sizeof(DATA) / sizeof(DATA[0]);
     for (int i=0; i<DATA_length; ++i) {
         char buf[64];
