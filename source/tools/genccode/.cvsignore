@@ -1,9 +1,0 @@
-tmp
-Debug
-Release
-Makefile
-*.d
-*.pdb
-genccode
-*.plg
-
