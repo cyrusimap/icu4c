@@ -76,10 +76,6 @@ public:
      * with the word before it
      **/
     void TestMaiyamok(void);
-     /**
-     * Test Thai word break using generalIteratorTest()
-     **/
-    void TestThaiWordBreak(void);
     /**
      * test behaviour of BreakIterator on an empty string
      **/
