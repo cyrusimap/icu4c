@@ -11,7 +11,7 @@
 *
 *   Created by: Vladimir Weinstein
 *
-*  Contains all the important version numbers for ICU. 
+*  Contains all the important version numbers for ICU.
 *  Gets included by utypes.h and Windows .rc files
 */
 
@@ -39,7 +39,7 @@
 
 /** The standard copyright notice that gets compiled into each library. */
 #define U_COPYRIGHT_STRING \
-  " Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved. "
+  " Copyright (C) 2002, International Business Machines Corporation and others. All Rights Reserved. "
 
 #define U_COPYRIGHT_STRING_LENGTH  128
 
@@ -50,14 +50,14 @@
 #define U_ICU_VERSION_MINOR_NUM 0
 
 /** The current ICU patchlevel version as an integer. */
-#define U_ICU_VERSION_PATCHLEVEL_NUM 0
+#define U_ICU_VERSION_PATCHLEVEL_NUM 3
 
 /** Glued version suffix for renamers */
 #define U_ICU_VERSION_SUFFIX _2_0
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
     only appears in this string if it non-zero. */
-#define U_ICU_VERSION "2.0"
+#define U_ICU_VERSION "2.0.3"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. */
 #define U_ICU_VERSION_SHORT "20"

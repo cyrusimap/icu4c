@@ -1,3 +1,52 @@
+icu (2.0.2-1) unstable; urgency=low
+
+  * Minor release of ICU with fixes for threading and strTo/FromWCS
+
+ -- Yves Arrouye <yves@debian.org>  Tue,  2 Apr 2002 09:06:00 -0800
+
+icu (2.1-1) unstable; urgency=low
+
+  * Update to ICU version 2.1. (This comment is generated.)
+
+ -- Yves Arrouye <yves@debian.org>  Tue, 19 Mar 2002 18:40:16 -0800
+
+icu (2.0-2.1pre20020318-1) unstable; urgency=low
+
+  * Use the library number in the development package too.
+  * ICU changed to version 2.1.
+
+ -- Yves Arrouye <yves@debian.org>  Tue, 19 Mar 2002 18:38:37 -0800
+
+icu (2.0-2.1pre20020303-1) unstable; urgency=low
+
+  * Fixed a crash in uconv when no argument is passed to -f or -t.
+  * Other upstream changes.
+  * Fresh upload with an up to date orig tar file so that future
+    diffs won't be 6 megabytes long!
+
+ -- Yves Arrouye <yves@debian.org>  Sun,  3 Mar 2002 15:31:13 -0800
+
+icu (2.0-2.1pre-1) unstable; urgency=low
+
+  * Prerelease of 2.1 with a working upgraded uconv(1).
+
+ -- Yves Arrouye <yves@debian.org>  Fri,  1 Mar 2002 21:51:47 -0800
+
+icu (2.0-3) unstable; urgency=low
+
+  * Renamed doc-base to icu-doc.doc-base. Closes: 127487
+
+ -- Yves Arrouye <yves@debian.org>  Fri, 18 Jan 2002 22:33:53 -0800
+
+icu (2.0-2) unstable; urgency=low
+
+  * Fixed a bug in uprv_uca_cloneTempTable().  Closes: 128484
+  * Update Debian bugs status.  Closes: 104642
+  * Use the official 2.0 tarball as the original tar.
+  * Added manual pages for every tool.
+
+ -- Yves Arrouye <yves@debian.org>  Wed, 16 Jan 2002 20:45:42 -0800
+
 icu (2.0-1) unstable; urgency=low
 
   * Update to ICU version 2.0.
