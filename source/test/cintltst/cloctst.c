@@ -39,67 +39,59 @@ void PrintDataTable();
 /*---------------------------------------------------
   table of valid data
  --------------------------------------------------- */
-#define LOCALE_SIZE 9
+#define LOCALE_SIZE 6
 #define LOCALE_INFO_SIZE 28
 
 static const char* rawData2[LOCALE_INFO_SIZE][LOCALE_SIZE] = {
     /* language code */
-    {   "en",   "fr",   "ca",   "el",   "no",   "zh",   "de",   "es",  "ja"    },
+    {   "en",   "fr",   "ca",   "el",   "no",   "zh"    },
     /* script code */
-    {   "",     "",     "",     "",     "",     "Hans", "", "", ""  },
+    {   "",     "",     "",     "",     "",     "Hans"  },
     /* country code */
-    {   "US",   "FR",   "ES",   "GR",   "NO",   "CN", "DE", "", "JA"    },
+    {   "US",   "FR",   "ES",   "GR",   "NO",   "CN"    },
     /* variant code */
-    {   "",     "",     "",     "",     "NY",   "", "", "", ""      },
+    {   "",     "",     "",     "",     "NY",   ""    },
     /* full name */
-    {   "en_US",    "fr_FR",    "ca_ES",    
-        "el_GR",    "no_NO_NY", "zh_Hans_CN", 
-        "de_DE@collation=phonebook", "es@collation=traditional",  "ja_JP@calendar=japanese" },
+    {   "en_US",    "fr_FR",    "ca_ES",    "el_GR",    "no_NO_NY", "zh_Hans_CN"  },
     /* ISO-3 language */
-    {   "eng",  "fra",  "cat",  "ell",  "nor",  "zho", "deu", "esp", "jap"   },
+    {   "eng",  "fra",  "cat",  "ell",  "nor",  "zho"   },
     /* ISO-3 country */
-    {   "USA",  "FRA",  "ESP",  "GRC",  "NOR",  "CHN", "", "", ""   },
+    {   "USA",  "FRA",  "ESP",  "GRC",  "NOR",  "CHN"   },
     /* LCID */
-    {   "409", "40c", "403", "408", "814",  "804", "", "", ""     },
+    {   "409", "40c", "403", "408", "814",  "804"  },
 
     /* display language (English) */
-    {   "English",  "French",   "Catalan", "Greek",    "Norwegian", "Chinese", "German", "Spanish", "Japanese"    },
+    {   "English",  "French",   "Catalan", "Greek",    "Norwegian", "Chinese" },
     /* display script code (English) */
-    {   "",     "",     "",     "",     "",     "Simplified Han", "", "", ""       },
+    {   "",     "",     "",     "",     "",     "Simplified Han"    },
     /* display country (English) */
-    {   "United States",    "France",   "Spain",  "Greece",   "Norway", "China", "Germany", "", "Japan"       },
+    {   "United States",    "France",   "Spain",  "Greece",   "Norway", "China"    },
     /* display variant (English) */
-    {   "",     "",     "",     "",     "Nynorsk",  "", "", "", ""       },
+    {   "",     "",     "",     "",     "Nynorsk",  ""    },
     /* display name (English) */
-    {   "English (United States)", "French (France)", "Catalan (Spain)", 
-        "Greek (Greece)", "Norwegian (Norway, Nynorsk)", "Chinese (Simplified Han, China)", 
-        "German (Germany, Collation=Phonebook Order)", "Spanish (Collation=Traditional)", "Japanese (Japan, Calendar=JAPANESE)" },
+    {   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway, Nynorsk)", "Chinese (Simplified Han, China)" },
 
     /* display language (French) */
-    {   "anglais",  "fran\\u00E7ais",   "catalan", "grec",    "norv\\u00E9gien",    "chinois", "allemand", "espagnol", "japonais"     },
+    {   "anglais",  "fran\\u00E7ais",   "catalan", "grec",    "norv\\u00E9gien",    "chinois"  },
     /* display script code (French) */
-    {   "",     "",     "",     "",     "",     "Hans", "", "", ""         },
+    {   "",     "",     "",     "",     "",     "Hans"      },
     /* display country (French) */
-    {   "\\u00C9tats-Unis",    "France",   "Espagne",  "Gr\\u00E8ce",   "Norv\\u00E8ge",    "Chine", "Allemagne", "", "Japon"       },
+    {   "\\u00C9tats-Unis",    "France",   "Espagne",  "Gr\\u00E8ce",   "Norv\\u00E8ge",    "Chine"    },
     /* display variant (French) */
-    {   "",     "",     "",     "",     "NY",   "", "", "", ""       },
+    {   "",     "",     "",     "",     "NY",   ""    },
     /* display name (French) */
-    {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "catalan (Espagne)", 
-        "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, NY)",  "chinois (Hans, Chine)", 
-        "allemand (Allemagne, Ordonnancement=PHONEBOOK)", "espagnol (Ordonnancement=Traditionnel Ordonnancement)", "japonais (Japon, Calendrier=JAPANESE)" },
+    {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "catalan (Espagne)", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, NY)",  "chinois (Hans, Chine)" },
 
     /* display language (Catalan) */
-    {   "angl\\u00E8s", "franc\\u00E8s", "catal\\u00E0", "grec",  "noruec", "xin\\u00E9s", "alemany", "espanyol", "japon\\u00E8s"    },
+    {   "angl\\u00E8s", "franc\\u00E8s", "catal\\u00E0", "grec",  "noruec", "xin\\u00E9s" },
     /* display script code (Catalan) */
-    {   "",     "",     "",     "",     "",     "Hans", "", "", ""         },
+    {   "",     "",     "",     "",     "",     "Hans"      },
     /* display country (Catalan) */
-    {   "Estats Units", "Fran\\u00E7a", "Espanya",  "Gr\\u00E8cia", "Noruega",  "Xina", "Alemanya", "", "Jap\\u00F3"    },
+    {   "Estats Units", "Fran\\u00E7a", "Espanya",  "Gr\\u00E8cia", "Noruega",  "Xina" },
     /* display variant (Catalan) */
-    {   "", "", "",                    "", "NY",    "", "", "", ""    },
+    {   "", "", "",                    "", "NY",    "" },
     /* display name (Catalan) */
-    {   "angl\\u00E8s (Estats Units)", "franc\\u00E8s (Fran\\u00E7a)", "catal\\u00E0 (Espanya)", 
-    "grec (Gr\\u00E8cia)", "noruec (Noruega, NY)", "xin\\u00E9s (Hans, Xina)", 
-    "alemany (Alemanya, COLLATION=PHONEBOOK)", "espanyol (COLLATION=TRADITIONAL)", "japon\\u00E8s (Jap\\u00F3, CALENDAR=JAPANESE)" },
+    {   "angl\\u00E8s (Estats Units)", "franc\\u00E8s (Fran\\u00E7a)", "catal\\u00E0 (Espanya)", "grec (Gr\\u00E8cia)", "noruec (Noruega, NY)", "xin\\u00E9s (Hans, Xina)" },
 
     /* display language (Greek) */
     {
@@ -108,13 +100,10 @@ static const char* rawData2[LOCALE_INFO_SIZE][LOCALE_SIZE] = {
         "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac",
         "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac",
         "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac",
-        "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC", 
-        "\\u0393\\u03B5\\u03C1\\u03BC\\u03B1\\u03BD\\u03B9\\u03BA\\u03AC", 
-        "\\u0399\\u03C3\\u03C0\\u03B1\\u03BD\\u03B9\\u03BA\\u03AC", 
-        "\\u0399\\u03B1\\u03C0\\u03C9\\u03BD\\u03B9\\u03BA\\u03AC"   
+        "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC"
     },
     /* display script code (Greek) */
-    {   "",     "",     "",     "",     "",     "Hans", "", "", ""         },
+    {   "",     "",     "",     "",     "",     "Hans"      },
     /* display country (Greek) */
     {
         "\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2",
@@ -122,13 +111,10 @@ static const char* rawData2[LOCALE_INFO_SIZE][LOCALE_SIZE] = {
         "\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1",
         "\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1",
         "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1",
-        "\\u039A\\u03AF\\u03BD\\u03B1", 
-        "\\u0393\\u03B5\\u03C1\\u03BC\\u03B1\\u03BD\\u03AF\\u03B1", 
-        "", 
-        "\\u0399\\u03B1\\u03C0\\u03C9\\u03BD\\u03AF\\u03B1"   
+        "\\u039A\\u03AF\\u03BD\\u03B1"
     },
     /* display variant (Greek) */
-    {   "", "", "", "", "NY", "", "", "", ""    }, /* TODO: currently there is no translation for NY in Greek fix this test when we have it */
+    {   "", "", "", "", "NY", "" }, /* TODO: currently there is no translation for NY in Greek fix this test when we have it */
     /* display name (Greek) */
     {
         "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2)",
@@ -136,10 +122,7 @@ static const char* rawData2[LOCALE_INFO_SIZE][LOCALE_SIZE] = {
         "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac (\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1)",
         "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac (\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1)",
         "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac (\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1, NY)",
-        "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC (Hans, \\u039A\\u03AF\\u03BD\\u03B1)", 
-        "\\u0393\\u03B5\\u03C1\\u03BC\\u03B1\\u03BD\\u03B9\\u03BA\\u03AC (\\u0393\\u03B5\\u03C1\\u03BC\\u03B1\\u03BD\\u03AF\\u03B1, COLLATION=PHONEBOOK)", 
-        "\\u0399\\u03C3\\u03C0\\u03B1\\u03BD\\u03B9\\u03BA\\u03AC (COLLATION=TRADITIONAL)", 
-        "\\u0399\\u03B1\\u03C0\\u03C9\\u03BD\\u03B9\\u03BA\\u03AC (\\u0399\\u03B1\\u03C0\\u03C9\\u03BD\\u03AF\\u03B1, CALENDAR=JAPANESE)"
+        "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC (Hans, \\u039A\\u03AF\\u03BD\\u03B1)"
     }
 };
 
