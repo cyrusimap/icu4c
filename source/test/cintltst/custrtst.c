@@ -19,6 +19,7 @@
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/uloc.h"
+#include "unicode/ucnv.h"
 #include "unicode/uiter.h"
 #include "cintltst.h"
 #include "cucdtst.h"
@@ -39,6 +40,7 @@ static void TestSurrogateSearching(void);
 static void TestUnescape(void);
 static void TestCountChar32(void);
 static void TestUCharIterator(void);
+static void TestUNormIterator(void);
 
 void addUStringTest(TestNode** root)
 {
@@ -49,6 +51,7 @@ void addUStringTest(TestNode** root)
     addTest(root, &TestUnescape, "tsutil/custrtst/TestUnescape");
     addTest(root, &TestCountChar32, "tsutil/custrtst/TestCountChar32");
     addTest(root, &TestUCharIterator, "tsutil/custrtst/TestUCharIterator");
+    addTest(root, &TestUNormIterator, "tsutil/custrtst/TestUNormIterator");
 
     /* cstrcase.c functions, declared in cucdtst.h */
     addTest(root, &TestCaseLower, "tsutil/custrtst/TestCaseLower");
@@ -432,7 +435,9 @@ static void TestStringFunctions()
             { 0xd800, 0xdc02, 0 },          /* U+10002 */
             { 0xd84d, 0xdc56, 0 }           /* U+23456 */
         };
-        int32_t len1, len2;
+
+        UCharIterator iter1, iter2;
+        int32_t len1, len2, r1, r2;
 
         for(i=0; i<(sizeof(strings)/sizeof(strings[0])-1); ++i) {
             if(u_strcmpCodePointOrder(strings[i], strings[i+1])>=0) {
@@ -459,8 +464,21 @@ static void TestStringFunctions()
             }
 
             /* test u_strCompare(FALSE) */
-            if(_SIGN(u_strCompare(strings[i], -1, strings[i+1], -1, FALSE))!=_SIGN(u_strcmp(strings[i], strings[i+1]))) {
+            r1=u_strCompare(strings[i], -1, strings[i+1], -1, FALSE);
+            r2=u_strcmp(strings[i], strings[i+1]);
+            if(_SIGN(r1)!=_SIGN(r2)) {
                 log_err("error: u_strCompare(code unit order)!=u_strcmp() for string %d and the following one\n", i);
+            }
+
+            /* test u_strCompareIter() */
+            uiter_setString(&iter1, strings[i], len1);
+            uiter_setString(&iter2, strings[i+1], len2);
+            if(u_strCompareIter(&iter1, &iter2, TRUE)>=0) {
+                log_err("error: u_strCompareIter(code point order) fails for string %d and the following one\n", i);
+            }
+            r1=u_strCompareIter(&iter1, &iter2, FALSE);
+            if(_SIGN(r1)!=_SIGN(u_strcmp(strings[i], strings[i+1]))) {
+                log_err("error: u_strCompareIter(code unit order)!=u_strcmp() for string %d and the following one\n", i);
             }
         }
     }
@@ -1173,9 +1191,270 @@ TestCountChar32() {
 
 /* UCharIterator ------------------------------------------------------------ */
 
+/*
+ * Compare results from two iterators, should be same.
+ * Assume that the text is not empty and that
+ * iteration start==0 and iteration limit==length.
+ */
+static void
+compareIterators(UCharIterator *iter1, const char *n1,
+                 UCharIterator *iter2, const char *n2) {
+    int32_t i, pos1, pos2, middle, length;
+    UChar32 c1, c2;
+
+    /* compare lengths */
+    length=iter1->getIndex(iter1, UITER_LENGTH);
+    pos2=iter2->getIndex(iter2, UITER_LENGTH);
+    if(length!=pos2) {
+        log_err("%s->getIndex(length)=%d != %d=%s->getIndex(length)\n", n1, length, pos2, n2);
+        return;
+    }
+
+    /* set into the middle */
+    middle=length/2;
+
+    pos1=iter1->move(iter1, middle, UITER_ZERO);
+    if(pos1!=middle) {
+        log_err("%s->move(from 0 to middle %d)=%d does not move to the middle\n", n1, middle, pos1);
+        return;
+    }
+
+    pos2=iter2->move(iter2, middle, UITER_ZERO);
+    if(pos2!=middle) {
+        log_err("%s->move(from 0 to middle %d)=%d does not move to the middle\n", n2, middle, pos2);
+        return;
+    }
+
+    /* test current() */
+    c1=iter1->current(iter1);
+    c2=iter2->current(iter2);
+    if(c1!=c2) {
+        log_err("%s->current()=U+%04x != U+%04x=%s->current() at middle=%d\n", n1, c1, c2, n2, middle);
+        return;
+    }
+
+    /* move forward 3 UChars */
+    for(i=0; i<3; ++i) {
+        c1=iter1->next(iter1);
+        c2=iter2->next(iter2);
+        if(c1!=c2) {
+            log_err("%s->next()=U+%04x != U+%04x=%s->next() at %d (started in middle)\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    }
+
+    /* move backward 5 UChars */
+    for(i=0; i<5; ++i) {
+        c1=iter1->previous(iter1);
+        c2=iter2->previous(iter2);
+        if(c1!=c2) {
+            log_err("%s->previous()=U+%04x != U+%04x=%s->previous() at %d (started in middle)\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    }
+
+    /* iterate forward from the beginning */
+    pos1=iter1->move(iter1, 0, UITER_START);
+    if(pos1<0) {
+        log_err("%s->move(start) failed\n", n1);
+        return;
+    }
+    if(!iter1->hasNext(iter1)) {
+        log_err("%s->hasNext() at the start returns FALSE\n", n1);
+        return;
+    }
+
+    pos2=iter2->move(iter2, 0, UITER_START);
+    if(pos2<0) {
+        log_err("%s->move(start) failed\n", n2);
+        return;
+    }
+    if(!iter2->hasNext(iter2)) {
+        log_err("%s->hasNext() at the start returns FALSE\n", n2);
+        return;
+    }
+
+    do {
+        c1=iter1->next(iter1);
+        c2=iter2->next(iter2);
+        if(c1!=c2) {
+            log_err("%s->next()=U+%04x != U+%04x=%s->next() at %d\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    } while(c1>=0);
+
+    if(iter1->hasNext(iter1)) {
+        log_err("%s->hasNext() at the end returns TRUE\n", n1);
+        return;
+    }
+    if(iter2->hasNext(iter2)) {
+        log_err("%s->hasNext() at the end returns TRUE\n", n2);
+        return;
+    }
+
+    /* back to the middle */
+    pos1=iter1->move(iter1, middle, UITER_ZERO);
+    if(pos1!=middle) {
+        log_err("%s->move(from end to middle %d)=%d does not move to the middle\n", n1, middle, pos1);
+        return;
+    }
+
+    pos2=iter2->move(iter2, middle, UITER_ZERO);
+    if(pos2!=middle) {
+        log_err("%s->move(from end to middle %d)=%d does not move to the middle\n", n2, middle, pos2);
+        return;
+    }
+
+    /* move to index 1 */
+    pos1=iter1->move(iter1, 1, UITER_ZERO);
+    if(pos1!=1) {
+        log_err("%s->move(from middle %d to 1)=%d does not move to 1\n", n1, middle, pos1);
+        return;
+    }
+
+    pos2=iter2->move(iter2, 1, UITER_ZERO);
+    if(pos2!=1) {
+        log_err("%s->move(from middle %d to 1)=%d does not move to 1\n", n2, middle, pos2);
+        return;
+    }
+
+    /* iterate backward from the end */
+    pos1=iter1->move(iter1, 0, UITER_LIMIT);
+    if(pos1<0) {
+        log_err("%s->move(limit) failed\n", n1);
+        return;
+    }
+    if(!iter1->hasPrevious(iter1)) {
+        log_err("%s->hasPrevious() at the end returns FALSE\n", n1);
+        return;
+    }
+
+    pos2=iter2->move(iter2, 0, UITER_LIMIT);
+    if(pos2<0) {
+        log_err("%s->move(limit) failed\n", n2);
+        return;
+    }
+    if(!iter2->hasPrevious(iter2)) {
+        log_err("%s->hasPrevious() at the end returns FALSE\n", n2);
+        return;
+    }
+
+    do {
+        c1=iter1->previous(iter1);
+        c2=iter2->previous(iter2);
+        if(c1!=c2) {
+            log_err("%s->previous()=U+%04x != U+%04x=%s->previous() at %d\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    } while(c1>=0);
+
+    if(iter1->hasPrevious(iter1)) {
+        log_err("%s->hasPrevious() at the start returns TRUE\n", n1);
+        return;
+    }
+    if(iter2->hasPrevious(iter2)) {
+        log_err("%s->hasPrevious() at the start returns TRUE\n", n2);
+        return;
+    }
+}
+
+/*
+ * Test the iterator's getState() and setState() functions.
+ * iter1 and iter2 must be set up for the same iterator type and the same string
+ * but may be physically different structs (different addresses).
+ *
+ * Assume that the text is not empty and that
+ * iteration start==0 and iteration limit==length.
+ * It must be 2<=middle<=length-2.
+ */
+static void
+testIteratorState(UCharIterator *iter1, UCharIterator *iter2, const char *n, int32_t middle) {
+    UChar32 u[4];
+
+    UErrorCode errorCode;
+    UChar32 c;
+    uint32_t state;
+    int32_t i, j;
+
+    /* get four UChars from the middle of the string */
+    iter1->move(iter1, middle-2, UITER_ZERO);
+    for(i=0; i<4; ++i) {
+        c=iter1->next(iter1);
+        if(c<0) {
+            /* the test violates the assumptions, see comment above */
+            log_err("test error: %s[%d]=%d\n", n, middle-2+i, c);
+            return;
+        }
+        u[i]=c;
+    }
+
+    /* move to the middle and get the state */
+    iter1->move(iter1, -2, UITER_CURRENT);
+    state=uiter_getState(iter1);
+
+    /* set the state into the second iterator and compare the results */
+    errorCode=U_ZERO_ERROR;
+    uiter_setState(iter2, state, &errorCode);
+    if(U_FAILURE(errorCode)) {
+        log_err("%s->setState(0x%x) failed: %s\n", n, state, u_errorName(errorCode));
+        return;
+    }
+
+    c=iter2->current(iter2);
+    if(c!=u[2]) {
+        log_err("%s->current(at %d)=U+%04x!=U+%04x\n", n, middle, c, u[2]);
+    }
+
+    c=iter2->previous(iter2);
+    if(c!=u[1]) {
+        log_err("%s->previous(at %d)=U+%04x!=U+%04x\n", n, middle-1, c, u[1]);
+    }
+
+    iter2->move(iter2, 2, UITER_CURRENT);
+    c=iter2->next(iter2);
+    if(c!=u[3]) {
+        log_err("%s->next(at %d)=U+%04x!=U+%04x\n", n, middle+1, c, u[3]);
+    }
+
+    iter2->move(iter2, -3, UITER_CURRENT);
+    c=iter2->previous(iter2);
+    if(c!=u[0]) {
+        log_err("%s->previous(at %d)=U+%04x!=U+%04x\n", n, middle-2, c, u[0]);
+    }
+
+    /* move the second iterator back to the middle */
+    iter2->move(iter2, 1, UITER_CURRENT);
+    iter2->next(iter2);
+
+    /* check that both are in the middle */
+    i=iter1->getIndex(iter1, UITER_CURRENT);
+    j=iter2->getIndex(iter2, UITER_CURRENT);
+    if(i!=middle) {
+        log_err("%s->getIndex(current)=%d!=%d as expected\n", n, i, middle);
+    }
+    if(i!=j) {
+        log_err("%s->getIndex(current)=%d!=%d after setState()\n", n, j, i);
+    }
+
+    /* compare lengths */
+    i=iter1->getIndex(iter1, UITER_LENGTH);
+    j=iter2->getIndex(iter2, UITER_LENGTH);
+    if(i!=j) {
+        log_err("%s->getIndex(length)=%d!=%d before/after setState()\n", n, i, j);
+    }
+}
+
 static void
 TestUCharIterator() {
-    UCharIterator iter;
+    static const UChar text[]={
+        0x61, 0x62, 0x63, 0xd801, 0xdffd, 0x78, 0x79, 0x7a, 0
+    };
+    char bytes[40];
+
+    UCharIterator iter, iter1, iter2;
+    UConverter *cnv;
+    UErrorCode errorCode;
+    int32_t length;
 
     /* simple API/code coverage - test NOOP UCharIterator */
     uiter_setString(&iter, NULL, 0);
@@ -1185,4 +1464,308 @@ TestUCharIterator() {
     ) {
         log_err("NOOP UCharIterator behaves unexpectedly\n");
     }
+
+    /* test get/set state */
+    length=LENGTHOF(text)-1;
+    uiter_setString(&iter1, text, -1);
+    uiter_setString(&iter2, text, length);
+    testIteratorState(&iter1, &iter2, "UTF16IteratorState", length/2);
+    testIteratorState(&iter1, &iter2, "UTF16IteratorStatePlus1", length/2+1);
+
+    /* compare the same string between UTF-16 and UTF-8 UCharIterators ------ */
+    errorCode=U_ZERO_ERROR;
+    u_strToUTF8(bytes, sizeof(bytes), &length, text, -1, &errorCode);
+    if(U_FAILURE(errorCode)) {
+        log_err("u_strToUTF8() failed, %s\n", u_errorName(errorCode));
+        return;
+    }
+
+    uiter_setString(&iter1, text, -1);
+    uiter_setUTF8(&iter2, bytes, length);
+    compareIterators(&iter1, "UTF16Iterator", &iter2, "UTF8Iterator");
+
+    /* try again with length=-1 */
+    uiter_setUTF8(&iter2, bytes, -1);
+    compareIterators(&iter1, "UTF16Iterator", &iter2, "UTF8Iterator_1");
+
+    /* test get/set state */
+    length=LENGTHOF(text)-1;
+    uiter_setUTF8(&iter1, bytes, -1);
+    testIteratorState(&iter1, &iter2, "UTF8IteratorState", length/2);
+    testIteratorState(&iter1, &iter2, "UTF8IteratorStatePlus1", length/2+1);
+
+    /* compare the same string between UTF-16 and UTF-16BE UCharIterators --- */
+    errorCode=U_ZERO_ERROR;
+    cnv=ucnv_open("UTF-16BE", &errorCode);
+    length=ucnv_fromUChars(cnv, bytes, sizeof(bytes), text, -1, &errorCode);
+    ucnv_close(cnv);
+    if(U_FAILURE(errorCode)) {
+        log_err("ucnv_fromUChars(UTF-16BE) failed, %s\n", u_errorName(errorCode));
+        return;
+    }
+
+    /* terminate with a _pair_ of 0 bytes - a UChar NUL in UTF-16BE (length is known to be ok) */
+    bytes[length]=bytes[length+1]=0;
+
+    uiter_setString(&iter1, text, -1);
+    uiter_setUTF16BE(&iter2, bytes, length);
+    compareIterators(&iter1, "UTF16Iterator", &iter2, "UTF16BEIterator");
+
+    /* try again with length=-1 */
+    uiter_setUTF16BE(&iter2, bytes, -1);
+    compareIterators(&iter1, "UTF16Iterator", &iter2, "UTF16BEIterator_1");
+
+    /* try again after moving the bytes up one, and with length=-1 */
+    memmove(bytes+1, bytes, length+2);
+    uiter_setUTF16BE(&iter2, bytes+1, -1);
+    compareIterators(&iter1, "UTF16Iterator", &iter2, "UTF16BEIteratorMoved1");
+
+    /* ### TODO test other iterators: CharacterIterator, Replaceable */
 }
+
+#if UCONFIG_NO_COLLATION
+
+static void
+TestUNormIterator() {
+    /* test nothing */
+}
+
+#else
+
+#include "unicode/unorm.h"
+#include "unorm_it.h"
+
+/*
+ * Compare results from two iterators, should be same.
+ * Assume that the text is not empty and that
+ * iteration start==0 and iteration limit==length.
+ *
+ * Modified version of compareIterators() but does not assume that indexes
+ * are available.
+ */
+static void
+compareIterNoIndexes(UCharIterator *iter1, const char *n1,
+                     UCharIterator *iter2, const char *n2,
+                     int32_t middle) {
+    uint32_t state;
+    int32_t i;
+    UChar32 c1, c2;
+    UErrorCode errorCode;
+
+    /* set into the middle */
+    iter1->move(iter1, middle, UITER_ZERO);
+    iter2->move(iter2, middle, UITER_ZERO);
+
+    /* test current() */
+    c1=iter1->current(iter1);
+    c2=iter2->current(iter2);
+    if(c1!=c2) {
+        log_err("%s->current()=U+%04x != U+%04x=%s->current() at middle=%d\n", n1, c1, c2, n2, middle);
+        return;
+    }
+
+    /* move forward 3 UChars */
+    for(i=0; i<3; ++i) {
+        c1=iter1->next(iter1);
+        c2=iter2->next(iter2);
+        if(c1!=c2) {
+            log_err("%s->next()=U+%04x != U+%04x=%s->next() at %d (started in middle)\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    }
+
+    /* move backward 5 UChars */
+    for(i=0; i<5; ++i) {
+        c1=iter1->previous(iter1);
+        c2=iter2->previous(iter2);
+        if(c1!=c2) {
+            log_err("%s->previous()=U+%04x != U+%04x=%s->previous() at %d (started in middle)\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    }
+
+    /* iterate forward from the beginning */
+    iter1->move(iter1, 0, UITER_START);
+    if(!iter1->hasNext(iter1)) {
+        log_err("%s->hasNext() at the start returns FALSE\n", n1);
+        return;
+    }
+
+    iter2->move(iter2, 0, UITER_START);
+    if(!iter2->hasNext(iter2)) {
+        log_err("%s->hasNext() at the start returns FALSE\n", n2);
+        return;
+    }
+
+    do {
+        c1=iter1->next(iter1);
+        c2=iter2->next(iter2);
+        if(c1!=c2) {
+            log_err("%s->next()=U+%04x != U+%04x=%s->next() at %d\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    } while(c1>=0);
+
+    if(iter1->hasNext(iter1)) {
+        log_err("%s->hasNext() at the end returns TRUE\n", n1);
+        return;
+    }
+    if(iter2->hasNext(iter2)) {
+        log_err("%s->hasNext() at the end returns TRUE\n", n2);
+        return;
+    }
+
+    /* back to the middle */
+    iter1->move(iter1, middle, UITER_ZERO);
+    iter2->move(iter2, middle, UITER_ZERO);
+
+    /* try get/set state */
+    while((state=uiter_getState(iter2))==UITER_NO_STATE) {
+        if(!iter2->hasNext(iter2)) {
+            log_err("%s has no known state from middle=%d to the end\n", n2, middle);
+            return;
+        }
+        iter2->next(iter2);
+    }
+
+    errorCode=U_ZERO_ERROR;
+
+    c2=iter2->current(iter2);
+    iter2->move(iter2, 0, UITER_ZERO);
+    uiter_setState(iter2, state, &errorCode);
+    c1=iter2->current(iter2);
+    if(U_FAILURE(errorCode) || c1!=c2) {
+        log_err("%s->current() differs across get/set state, U+%04x vs. U+%04x\n", n2, c2, c1);
+        return;
+    }
+
+    c2=iter2->previous(iter2);
+    iter2->move(iter2, 0, UITER_ZERO);
+    uiter_setState(iter2, state, &errorCode);
+    c1=iter2->previous(iter2);
+    if(U_FAILURE(errorCode) || c1!=c2) {
+        log_err("%s->previous() differs across get/set state, U+%04x vs. U+%04x\n", n2, c2, c1);
+        return;
+    }
+
+    /* iterate backward from the end */
+    iter1->move(iter1, 0, UITER_LIMIT);
+    if(!iter1->hasPrevious(iter1)) {
+        log_err("%s->hasPrevious() at the end returns FALSE\n", n1);
+        return;
+    }
+
+    iter2->move(iter2, 0, UITER_LIMIT);
+    if(!iter2->hasPrevious(iter2)) {
+        log_err("%s->hasPrevious() at the end returns FALSE\n", n2);
+        return;
+    }
+
+    do {
+        c1=iter1->previous(iter1);
+        c2=iter2->previous(iter2);
+        if(c1!=c2) {
+            log_err("%s->previous()=U+%04x != U+%04x=%s->previous() at %d\n", n1, c1, c2, n2, iter1->getIndex(iter1, UITER_CURRENT));
+            return;
+        }
+    } while(c1>=0);
+
+    if(iter1->hasPrevious(iter1)) {
+        log_err("%s->hasPrevious() at the start returns TRUE\n", n1);
+        return;
+    }
+    if(iter2->hasPrevious(iter2)) {
+        log_err("%s->hasPrevious() at the start returns TRUE\n", n2);
+        return;
+    }
+}
+
+/* n2 must have a digit 1 at the end, will be incremented with the normalization mode */
+static void
+testUNormIteratorWithText(const UChar *text, int32_t textLength, int32_t middle,
+                          const char *name1, const char *n2) {
+    UChar buffer[300];
+    char name2[40];
+
+    UCharIterator iter1, iter2, *iter;
+    UNormIterator *uni;
+
+    UNormalizationMode mode;
+    UErrorCode errorCode;
+    int32_t length;
+
+    /* open a normalizing iterator */
+    errorCode=U_ZERO_ERROR;
+    uni=unorm_openIter(NULL, 0, &errorCode);
+    if(U_FAILURE(errorCode)) {
+        log_err("unorm_openIter() fails: %s\n", u_errorName(errorCode));
+        return;
+    }
+
+    /* set iterator 2 to the original text */
+    uiter_setString(&iter2, text, textLength);
+
+    strcpy(name2, n2);
+
+    /* test the normalizing iterator for each mode */
+    for(mode=UNORM_NONE; mode<UNORM_MODE_COUNT; ++mode) {
+        length=unorm_normalize(text, textLength, mode, 0, buffer, LENGTHOF(buffer), &errorCode);
+        if(U_FAILURE(errorCode)) {
+            log_err("unorm_normalize(mode %d) failed: %s\n", mode, u_errorName(errorCode));
+            break;
+        }
+
+        /* set iterator 1 to the normalized text  */
+        uiter_setString(&iter1, buffer, length);
+
+        /* set the normalizing iterator to use iter2 */
+        iter=unorm_setIter(uni, &iter2, mode, &errorCode);
+        if(U_FAILURE(errorCode)) {
+            log_err("unorm_setIter(mode %d) failed: %s\n", mode, u_errorName(errorCode));
+            break;
+        }
+
+        compareIterNoIndexes(&iter1, name1, iter, name2, middle);
+        ++name2[strlen(name2)-1];
+    }
+
+    unorm_closeIter(uni);
+}
+
+static void
+TestUNormIterator() {
+    static const UChar text[]={ /* must contain <00C5 0327> see u_strchr() below */
+        0x61,                                                   /* 'a' */
+        0xe4, 0x61, 0x308,                                      /* variations of 'a'+umlaut */
+        0xc5, 0x327, 0x41, 0x30a, 0x327, 0x41, 0x327, 0x30a,    /* variations of 'A'+ring+cedilla */
+        0xfb03, 0xfb00, 0x69, 0x66, 0x66, 0x69, 0x66, 0xfb01    /* variations of 'ffi' */
+    };
+    static const UChar surrogateText[]={
+        0x6e, 0xd900, 0x6a, 0xdc00, 0xd900, 0xdc00, 0x61
+    };
+
+    UChar longText[300];
+    int32_t i, middle, length;
+
+    length=LENGTHOF(text);
+    testUNormIteratorWithText(text, length, length/2, "UCharIter", "UNormIter1");
+    testUNormIteratorWithText(text, length, length, "UCharIterEnd", "UNormIterEnd1");
+
+    /* test again, this time with an insane string to cause internal buffer overflows */
+    middle=u_strchr(text, 0x327)-text; /* see comment at text[] */
+    memcpy(longText, text, middle*U_SIZEOF_UCHAR);
+    for(i=0; i<150; ++i) {
+        longText[middle+i]=0x30a; /* insert many rings between 'A-ring' and cedilla */
+    }
+    memcpy(longText+middle+i, text+middle, (LENGTHOF(text)-middle)*U_SIZEOF_UCHAR);
+
+    length=LENGTHOF(text)+i;
+    testUNormIteratorWithText(longText, length, length/2, "UCharIterLong", "UNormIterLong1");
+    testUNormIteratorWithText(longText, length, length, "UCharIterLongEnd", "UNormIterLongEnd1");
+
+    length=LENGTHOF(surrogateText);
+    testUNormIteratorWithText(surrogateText, length, length/2, "UCharIterSurr", "UNormIterSurr1");
+    testUNormIteratorWithText(surrogateText, length, length, "UCharIterSurrEnd", "UNormIterSurrEnd1");
+}
+
+#endif

@@ -388,6 +388,25 @@ ucol_equal(const UCollator *coll,
            const UChar     *target, int32_t targetLength);
 
 /**
+ * Compare two UTF-8 encoded trings.
+ * The strings will be compared using the options already specified.
+ * @param coll The UCollator containing the comparison rules.
+ * @param source The source string.
+ * @param sourceLength The length of source, or -1 if null-terminated.
+ * @param target The target string.
+ * @param targetLength The length of target, or -1 if null-terminated.
+ * @return The result of comparing the strings; one of UCOL_EQUAL,
+ * UCOL_GREATER, UCOL_LESS
+ * @see ucol_strcoll
+ * @draft ICU 2.6
+ */
+U_CAPI UCollationResult U_EXPORT2 
+ucol_strcollIter(  const    UCollator    *coll,
+                  UCharIterator *sIter,
+                  UCharIterator *tIter,
+                  UErrorCode *status);
+
+/**
  * Get the collation strength used in a UCollator.
  * The strength influences how strings are compared.
  * @param coll The UCollator to query.
@@ -484,6 +503,32 @@ ucol_getSortKey(const    UCollator    *coll,
         int32_t        sourceLength,
         uint8_t        *result,
         int32_t        resultLength);
+
+
+/** Gets the next count bytes of a sort key. Caller needs
+ *  to preserve state array between calls and to provide
+ *  the same type of UCharIterator set with the same string.
+ *  The destination buffer provided must be big enough to store
+ *  the number of requested bytes. Generated sortkey is not 
+ *  compatible with sortkeys generated using ucol_getSortKey
+ *  API, since we don't do any compression.
+ *  @param coll The UCollator containing the collation rules.
+ *  @param iter UCharIterator containing the string we need 
+ *              the sort key to be calculated for.
+ *  @param state Opaque state of sortkey iteration.
+ *  @param dest Buffer to hold the resulting sortkey part
+ *  @param count number of sort key bytes required.
+ *  @param status error code indicator.
+ *  @return the actual number of bytes of a sortkey. It can be
+ *          smaller than count if we have reached the end of 
+ *          the sort key.
+ */
+U_CAPI int32_t U_EXPORT2 
+ucol_nextSortKeyPart(const UCollator *coll,
+                     UCharIterator *iter,
+                     uint32_t state[2],
+                     uint8_t *dest, int32_t count,
+                     UErrorCode *status);
 
 /** enum that is taken by ucol_getBound API 
  * See below for explanation                

@@ -40,6 +40,7 @@
 #include "utrie.h"
 #include "unicode/ures.h"
 #include "unicode/udata.h"
+#include "unicode/uiter.h"
 
 /* UDataInfo for UCA mapping table */
 static const UDataInfo ucaDataInfo={
@@ -136,6 +137,10 @@ minimum number for special Jamo
                               /* UCOL_WAS_HIRAGANA - set to TRUE if there was a Hiragana */
                               /* otherwise set to false                                  */
 #define UCOL_WAS_HIRAGANA   32 
+                              /* UCOL_USE_ITERATOR - set this if collIterate uses a */
+                              /* character iterator instead of simply accessing string */
+                              /* by index */
+#define UCOL_USE_ITERATOR   64
 
 #define NFC_ZERO_CC_BLOCK_LIMIT_  0x300
 
@@ -156,6 +161,8 @@ struct collIterate {
   uint8_t   origFlags;
   uint32_t CEs[UCOL_EXPAND_CE_BUFFER_SIZE]; /* This is where we store CEs */
   UChar stackWritableBuffer[UCOL_WRITABLE_BUFFER_SIZE]; /* A writable buffer. */
+  UCharIterator *iterator;
+  /*int32_t iteratorIndex;*/
 };
 
 /* 
@@ -169,6 +176,8 @@ struct collIterateState {
     uint32_t  buffersize;
     uint8_t   flags;
     uint8_t   origFlags;
+    uint32_t   iteratorIndex;
+    int32_t    iteratorMove;
 };
 
 U_CAPI void U_EXPORT2 
@@ -735,7 +744,7 @@ struct UCollator {
     int32_t rulesLength;
     int32_t latinOneTableLen;
 
-    UErrorCode errorCode;             /* internal error code */
+    /*UErrorCode errorCode;*/             /* internal error code */
 
     uint32_t variableTopValue;
     UColAttributeValue frenchCollation;
