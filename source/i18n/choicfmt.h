@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -86,7 +87,7 @@
  * .      double filelimits[] = {0,1,2};
  * .      UnicodeString filepart[] = {"are no files","is one file","are {2} files"};
  * .      ChoiceFormat* fileform = new ChoiceFormat(filelimits, filepart, 3 );
- * .      UErrorCode success = ZERO_ERROR;
+ * .      UErrorCode success = U_ZERO_ERROR;
  * .      const Format* testFormats[] = { fileform, NULL, NumberFormat::createInstance(success) };
  * .      MessageFormat* pattform = new MessageFormat("There {0} on {1}", success );
  * .      pattform->setFormats( testFormats, 3 );
@@ -261,6 +262,25 @@ public:
                                   FieldPosition& pos, 
                                   UErrorCode& status) const;
 
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
+
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(  double number,
+                            UnicodeString& output) const;
+
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(  int32_t number,
+                            UnicodeString& output) const;
+
    /**
     * Return a long if possible (e.g. within range LONG_MAX,
     * LONG_MAX], and with no decimals), otherwise a double.  If
@@ -299,7 +319,7 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const;
 
     /**
      * Return the class ID for this class.  This is useful only for
@@ -311,7 +331,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /*
      * Finds the least double greater than d (if positive == true),
@@ -369,7 +389,7 @@ private:
     int32_t         fCount;
 };
  
-inline ClassID 
+inline UClassID 
 ChoiceFormat::getDynamicClassID() const
 { 
     return ChoiceFormat::getStaticClassID(); 
@@ -383,6 +403,27 @@ inline double ChoiceFormat::nextDouble( double d )
 inline double ChoiceFormat::previousDouble( double d )
 {
     return ChoiceFormat::nextDouble( d, FALSE );
+}
+
+inline UnicodeString&
+ChoiceFormat::format(const Formattable& obj,
+                     UnicodeString& result,
+                     UErrorCode& status) const {
+    // Don't use Format:: - use immediate base class only,
+    // in case immediate base modifies behavior later.
+    return NumberFormat::format(obj, result, status);
+}
+
+inline UnicodeString&
+ChoiceFormat::format(double number,
+                     UnicodeString& output) const {
+    return NumberFormat::format(number, output);
+}
+
+inline UnicodeString&
+ChoiceFormat::format(int32_t number,
+                     UnicodeString& output) const {
+    return NumberFormat::format(number, output);
 }
 
 #endif // _CHOICFMT

@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -42,7 +43,7 @@ class NumberFormat;
  * Here are some examples of usage:
  * Example 1:
  * <pre>
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    GregorianCalendar cal(success);
  * .    Formattable arguments[] = {
  * .        7L,
@@ -64,7 +65,7 @@ class NumberFormat;
  * <P>
  * Example 2:
  * <pre>
- * .    success = ZERO_ERROR;
+ * .    success = U_ZERO_ERROR;
  * .    Formattable testArgs[] = {3L, "MyDisk"};
  * .   
  * .    MessageFormat* form = new MessageFormat(
@@ -138,7 +139,7 @@ class NumberFormat;
  * For more sophisticated patterns, you can use a ChoiceFormat to get
  * output such as:
  * <pre>
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    MessageFormat* form = new MessageFormat("The disk \"{1}\" contains {0}.", success);
  * .    double filelimits[] = {0,1,2};
  * .    UnicodeString filepart[] = {"no files","one file","{0,number} files"};
@@ -339,6 +340,13 @@ public:
                                   UErrorCode& status) const;
 
     /**
+     * Redeclared Format method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
+
+    /**
      * Parses the string.
      * <P>
      * Caveats: The parse may fail in a number of circumstances.  For
@@ -429,7 +437,7 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const;
 
     /**
      * Return the class ID for this class.  This is useful only for
@@ -441,7 +449,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
 private:
     static char fgClassID;
@@ -548,10 +556,17 @@ private:
     static UnicodeString& itos(int32_t i, UnicodeString& string);
 };
  
-inline ClassID 
+inline UClassID 
 MessageFormat::getDynamicClassID() const
 { 
     return MessageFormat::getStaticClassID(); 
+}
+
+inline UnicodeString&
+MessageFormat::format(const Formattable& obj,
+                      UnicodeString& result,
+                      UErrorCode& status) const {
+    return Format::format(obj, result, status);
 }
 
 #endif // _MSGFMT

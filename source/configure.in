@@ -1,3 +1,4 @@
+dnl -*-m4-*-
 dnl configure.in for ICU
 dnl Stephen F. Booth
 
@@ -6,7 +7,7 @@ AC_INIT(common/utypes.h)
 AC_CONFIG_HEADER(common/icucfg.h)
 PACKAGE="icu"
 AC_SUBST(PACKAGE)
-VERSION="1.2.2"
+VERSION="1.3.1"
 AC_SUBST(VERSION)
 
 dnl Checks for programs
@@ -47,6 +48,16 @@ else
 HAVE_INTTYPES_H=1
 fi
 AC_SUBST(HAVE_INTTYPES_H)
+
+dnl Check for endianness
+AC_C_BIGENDIAN(unknown)
+if test $ac_cv_c_bigendian = no; then
+U_IS_BIG_ENDIAN=0
+else
+U_IS_BIG_ENDIAN=1
+fi
+AC_SUBST(U_IS_BIG_ENDIAN)
+
 
 dnl Checks for typedefs
 AC_CHECK_TYPE(int8_t,signed char)
@@ -145,6 +156,7 @@ case "${host}" in
 	*-*-linux*) 	platform=LINUX ;;
 	*-*-aix*) 	platform=AIX ;;
 	*-*-hpux*) 	platform=HPUX ;;
+	*-*-os390*)	platform=OS390 ;;
 	*) 		platform=UNKNOWN ;;
 esac
 AC_SUBST(platform)
@@ -157,6 +169,7 @@ case "${host}" in
 	*-*-linux*) 	ld_rpath_suf=" " ;;
 	*-*-aix*) 	ld_rpath_suf="" ;;
 	*-*-hpux*) 	ld_rpath_suf=":" ;;
+	*-*-os390*)	ld_rpath_suf=" " ;;
 	*) 		ld_rpath_suf="" ;;
 esac
 AC_SUBST(ld_rpath_suf)
@@ -179,7 +192,7 @@ esac
 
 dnl output the Makefiles
 AC_OUTPUT([Makefile \
-		common/Makefile common/platform.h i18n/Makefile \
+		common/Makefile common/platform.h config/Makefile i18n/Makefile \
 		extra/Makefile extra/ustdio/Makefile \
 		tools/Makefile tools/ctestfw/Makefile tools/makeconv/Makefile \
 		tools/genrb/Makefile tools/gencol/Makefile \

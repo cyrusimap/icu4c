@@ -143,7 +143,6 @@ write_taglist(FileStream *rb,
 
   /* Write out each key/value pair */
   for(i = 0; i < list->fCount; ++i) {
-    printf("     ");
     write_ustring(rb, list->fData[i].fKey);
     write_ustring(rb, list->fData[i].fValue);
   }
@@ -158,7 +157,7 @@ rb_write(FileStream *f,
   int32_t i;
   struct SRBItem *item;
 
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   /* Write the byte order mark to the file */
   T_FileStream_write(f, &sBOM, sizeof(sBOM));
@@ -187,7 +186,7 @@ rb_write(FileStream *f,
       break;
 
     case eEmpty:
-      *status = INTERNAL_PROGRAM_ERROR;
+      *status = U_INTERNAL_PROGRAM_ERROR;
       setErrorText("Unexpected empty item found");
       goto finish;
       /*break;*/
@@ -199,7 +198,7 @@ rb_write(FileStream *f,
 
   /* Check if any errors occurred during writing */
   if(T_FileStream_error(f) != 0) {
-    *status = FILE_ACCESS_ERROR;
+    *status = U_FILE_ACCESS_ERROR;
   }
 
  finish:

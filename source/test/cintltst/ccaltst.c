@@ -51,7 +51,7 @@ void TestCalendar()
     int32_t count, count2, offset,i;
     UChar *tzID = 0;
     UChar *tzdname = 0;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UDate now;
     UDateFormat *datdef = 0;
     UChar *result = 0;
@@ -70,7 +70,7 @@ void TestCalendar()
     log_verbose("\nTesting getAvialableTimezoneids");
     for(i=0;i<count;i++){
         ucal_getAvailableTZIDs(offset, i, &status);
-        if(FAILURE(status)){
+        if(U_FAILURE(status)){
             log_err("FAIL: There is an error in the getAvialableTZIDs the error is %s\n", myErrorName(status));
         }
         log_verbose("%s\n", austrdup(ucal_getAvailableTZIDs(offset, i, &status)));
@@ -83,21 +83,21 @@ void TestCalendar()
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "PST");
     caldef=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: error in ucal_open caldef : %s\n", myErrorName(status));
     }
     
     caldef2=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: error in ucal_open caldef : %s\n", myErrorName(status));
     }
     u_uastrcpy(tzID, "GMT");
     calfr=ucal_open(tzID, u_strlen(tzID), "fr_FR", UCAL_TRADITIONAL, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: error in ucal_open calfr : %s\n", myErrorName(status));
     }
     calit=ucal_open(tzID, u_strlen(tzID), "it_IT", UCAL_TRADITIONAL, &status);
-    if(FAILURE(status))    {
+    if(U_FAILURE(status))    {
         log_err("FAIL: error in ucal_open calit : %s\n", myErrorName(status));
     }
     
@@ -131,7 +131,7 @@ void TestCalendar()
     now=ucal_getNow();
     /* open the date format and format the date to check the output */
     datdef=udat_open(UDAT_FULL,UDAT_FULL ,NULL, NULL, 0,&status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: error in creating the dateformat : %s\n", myErrorName(status));
     }
     log_verbose("PASS: The current date and time fetched is %s\n", austrdup(myDateFormat(datdef, now)) );
@@ -143,14 +143,14 @@ void TestCalendar()
     resultlength=0;
     resultlengthneeded=ucal_getTimeZoneDisplayName(caldef, UCAL_DST, "en_US", NULL, resultlength, &status);
     
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultlengthneeded+1;
         result=(UChar*)malloc(sizeof(UChar) * resultlength);
         ucal_getTimeZoneDisplayName(caldef, UCAL_DST, "en_US", result, resultlength, &status);
     }
-    if(FAILURE(status))    {
+    if(U_FAILURE(status))    {
         log_err("FAIL: Error in getting the timezone display name : %s\n", myErrorName(status));
     }
     else{    
@@ -210,7 +210,7 @@ void TestCalendar()
     log_verbose("\nTesting if the UCalendar is currently in daylight saving's time\n");
     ucal_setDateTime(caldef, 1999, UCAL_MARCH, 3, 10, 45, 20, &status); 
     ucal_inDaylightTime(caldef, &status );
-    if(FAILURE(status))    {
+    if(U_FAILURE(status))    {
         log_err("Error in ucal_inDaylightTime: %s\n", myErrorName(status));
     }
     if(!ucal_inDaylightTime(caldef, &status))
@@ -246,7 +246,7 @@ void TestGetSetDateAPI()
     UDate d1;
     int32_t hour;
     UDateFormat *datdef = 0;
-    UErrorCode status=ZERO_ERROR;
+    UErrorCode status=U_ZERO_ERROR;
     UDate d2= 837039928046.0;
     UChar temp[30];
 
@@ -258,7 +258,7 @@ void TestGetSetDateAPI()
     caldef2=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
     /*open the dateformat */
     datdef=udat_open(UDAT_DEFAULT,UDAT_DEFAULT ,NULL,fgGMTID,-1, &status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
     {
         log_err("error in creating the dateformat : %s\n", myErrorName(status));
     }
@@ -267,14 +267,14 @@ void TestGetSetDateAPI()
     /*Testing getMillis and setMillis */
     log_verbose("\nTesting the date and time fetched in millis for a calendar using getMillis\n");
     d1=ucal_getMillis(caldef, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in getMillis : %s\n", myErrorName(status));
     }
     
     /*testing setMillis */
     log_verbose("\nTesting the set date and time function using setMillis\n");
     ucal_setMillis(caldef, d2, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in setMillis : %s\n", myErrorName(status));
     }
 
@@ -290,14 +290,14 @@ void TestGetSetDateAPI()
     /*testing ucal_setTimeZone() function*/
     log_verbose("\nTesting if the function ucal_setTimeZone() works fine\n");
     ucal_setMillis(caldef2, d2, &status); 
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in getMillis : %s\n", myErrorName(status));;
     }
     hour=ucal_get(caldef2, UCAL_HOUR_OF_DAY, &status);
         
     u_uastrcpy(tzID, "PST");
     ucal_setTimeZone(caldef2,tzID, 3, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in setting the time zone using ucal_setTimeZone(): %s\n", myErrorName(status));
     }
     else
@@ -313,7 +313,7 @@ void TestGetSetDateAPI()
     log_verbose("\nTesting setTimeZone() roundtrip\n");
     u_uastrcpy(tzID, "GMT");
     ucal_setTimeZone(caldef2, tzID, 3, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in setting the time zone using ucal_setTimeZone(): %s\n", myErrorName(status));
     }
     if(d2==ucal_getMillis(caldef2, &status))
@@ -328,7 +328,7 @@ void TestGetSetDateAPI()
     log_verbose("\nTesting the ucal_setDate() function \n");
     u_uastrcpy(temp, "Dec 17, 1971 11:05:28 PM");
     ucal_setDate(caldef,1971, UCAL_DECEMBER, 17, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in setting the calendar date : %s\n", myErrorName(status));
     }
     /*checking if the calendar date is set properly or not  */
@@ -359,7 +359,7 @@ void TestGetSetDateAPI()
     log_verbose("\nTesting the ucal_setDateTime() function \n");
     u_uastrcpy(temp, "May 3, 1972 4:30:42 PM");
     ucal_setDateTime(caldef,1972, UCAL_MAY, 3, 16, 30, 42, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in setting the calendar date : %s\n", myErrorName(status));
     }
     /*checking  if the calendar date is set properly or not  */
@@ -405,18 +405,18 @@ void TestFieldGetSet()
     UChar *tzID = 0;
     UDateFormat *datdef = 0;
     UDate d1;
-    UErrorCode status=ZERO_ERROR;
+    UErrorCode status=U_ZERO_ERROR;
     log_verbose("\nFetching pointer to UCalendar using the ucal_open()\n");
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "GMT");
     /*open the calendar used */
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open failed: %s\n", myErrorName(status));
         return; 
     }
     datdef=udat_open(UDAT_SHORT,UDAT_SHORT ,NULL,fgGMTID,-1, &status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
     {
         log_err("error in creating the dateformat : %s\n", myErrorName(status));
     }
@@ -424,7 +424,7 @@ void TestFieldGetSet()
     /*Testing ucal_get()*/
     log_verbose("\nTesting the ucal_get() function of Calendar\n");
     ucal_setDateTime(cal, 1999, UCAL_MARCH, 12, 5, 25, 30, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in the setDateTime() : %s\n", myErrorName(status));
     }
     if(ucal_get(cal, UCAL_YEAR, &status)!=1999 || ucal_get(cal, UCAL_MONTH, &status)!=2 || 
@@ -457,14 +457,14 @@ void TestFieldGetSet()
     ucal_set(cal, UCAL_DAY_OF_WEEK_IN_MONTH, - 1);
     verify1("1997 last Tuesday in June = ", cal, datdef,1997,   UCAL_JUNE, 24);
     /*give undesirable input    */
-    status = ZERO_ERROR;
+    status = U_ZERO_ERROR;
         ucal_clear(cal);
         ucal_set(cal, UCAL_YEAR, 1997);
         ucal_set(cal, UCAL_DAY_OF_WEEK, UCAL_TUESDAY);
         ucal_set(cal, UCAL_MONTH, UCAL_JUNE);
         ucal_set(cal, UCAL_DAY_OF_WEEK_IN_MONTH, 0);
         d1=ucal_getMillis(cal,&status);
-        if (status != ILLEGAL_ARGUMENT_ERROR){ 
+        if (status != U_ILLEGAL_ARGUMENT_ERROR){ 
             log_err("FAIL: No IllegalArgumentError for :");
             log_err("1997 zero-th Tuesday in June \n");
         }
@@ -483,7 +483,7 @@ void TestFieldGetSet()
     ucal_set(cal, UCAL_MONTH, UCAL_JUNE);
     ucal_set(cal, UCAL_WEEK_OF_MONTH, 5);
     verify1("1997 Tuesday in week 5 of June = ", cal,datdef, 1997, UCAL_JULY, 1);
-    status = ZERO_ERROR;
+    status = U_ZERO_ERROR;
     ucal_clear(cal);
     ucal_set(cal, UCAL_YEAR, 1997);
     ucal_set(cal, UCAL_DAY_OF_WEEK, UCAL_TUESDAY);
@@ -506,7 +506,7 @@ void TestFieldGetSet()
     verify1("1999 1st day of the year =", cal, datdef, 1999, UCAL_JANUARY, 1);
     ucal_set(cal, UCAL_MONTH, -3);
     d1=ucal_getMillis(cal,&status);
-        if (status != ILLEGAL_ARGUMENT_ERROR){ 
+        if (status != U_ILLEGAL_ARGUMENT_ERROR){ 
             log_err("FAIL: No IllegalArgumentError for :\"1999 -3th month \" ");
         }
         else 
@@ -551,7 +551,7 @@ void TestAddRollExtensive()
     UCalendarDateFields e;
     int32_t y,m,d,hr,min,sec,ms;
     int32_t maxlimit = 40;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     y = 1997; m = UCAL_FEBRUARY; d = 1; hr = 1; min = 1; sec = 0; ms = 0;
    
     log_verbose("Testing add and roll extensively\n");
@@ -560,7 +560,7 @@ void TestAddRollExtensive()
     u_uastrcpy(tzID, "PST");
     /*open the calendar used */
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_GREGORIAN, &status);;
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open() failed : %s\n", myErrorName(status)); 
         return; 
     }
@@ -573,69 +573,69 @@ void TestAddRollExtensive()
     log_verbose("\nTesting to confirm that adding to various fields works with ucal_add()\n");
     checkDate(cal, y, m, d);
     ucal_add(cal,UCAL_YEAR, 1, &status);
-    if (FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status)); return; }
+    if (U_FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status)); return; }
     y++;
     checkDate(cal, y, m, d);
     ucal_add(cal,UCAL_MONTH, 12, &status);
-    if (FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
     y+=1;
     checkDate(cal, y, m, d);
     ucal_add(cal,UCAL_DATE, 1, &status);
-    if (FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
     d++;
     checkDate(cal, y, m, d);
     ucal_add(cal,UCAL_DATE, 2, &status);
-    if (FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
     d += 2;
     checkDate(cal, y, m, d);
     ucal_add(cal,UCAL_DATE, 28, &status);
-    if (FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_add failed: %s\n", myErrorName(status) ); return; }
     ++m;
     checkDate(cal, y, m, d);
     ucal_add(cal, -1, 10, &status);
-    if(status==ILLEGAL_ARGUMENT_ERROR)
+    if(status==U_ILLEGAL_ARGUMENT_ERROR)
         log_verbose("Pass: Illegal argument error as expected\n");
     else{
         log_err("Fail: No, illegal argument error as expected. Got....: %s\n", myErrorName(status));
     }
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
     
 
     /*confirm that applying roll to various fields works fine*/
     log_verbose("\nTesting to confirm that ucal_roll() works\n");
     ucal_roll(cal, UCAL_DATE, -1, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     d -=1;
     checkDate(cal, y, m, d);
     ucal_roll(cal, UCAL_MONTH, -2, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     m -=2;
     checkDate(cal, y, m, d);
     ucal_roll(cal, UCAL_DATE, 1, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     d +=1;
     checkDate(cal, y, m, d);
     ucal_roll(cal, UCAL_MONTH, -12, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     checkDate(cal, y, m, d);
     ucal_roll(cal, UCAL_YEAR, -1, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     y -=1;
     checkDate(cal, y, m, d);
     ucal_roll(cal, UCAL_DATE, 29, &status);
-    if (FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_roll failed: %s\n", myErrorName(status) ); return; }
     d = 2;
     checkDate(cal, y, m, d);
     ucal_roll(cal, -1, 10, &status);
-    if(status==ILLEGAL_ARGUMENT_ERROR)
+    if(status==U_ILLEGAL_ARGUMENT_ERROR)
         log_verbose("Pass: illegal arguement error as expected\n");
     else{
         log_err("Fail: no illegal argument error got..: %s\n", myErrorName(status));
         return;
     }
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
     ucal_setDateTime(cal, 1999, UCAL_FEBRUARY, 28, 10, 30, 45,  &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error is setting the datetime: %s\n", myErrorName(status));
     }
     ucal_add(cal, UCAL_MONTH, 1, &status);
@@ -645,12 +645,12 @@ void TestAddRollExtensive()
 
     ucal_close(cal);
 /*--------------- */
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
     /* Testing add and roll extensively */
     log_verbose("\nTesting the ucal_add() and ucal_roll() functions extensively\n");
     y = 1997; m = UCAL_FEBRUARY; d = 1; hr = 1; min = 1; sec = 0; ms = 0;
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open failed: %s\n", myErrorName(status));
         return; 
     }
@@ -661,19 +661,19 @@ void TestAddRollExtensive()
     ucal_set(cal, UCAL_MINUTE, min);
     ucal_set(cal, UCAL_SECOND,sec);
     ucal_set(cal, UCAL_MILLISECOND, ms);
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
 
     log_verbose("\nTesting UCalendar add...\n");
     for(e = UCAL_YEAR;e < UCAL_FIELD_COUNT; e=(UCalendarDateFields)((int32_t)e + 1)) {
         limit = maxlimit;
-        status = ZERO_ERROR;
+        status = U_ZERO_ERROR;
         for (i = 0; i < limit; i++) {
             ucal_add(cal, e, 1, &status);
-            if (FAILURE(status)) { limit = i; status = ZERO_ERROR; }
+            if (U_FAILURE(status)) { limit = i; status = U_ZERO_ERROR; }
         }
         for (i = 0; i < limit; i++) {
             ucal_add(cal, e, -1, &status);
-            if (FAILURE(status)) { 
+            if (U_FAILURE(status)) { 
                 log_err("ucal_add -1 failed: %s\n", myErrorName(status));
                 return; 
             }
@@ -683,14 +683,14 @@ void TestAddRollExtensive()
     log_verbose("\nTesting calendar ucal_roll()...\n");
     for(e = UCAL_YEAR;e < UCAL_FIELD_COUNT; e=(UCalendarDateFields)((int32_t)e + 1)) {
         int32_t limit = maxlimit;
-        status = ZERO_ERROR;
+        status = U_ZERO_ERROR;
         for (i = 0; i < limit; i++) {
             ucal_roll(cal, e, 1, &status);
-            if (FAILURE(status)) { limit = i; status = ZERO_ERROR; }
+            if (U_FAILURE(status)) { limit = i; status = U_ZERO_ERROR; }
         }
         for (i = 0; i < limit; i++) {
             ucal_roll(cal, e, -1, &status);
-            if (FAILURE(status)) { 
+            if (U_FAILURE(status)) { 
                 log_err("ucal_roll -1 failed: %s\n", myErrorName(status));
                 return; 
             }
@@ -709,14 +709,14 @@ void TestGetLimits()
     UCalendar *cal = 0;
     int32_t min, max, gr_min, le_max, ac_min, ac_max, val;
     UChar* tzID = 0;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "PST");
     /*open the calendar used */
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_GREGORIAN, &status);;
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open() for gregorian calendar failed in TestGetLimits: %s\n", myErrorName(status));
         return; 
     }
@@ -755,7 +755,7 @@ void TestGetLimits()
     le_max=ucal_getLimit(cal, UCAL_MONTH, UCAL_LEAST_MAXIMUM, &status);
     ac_min=ucal_getLimit(cal, UCAL_MONTH, UCAL_ACTUAL_MINIMUM, &status);
     ac_max=ucal_getLimit(cal, UCAL_MONTH, UCAL_ACTUAL_MAXIMUM, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("Error in getLimits: %s\n", myErrorName(status));
     }
     if(min!=0 || max!=11 || gr_min!=0 || le_max!=11 || ac_min!=0 || ac_max!=11)
@@ -802,19 +802,19 @@ void TestDOWProgression()
     UDateFormat *datfor = 0;
     UDate date1;
     int32_t delta=24;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UChar* tzID = 0;
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "GMT");
     /*open the calendar used */
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);;
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open failed: %s\n", myErrorName(status));
         return; 
     }
 
     datfor=udat_open(UDAT_MEDIUM,UDAT_MEDIUM ,NULL, fgGMTID,-1, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in creating the dateformat : %s\n", myErrorName(status));
     }
     
@@ -824,23 +824,23 @@ void TestDOWProgression()
     log_verbose("\nTesting the DOW progression\n");
     
     initialDOW = ucal_get(cal, UCAL_DAY_OF_WEEK, &status);
-    if (FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status) ); return; }
+    if (U_FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status) ); return; }
     newDOW = initialDOW;
     do {
         DOW = newDOW;
         log_verbose("DOW = %d...\n", DOW);
         date1=ucal_getMillis(cal, &status);
-        if(FAILURE(status)){ log_err("ucal_getMiilis() failed: %s\n", myErrorName(status)); return;}
+        if(U_FAILURE(status)){ log_err("ucal_getMiilis() failed: %s\n", myErrorName(status)); return;}
         log_verbose("%s\n", austrdup(myDateFormat(datfor, date1)));
         
         ucal_add(cal,UCAL_DAY_OF_WEEK, delta, &status);
-        if (FAILURE(status)) { log_err("ucal_add() failed: %s\n", myErrorName(status)); return; }
+        if (U_FAILURE(status)) { log_err("ucal_add() failed: %s\n", myErrorName(status)); return; }
         
         newDOW = ucal_get(cal, UCAL_DAY_OF_WEEK, &status);
-        if (FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
+        if (U_FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
         expectedDOW = 1 + (DOW + delta - 1) % 7;
         date1=ucal_getMillis(cal, &status);
-        if(FAILURE(status)){ log_err("ucal_getMiilis() failed: %s\n", myErrorName(status)); return;}
+        if(U_FAILURE(status)){ log_err("ucal_getMiilis() failed: %s\n", myErrorName(status)); return;}
         if (newDOW != expectedDOW) {
             log_err("Day of week should be %d instead of %d on %s", expectedDOW, newDOW, 
                 austrdup(myDateFormat(datfor, date1)) );    
@@ -877,45 +877,45 @@ void testZones(int32_t yr, int32_t mo, int32_t dt, int32_t hr, int32_t mn, int32
     UDate date1;
     double temp;
     UDateFormat *datfor = 0;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UChar* tzID = 0;
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "GMT");
     gmtcal=ucal_open(tzID, 3, "en_US", UCAL_TRADITIONAL, &status);;
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open failed: %s\n", myErrorName(status)); 
         return; 
     }
     u_uastrcpy(tzID, "PST");
     cal = ucal_open(tzID, 3, "en_US", UCAL_TRADITIONAL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_open failed: %s\n", myErrorName(status));
         return; 
     }
     
     datfor=udat_open(UDAT_MEDIUM,UDAT_MEDIUM ,NULL, fgGMTID,-1, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in creating the dateformat : %s\n", myErrorName(status));
     }
    
     ucal_setDateTime(gmtcal, yr, mo - 1, dt, hr, mn, sc, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ucal_setDateTime failed: %s\n", myErrorName(status));
         return; 
     }
     ucal_set(gmtcal, UCAL_MILLISECOND, 0);
     date1 = ucal_getMillis(gmtcal, &status);
-    if (FAILURE(status)) { log_err("ucal_getMillis failed: %s\n", myErrorName(status)); return; }
+    if (U_FAILURE(status)) { log_err("ucal_getMillis failed: %s\n", myErrorName(status)); return; }
     log_verbose("date = %s\n", austrdup(myDateFormat(datfor, date1)) );
 
     
     ucal_setMillis(cal, date1, &status);
-    if (FAILURE(status)) { log_err("ucal_setMillis() failed: %s\n", myErrorName(status)); return; }
+    if (U_FAILURE(status)) { log_err("ucal_setMillis() failed: %s\n", myErrorName(status)); return; }
 
     offset = ucal_get(cal, UCAL_ZONE_OFFSET, &status);
     offset += ucal_get(cal, UCAL_DST_OFFSET, &status);
    
-    if (FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
+    if (U_FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
     temp=(double)((double)offset / 1000.0 / 60.0 / 60.0);
     /*printf("offset for %s %f hr\n", austrdup(myDateFormat(datfor, date1)), temp);*/
        
@@ -923,7 +923,7 @@ void testZones(int32_t yr, int32_t mo, int32_t dt, int32_t hr, int32_t mn, int32
                     ucal_get(cal, UCAL_MINUTE, &status)) * 60 +
                    ucal_get(cal, UCAL_SECOND, &status)) * 1000 +
                     ucal_get(cal, UCAL_MILLISECOND, &status) - offset;
-    if (FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
+    if (U_FAILURE(status)) { log_err("ucal_get() failed: %s\n", myErrorName(status)); return; }
     
     expected = ((hr * 60 + mn) * 60 + sc) * 1000;
     if (utc != expected) {
@@ -953,7 +953,7 @@ void checkDateTime(UCalendar* c,
                         int32_t ms, UCalendarDateFields field)
 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     if (ucal_get(c, UCAL_YEAR, &status) != y ||
         ucal_get(c, UCAL_MONTH, &status) != m ||
         ucal_get(c, UCAL_DATE, &status) != d ||
@@ -961,7 +961,7 @@ void checkDateTime(UCalendar* c,
         ucal_get(c, UCAL_MINUTE, &status) != min ||
         ucal_get(c, UCAL_SECOND, &status) != sec ||
         ucal_get(c, UCAL_MILLISECOND, &status) != ms) {
-        log_err("FAILURE for field  %d, Expected y/m/d h:m:s:ms of %d/%d/%d %d:%d:%d:%d  got %d/%d/%d %d:%d:%d:%d\n",
+        log_err("U_FAILURE for field  %d, Expected y/m/d h:m:s:ms of %d/%d/%d %d:%d:%d:%d  got %d/%d/%d %d:%d:%d:%d\n",
             (int32_t)field, y, m + 1, d, hr, min, sec, ms, 
                     ucal_get(c, UCAL_YEAR, &status),
                     ucal_get(c, UCAL_MONTH, &status) + 1,
@@ -971,7 +971,7 @@ void checkDateTime(UCalendar* c,
                     ucal_get(c, UCAL_SECOND, &status),
                     ucal_get(c, UCAL_MILLISECOND, &status) );
 
-                    if (FAILURE(status)){
+                    if (U_FAILURE(status)){
                     log_err("ucal_get failed: %s\n", myErrorName(status)); 
                     return; 
                     }
@@ -986,7 +986,7 @@ void checkDateTime(UCalendar* c,
 void checkDate(UCalendar* c, int32_t y, int32_t m, int32_t d)
 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     if (ucal_get(c,UCAL_YEAR, &status) != y ||
         ucal_get(c, UCAL_MONTH, &status) != m ||
         ucal_get(c, UCAL_DATE, &status) != d) {
@@ -996,7 +996,7 @@ void checkDate(UCalendar* c, int32_t y, int32_t m, int32_t d)
                     ucal_get(c, UCAL_MONTH, &status) + 1,
                     ucal_get(c, UCAL_DATE, &status) );
         
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("ucal_get failed: %s\n", myErrorName(status));
             return; 
         }
@@ -1014,17 +1014,17 @@ void checkDate(UCalendar* c, int32_t y, int32_t m, int32_t d)
 void verify1(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int32_t month, int32_t day)
 {
     UDate d1;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     if (ucal_get(c, UCAL_YEAR, &status) == year &&
         ucal_get(c, UCAL_MONTH, &status) == month &&
         ucal_get(c, UCAL_DATE, &status) == day) {
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("FAIL: Calendar::get failed: %s\n", myErrorName(status));
             return; 
         }
         log_verbose("PASS: %s\n", msg);
         d1=ucal_getMillis(c, &status);
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("ucal_getMillis failed: %s\n", myErrorName(status));
             return;
         }
@@ -1033,7 +1033,7 @@ void verify1(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int3
     else {
         log_err("FAIL: %s\n", msg);
         d1=ucal_getMillis(c, &status);
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("ucal_getMillis failed: %s\n", myErrorName(status) );
             return;
         }
@@ -1050,7 +1050,7 @@ void verify2(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int3
 {
     UDate d1;
     char str[3];
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     if (ucal_get(c, UCAL_YEAR, &status) == year &&
         ucal_get(c, UCAL_MONTH, &status) == month &&
         ucal_get(c, UCAL_DATE, &status) == day &&
@@ -1058,13 +1058,13 @@ void verify2(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int3
         ucal_get(c, UCAL_MINUTE, &status) == min &&
         ucal_get(c, UCAL_SECOND, &status) == sec &&
         ucal_get(c, UCAL_AM_PM, &status) == am_pm ){
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("FAIL: Calendar::get failed: %s\n", myErrorName(status));
             return; 
         }
         log_verbose("PASS: %s\n", msg); 
         d1=ucal_getMillis(c, &status);
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("ucal_getMillis failed: %s\n", myErrorName(status));
             return;
         }
@@ -1073,7 +1073,7 @@ void verify2(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int3
     else {
         log_err("FAIL: %s\n", msg);
         d1=ucal_getMillis(c, &status);
-        if (FAILURE(status)) { 
+        if (U_FAILURE(status)) { 
             log_err("ucal_getMillis failed: %s\n", myErrorName(status)); 
             return;
         }
@@ -1091,5 +1091,3 @@ void verify2(const char* msg, UCalendar* c, UDateFormat* dat, int32_t year, int3
 }
 
 /*--------------------------------------------- */
-
-

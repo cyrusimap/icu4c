@@ -41,20 +41,20 @@ void addBrkIterAPITest(TestNode** root)
 
 void TestBreakIteratorCAPI()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *word, *sentence, *line, *character, *b;
     UChar text[50];
     UTextOffset start,pos,end,to;
     int32_t count = 0;
     u_uastrcpy(text, "He's from Africa. ""Mr. Livingston, I presume?"" Yeah");
-    status  = ZERO_ERROR;
+    status  = U_ZERO_ERROR;
 
 /*test ubrk_open()*/
     log_verbose("\nTesting BreakIterator open functions\n");
                                             
     /* Use french for fun */
     word         = ubrk_open(UBRK_WORD, "en_US", text, u_strlen(text), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in ubrk_open() for word breakiterator: %s\n", myErrorName(status));
     }
     else{
@@ -62,7 +62,7 @@ void TestBreakIteratorCAPI()
     }
     
     sentence     = ubrk_open(UBRK_SENTENCE, "en_US", text, u_strlen(text), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in ubrk_open() for sentence breakiterator: %s\n", myErrorName(status));
     }
     else{
@@ -70,7 +70,7 @@ void TestBreakIteratorCAPI()
     }
     
     line         = ubrk_open(UBRK_SENTENCE, "en_US", text, u_strlen(text), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in ubrk_open() for line breakiterator: %s\n", myErrorName(status));
     }
     else{
@@ -78,7 +78,7 @@ void TestBreakIteratorCAPI()
     }
     
     character     = ubrk_open(UBRK_SENTENCE, "en_US", text, u_strlen(text), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in ubrk_open() for character breakiterator: %s\n", myErrorName(status));
     }
     else{
@@ -178,7 +178,7 @@ void TestBreakIteratorCAPI()
 /*Testing ubrk_open and ubrk_close()*/
    log_verbose("\nTesting open and close for us locale\n");
     b = ubrk_open(UBRK_WORD, "fr_FR", text, u_strlen(text), &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ubrk_open for word returned NULL: %s\n", myErrorName(status));
     }
     ubrk_close(b);

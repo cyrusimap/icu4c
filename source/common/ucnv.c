@@ -29,6 +29,7 @@
 #include "ucnv_io.h"
 #include "ucnv_err.h"
 #include "ucnv_cnv.h"
+#include "ucnv_imp.h"
 #include "ucnv.h"
 #include "cmemory.h"
 #include "cstring.h"
@@ -61,7 +62,7 @@ typedef UChar (*T_GetNextUCharFunction) (UConverter *,
 					 const char *,
 					 UErrorCode *);
 
-static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS[NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
+static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
 
 {
   T_UConverter_toUnicode_SBCS,
@@ -75,13 +76,13 @@ static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS[NUMBER_OF_SUPPORTED_CONVERTER_TY
   T_UConverter_toUnicode_ISO_2022
 };
 
-static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS_OFFSETS_LOGIC[NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
+static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS_OFFSETS_LOGIC[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
 
 {
-  NULL, /*SBCS*/
-  NULL, /*DBCS*/
+  NULL, /*UCNV_SBCS*/
+  NULL, /*UCNV_DBCS*/
   T_UConverter_toUnicode_MBCS_OFFSETS_LOGIC,
-  NULL, /*LATIN_1*/
+  NULL, /*UCNV_LATIN_1*/
   T_UConverter_toUnicode_UTF8_OFFSETS_LOGIC,
   NULL, /*UTF16_BE*/
   NULL, /*UTF16_LE*/
@@ -89,13 +90,13 @@ static T_ToUnicodeFunction TO_UNICODE_FUNCTIONS_OFFSETS_LOGIC[NUMBER_OF_SUPPORTE
   T_UConverter_toUnicode_ISO_2022_OFFSETS_LOGIC
 };
 
-static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS_OFFSETS_LOGIC[NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
+static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS_OFFSETS_LOGIC[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
 
 {
-  NULL, /*SBCS*/
-  NULL, /*DBCS*/
+  NULL, /*UCNV_SBCS*/
+  NULL, /*UCNV_DBCS*/
   T_UConverter_fromUnicode_MBCS_OFFSETS_LOGIC,
-  NULL, /*LATIN_1*/
+  NULL, /*UCNV_LATIN_1*/
   T_UConverter_fromUnicode_UTF8_OFFSETS_LOGIC,
   NULL, /*UTF16_BE*/
   NULL, /*UTF16_LE*/
@@ -103,7 +104,7 @@ static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS_OFFSETS_LOGIC[NUMBER_OF_SUPP
   T_UConverter_fromUnicode_ISO_2022_OFFSETS_LOGIC
 };
 
-static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS[NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
+static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
 {
   T_UConverter_fromUnicode_SBCS,
   T_UConverter_fromUnicode_DBCS,
@@ -116,7 +117,7 @@ static T_FromUnicodeFunction FROM_UNICODE_FUNCTIONS[NUMBER_OF_SUPPORTED_CONVERTE
   T_UConverter_fromUnicode_ISO_2022
 };
 
-static T_GetNextUCharFunction GET_NEXT_UChar_FUNCTIONS[NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
+static T_GetNextUCharFunction GET_NEXT_UChar_FUNCTIONS[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES] =
 {
   T_UConverter_getNextUChar_SBCS,
   T_UConverter_getNextUChar_DBCS,
@@ -169,7 +170,7 @@ void   ucnv_setDefaultName (const char *converterName)
 UConverter* ucnv_open (const char *name,
 		       UErrorCode * err)
 {
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
 
   /*In case "name" is NULL we want to open the default converter */
@@ -183,15 +184,15 @@ UConverter* ucnv_open (const char *name,
 UConverter*  ucnv_openU (const UChar * name,
 			 UErrorCode * err)
 {
-  char asciiName[MAX_CONVERTER_NAME_LENGTH];
+  char asciiName[UCNV_MAX_CONVERTER_NAME_LENGTH];
   
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
   if (name == NULL)
     return ucnv_open (NULL, err);
-  if (u_strlen (name) > MAX_CONVERTER_NAME_LENGTH)
+  if (u_strlen (name) > UCNV_MAX_CONVERTER_NAME_LENGTH)
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return NULL;
     }
   return ucnv_open (u_austrcpy (asciiName, name), err);
@@ -200,12 +201,12 @@ UConverter*  ucnv_openU (const UChar * name,
 /*Assumes a $platform-#codepage.$CONVERTER_FILE_EXTENSION scheme and calls
  *through createConverter*/
 UConverter*  ucnv_openCCSID (int32_t codepage,
-			     UCNV_PLATFORM platform,
+			     UConverterPlatform platform,
 			     UErrorCode * err)
 {
-  char myName[MAX_CONVERTER_NAME_LENGTH];
+  char myName[UCNV_MAX_CONVERTER_NAME_LENGTH];
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
 
   copyPlatformString (myName, platform);
@@ -221,14 +222,12 @@ UConverter*  ucnv_openCCSID (int32_t codepage,
 
 void ucnv_close (UConverter * converter)
 {
-  Mutex *updateReferenceCounterMutex = NULL;
-
   if (converter == NULL)
     return;
-  if ((converter->sharedData->conversionType == ISO_2022) &&
+  if ((converter->sharedData->conversionType == UCNV_ISO_2022) &&
       (converter->mode == UCNV_SO))
     {
-      ucnv_close (((UCNV_Data2022 *) (converter->extraInfo))->currentConverter);
+      ucnv_close (((UConverterDataISO2022 *) (converter->extraInfo))->currentConverter);
       icu_free (converter->extraInfo);
     }
 
@@ -247,7 +246,6 @@ int32_t  ucnv_flushCache ()
   UConverterSharedData *mySharedData = NULL;
   int32_t pos = -1;
   int32_t tableDeletedNum = 0;
-  Mutex *flushCacheMutex = NULL;
 
   /*if shared data hasn't even been lazy evaluated yet
    * return 0
@@ -258,19 +256,21 @@ int32_t  ucnv_flushCache ()
   /*creates an enumeration to iterate through every element in the
    *table
    */
+  umtx_lock (NULL);
   while (mySharedData = (UConverterSharedData *) uhash_nextElement (SHARED_DATA_HASHTABLE, &pos))
     {
       /*deletes only if reference counter == 0 */
       if (mySharedData->referenceCounter == 0)
 	{
-	  UErrorCode err = ZERO_ERROR;
+	  UErrorCode err = U_ZERO_ERROR;
 	  tableDeletedNum++;
-	  umtx_lock (NULL);
+
 	  uhash_remove (SHARED_DATA_HASHTABLE, uhash_hashIString (mySharedData->name), &err);
 	  deleteSharedConverterData (mySharedData);
-	  umtx_unlock (NULL);
+
 	}
     }
+  umtx_unlock (NULL);
 
   return tableDeletedNum;
 }
@@ -279,7 +279,7 @@ int32_t  ucnv_flushCache ()
  */
 const char*  ucnv_getAvailableName (int32_t index)
 {
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
   /*lazy evaluates the list of Available converters */
   if (AVAILABLE_CONVERTERS_NAMES == NULL)
     setupAliasTableAndAvailableConverters (&err);
@@ -291,7 +291,7 @@ const char*  ucnv_getAvailableName (int32_t index)
 
 int32_t  ucnv_countAvailable ()
 {
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
   /*lazy evaluates the list of Available converters */
   if (AVAILABLE_CONVERTERS_NAMES == NULL)
     setupAliasTableAndAvailableConverters (&err);
@@ -304,12 +304,12 @@ void   ucnv_getSubstChars (const UConverter * converter,
 			   int8_t * len,
 			   UErrorCode * err)
 {
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return;
 
   if (*len < converter->subCharLen)	/*not enough space in subChars */
     {
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
       return;
     }
 
@@ -326,14 +326,14 @@ void   ucnv_setSubstChars (UConverter * converter,
 {
   uint8_t x = 0;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return;
 
   /*Makes sure that the subChar is within the codepages char length boundaries */
   if ((len > converter->sharedData->maxBytesPerChar)
       || (len < converter->sharedData->minBytesPerChar))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return;
     }
 
@@ -352,12 +352,12 @@ int32_t  ucnv_getDisplayName (const UConverter * converter,
 			      int32_t displayNameCapacity,
 			      UErrorCode * err)
 {
-  UChar stringToWriteBuffer[MAX_CONVERTER_NAME_LENGTH];
+  UChar stringToWriteBuffer[UCNV_MAX_CONVERTER_NAME_LENGTH];
   UChar const *stringToWrite;
   int32_t stringToWriteLength;
   UResourceBundle *rb = NULL;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return 0;
 
   /*create an RB, init the fill-in string, gets it from the RB */
@@ -370,7 +370,7 @@ int32_t  ucnv_getDisplayName (const UConverter * converter,
   if (rb)
     ures_close (rb);
 
-  if (SUCCESS (*err))
+  if (U_SUCCESS (*err))
     stringToWriteLength = u_strlen (stringToWrite);
   else
     {
@@ -384,8 +384,8 @@ int32_t  ucnv_getDisplayName (const UConverter * converter,
       stringToWrite = u_uastrcpy (stringToWriteBuffer, converter->sharedData->name);
 
       /*Hides the fallback to the internal name from the user */
-      if (*err == MISSING_RESOURCE_ERROR)
-	*err = ZERO_ERROR;
+      if (*err == U_MISSING_RESOURCE_ERROR)
+	*err = U_ZERO_ERROR;
     }
 
   /*At this point we have a displayName and its length
@@ -400,7 +400,7 @@ int32_t  ucnv_getDisplayName (const UConverter * converter,
   else
     {
       /*it doesn't fit */
-      *err = BUFFER_OVERFLOW_ERROR;
+      *err = U_BUFFER_OVERFLOW_ERROR;
 
       u_strncpy (displayName,
 		 stringToWrite,
@@ -427,16 +427,16 @@ void  ucnv_reset (UConverter * converter)
   converter->fromUnicodeStatus = 0;
   converter->UCharErrorBufferLength = 0;
   converter->charErrorBufferLength = 0;
-  if ((converter->sharedData->conversionType == ISO_2022) &&
+  if ((converter->sharedData->conversionType == UCNV_ISO_2022) &&
       (converter->mode == UCNV_SO))
     {
       converter->charErrorBufferLength = 3;
       converter->charErrorBuffer[0] = 0x1b;
       converter->charErrorBuffer[1] = 0x25;
       converter->charErrorBuffer[2] = 0x42;
-      ucnv_close (((UCNV_Data2022 *) (converter->extraInfo))->currentConverter);
-      ((UCNV_Data2022 *) (converter->extraInfo))->currentConverter = NULL;
-      ((UCNV_Data2022 *) (converter->extraInfo))->escSeq2022Length = 0;
+      ucnv_close (((UConverterDataISO2022 *) (converter->extraInfo))->currentConverter);
+      ((UConverterDataISO2022 *) (converter->extraInfo))->currentConverter = NULL;
+      ((UConverterDataISO2022 *) (converter->extraInfo))->escSeq2022Length = 0;
     }
   converter->mode = UCNV_SI;
 
@@ -457,7 +457,7 @@ int8_t  ucnv_getMinCharSize (const UConverter * converter)
 const char*  ucnv_getName (const UConverter * converter, UErrorCode * err)
      
 {
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
 
   return converter->sharedData->name;
@@ -466,39 +466,39 @@ const char*  ucnv_getName (const UConverter * converter, UErrorCode * err)
 int32_t  ucnv_getCCSID (const UConverter * converter,
 			UErrorCode * err)
 {
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return -1;
 
   return converter->sharedData->codepage;
 }
 
 
-UCNV_PLATFORM  ucnv_getPlatform (const UConverter * converter,
+UConverterPlatform  ucnv_getPlatform (const UConverter * converter,
 				 UErrorCode * err)
 {
-  if (FAILURE (*err))
-    return UNKNOWN;
+  if (U_FAILURE (*err))
+    return UCNV_UNKNOWN;
   
   return converter->sharedData->platform;
 }
 
-UCNV_ToUCallBack  ucnv_getToUCallBack (const UConverter * converter)
+UConverterToUCallback  ucnv_getToUCallBack (const UConverter * converter)
 {
   return converter->fromCharErrorBehaviour;
 }
 
-UCNV_FromUCallBack  ucnv_getFromUCallBack (const UConverter * converter)
+UConverterFromUCallback  ucnv_getFromUCallBack (const UConverter * converter)
 {
   return converter->fromUCharErrorBehaviour;
 }
 
-UCNV_ToUCallBack   ucnv_setToUCallBack (UConverter * converter,
-					UCNV_ToUCallBack action,
+UConverterToUCallback   ucnv_setToUCallBack (UConverter * converter,
+					UConverterToUCallback action,
 					UErrorCode * err)
 {
-  UCNV_ToUCallBack myReturn = NULL;
+  UConverterToUCallback myReturn = NULL;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
   myReturn = converter->fromCharErrorBehaviour;
   converter->fromCharErrorBehaviour = action;
@@ -506,13 +506,13 @@ UCNV_ToUCallBack   ucnv_setToUCallBack (UConverter * converter,
   return myReturn;
 }
 
-UCNV_FromUCallBack   ucnv_setFromUCallBack (UConverter * converter,
-					    UCNV_FromUCallBack action,
+UConverterFromUCallback   ucnv_setFromUCallBack (UConverter * converter,
+					    UConverterFromUCallback action,
 					    UErrorCode * err)
 {
-  UCNV_FromUCallBack myReturn = NULL;
+  UConverterFromUCallback myReturn = NULL;
   
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return NULL;
   myReturn = converter->fromUCharErrorBehaviour;
   converter->fromUCharErrorBehaviour = action;
@@ -529,14 +529,14 @@ void   ucnv_fromUnicode (UConverter * _this,
 			 bool_t flush,
 			 UErrorCode * err)
 {
-  UCNV_TYPE myConvType;
+  UConverterType myConvType;
   /*
    * Check parameters in for all conversions
    */
-  if (FAILURE (*err))   return;
+  if (U_FAILURE (*err))   return;
   if ((_this == NULL) || ((char *) targetLimit < *target) || (sourceLimit < *source))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return;
     }
   
@@ -556,7 +556,7 @@ void   ucnv_fromUnicode (UConverter * _this,
 			       offsets?&offsets:NULL,
 			       err);
       *target += myTargetIndex;
-      if (FAILURE (*err)) return;
+      if (U_FAILURE (*err)) return;
     }
   
   myConvType = _this->sharedData->conversionType;  
@@ -566,12 +566,12 @@ void   ucnv_fromUnicode (UConverter * _this,
        int32_t i;
        switch (myConvType)
 	 {
-	 case LATIN_1: case SBCS : 
+	 case UCNV_LATIN_1: case UCNV_SBCS : 
 	   {
 	     for (i=0; i<targetSize; i++) offsets[i] = i;
 	     break;
 	   }
-	 case UTF16_LittleEndian: case UTF16_BigEndian: case DBCS: 
+	 case UCNV_UTF16_LittleEndian: case UCNV_UTF16_BigEndian: case UCNV_DBCS: 
 	   {
 	     --targetSize;
 	     for (i=0; i<targetSize; i+=2) 
@@ -623,11 +623,11 @@ void   ucnv_toUnicode (UConverter * _this,
   /*
    * Check parameters in for all conversions
    */
-  UCNV_TYPE myConvType;
-  if (FAILURE (*err))   return;
+  UConverterType myConvType;
+  if (U_FAILURE (*err))   return;
   if ((_this == NULL) || ((UChar *) targetLimit < *target) || (sourceLimit < *source))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return;
     }
 
@@ -647,7 +647,7 @@ void   ucnv_toUnicode (UConverter * _this,
 				  offsets?&offsets:NULL,
 				  err);
       *target += myTargetIndex;
-      if (FAILURE (*err))
+      if (U_FAILURE (*err))
 	return;
     }
 
@@ -658,12 +658,12 @@ void   ucnv_toUnicode (UConverter * _this,
 
       switch (myConvType)
 	{
-	case LATIN_1: case SBCS : 
+	case UCNV_LATIN_1: case UCNV_SBCS : 
 	  {
 	    for (i=0; i<targetSize; i++) offsets[i] = i;
 	    break;
 	  }
-	case UTF16_LittleEndian: case UTF16_BigEndian: case DBCS: 
+	case UCNV_UTF16_LittleEndian: case UCNV_UTF16_BigEndian: case UCNV_DBCS: 
 	  {
 	    for (i=0; i<targetSize; i++) 
 	      {
@@ -711,14 +711,15 @@ int32_t   ucnv_fromUChars (const UConverter * converter,
   int32_t mySourceLength = 0;
   UConverter myConverter;
   char *myTarget = target;
+  char *myTarget_limit;
   int32_t targetCapacity = 0;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return 0;
 
   if ((converter == NULL) || (targetSize < 0))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return 0;
     }
 
@@ -741,12 +742,16 @@ int32_t   ucnv_fromUChars (const UConverter * converter,
     }
 
   mySource_limit = mySource + mySourceLength;
+  myTarget_limit = target + targetSize;
+
+  if(myTarget_limit < target)       /*if targetsize is such that the limit*/
+    myTarget_limit = (char *)U_MAX_PTR;     /* would wrap around, truncate it.    */
 
   if (targetSize > 0)
     {
       ucnv_fromUnicode (&myConverter,
 			&myTarget,
-			target + targetSize,
+			myTarget_limit,
 			&mySource,
 			mySource_limit,
 			NULL,
@@ -759,13 +764,13 @@ int32_t   ucnv_fromUChars (const UConverter * converter,
 
   if (targetSize == 0)
     {
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
 
   /* If the output buffer is exhausted, we need to stop writing
    * to it but continue the conversion in order to store in targetSize
    * the number of bytes that was required*/
-  if (*err == INDEX_OUTOFBOUNDS_ERROR)
+  if (*err == U_INDEX_OUTOFBOUNDS_ERROR)
     {
       char target2[CHUNK_SIZE];
       char *target2_alias = target2;
@@ -775,9 +780,9 @@ int32_t   ucnv_fromUChars (const UConverter * converter,
        *(in case the output is greater than CHUNK_SIZE)
        */
 
-      while (*err == INDEX_OUTOFBOUNDS_ERROR)
+      while (*err == U_INDEX_OUTOFBOUNDS_ERROR)
 	{
-	  *err = ZERO_ERROR;
+	  *err = U_ZERO_ERROR;
 	  target2_alias = target2;
 	  ucnv_fromUnicode (&myConverter,
 			    &target2_alias,
@@ -791,11 +796,11 @@ int32_t   ucnv_fromUChars (const UConverter * converter,
 	  /*updates the output parameter to contain the number of char required */
 	  targetCapacity += (target2_alias - target2) + 1;
 	}
-      /*We will set the erro code to BUFFER_OVERFLOW_ERROR only if
+      /*We will set the erro code to U_BUFFER_OVERFLOW_ERROR only if
        *nothing graver happened in the previous loop*/
       (targetCapacity)--;
-      if (SUCCESS (*err))
-	*err = BUFFER_OVERFLOW_ERROR;
+      if (U_SUCCESS (*err))
+	*err = U_BUFFER_OVERFLOW_ERROR;
     }
 
   return targetCapacity;
@@ -812,14 +817,15 @@ int32_t ucnv_toUChars (const UConverter * converter,
   const char *mySource_limit = source + sourceSize;
   UConverter myConverter;
   UChar *myTarget = target;
+  UChar *myTarget_limit;
   int32_t targetCapacity;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return 0;
 
   if ((converter == NULL) || (targetSize < 0) || (sourceSize < 0))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return 0;
     }
   /*Means there is no work to be done */
@@ -844,6 +850,11 @@ int32_t ucnv_toUChars (const UConverter * converter,
   /*Removes all state info on the UConverter */
   ucnv_reset (&myConverter);
 
+  myTarget_limit = target + targetSize - 1;
+
+  if(myTarget_limit < target)       /*if targetsize is such that the limit*/
+    myTarget_limit = ((UChar*)U_MAX_PTR) - 1; /* would wrap around, truncate it.    */
+
 
   /*Not in pure pre-flight mode */
   if (targetSize > 0)
@@ -851,7 +862,7 @@ int32_t ucnv_toUChars (const UConverter * converter,
 
       ucnv_toUnicode (&myConverter,
 		      &myTarget,
-		      target + targetSize - 1,	  /*Save a spot for the Null terminator */
+		      myTarget_limit,	  /*Save a spot for the Null terminator */
 		      &mySource,
 		      mySource_limit,
 		      NULL,
@@ -869,14 +880,14 @@ int32_t ucnv_toUChars (const UConverter * converter,
   targetCapacity += myTarget - target;
   if (targetSize == 0)
     {
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
   /* If the output buffer is exhausted, we need to stop writing
    * to it but if the input buffer is not exhausted,
    * we need to continue the conversion in order to store in targetSize
    * the number of bytes that was required
    */
-  if (*err == INDEX_OUTOFBOUNDS_ERROR)
+  if (*err == U_INDEX_OUTOFBOUNDS_ERROR)
     {
       UChar target2[CHUNK_SIZE];
       UChar *target2_alias = target2;
@@ -885,9 +896,9 @@ int32_t ucnv_toUChars (const UConverter * converter,
       /*We use a stack allocated buffer around which we loop
          (in case the output is greater than CHUNK_SIZE) */
 
-      while (*err == INDEX_OUTOFBOUNDS_ERROR)
+      while (*err == U_INDEX_OUTOFBOUNDS_ERROR)
 	{
-	  *err = ZERO_ERROR;
+	  *err = U_ZERO_ERROR;
 	  target2_alias = target2;
 	  ucnv_toUnicode (&myConverter,
 			  &target2_alias,
@@ -902,8 +913,8 @@ int32_t ucnv_toUChars (const UConverter * converter,
 	  targetCapacity += target2_alias - target2 + 1;
 	}
       (targetCapacity)--;	/*adjust for last one */
-      if (SUCCESS (*err))
-	*err = BUFFER_OVERFLOW_ERROR;
+      if (U_SUCCESS (*err))
+	*err = U_BUFFER_OVERFLOW_ERROR;
     }
 
   return targetCapacity;
@@ -970,7 +981,7 @@ T_UConverter_fromCodepageToCodepage (UConverter * outConverter,
   UChar const *out_chunk_alias2;
 
 
-  if (FAILURE (*err))    return;
+  if (U_FAILURE (*err))    return;
 
 
   /*loops until the input buffer is completely consumed
@@ -978,7 +989,7 @@ T_UConverter_fromCodepageToCodepage (UConverter * outConverter,
    *first we convert from inConverter codepage to Unicode
    *then from Unicode to outConverter codepage
    */
-  while ((*source != sourceLimit) && SUCCESS (*err))
+  while ((*source != sourceLimit) && U_SUCCESS (*err))
     {
       out_chunk_alias = out_chunk;
       ucnv_toUnicode (inConverter,
@@ -990,16 +1001,16 @@ T_UConverter_fromCodepageToCodepage (UConverter * outConverter,
 		      flush,
 		      err);
 
-      /*INDEX_OUTOFBOUNDS_ERROR means that the output "CHUNK" is full
+      /*U_INDEX_OUTOFBOUNDS_ERROR means that the output "CHUNK" is full
        *we will require at least another loop (it's a recoverable error)
        */
 
-      if (SUCCESS (*err) || (*err == INDEX_OUTOFBOUNDS_ERROR))
+      if (U_SUCCESS (*err) || (*err == U_INDEX_OUTOFBOUNDS_ERROR))
 	{
-	  *err = ZERO_ERROR;
+	  *err = U_ZERO_ERROR;
 	  out_chunk_alias2 = out_chunk;
 
-	  while ((out_chunk_alias2 != out_chunk_alias) && SUCCESS (*err))
+	  while ((out_chunk_alias2 != out_chunk_alias) && U_SUCCESS (*err))
 	    {
 	      ucnv_fromUnicode (outConverter,
 				target,
@@ -1035,12 +1046,12 @@ int32_t  ucnv_convert(const char *toConverterName,
   char *myTarget = target;
   int32_t targetCapacity = 0;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return 0;
 
   if ((targetSize < 0) || (sourceSize < 0))
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return 0;
     }
 
@@ -1055,9 +1066,9 @@ int32_t  ucnv_convert(const char *toConverterName,
 
   /*create the converters */
   inConverter = ucnv_open (fromConverterName, err);
-  if (FAILURE (*err)) return 0;
+  if (U_FAILURE (*err)) return 0;
   outConverter = ucnv_open (toConverterName, err);
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     {
       ucnv_close (inConverter);
       return 0;
@@ -1082,13 +1093,13 @@ int32_t  ucnv_convert(const char *toConverterName,
   targetCapacity = myTarget - target;
   if (targetSize == 0)
     {
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
 
   /* If the output buffer is exhausted, we need to stop writing
    * to it but continue the conversion in order to store in targetSize
    * the number of bytes that was required*/
-  if (*err == INDEX_OUTOFBOUNDS_ERROR)
+  if (*err == U_INDEX_OUTOFBOUNDS_ERROR)
     {
       char target2[CHUNK_SIZE];
       char *target2_alias = target2;
@@ -1098,9 +1109,9 @@ int32_t  ucnv_convert(const char *toConverterName,
        *(in case the output is greater than CHUNK_SIZE)
        */
 
-      while (*err == INDEX_OUTOFBOUNDS_ERROR)
+      while (*err == U_INDEX_OUTOFBOUNDS_ERROR)
 	{
-	  *err = ZERO_ERROR;
+	  *err = U_ZERO_ERROR;
 	  target2_alias = target2;
 	  T_UConverter_fromCodepageToCodepage (outConverter,
 					       inConverter,
@@ -1115,11 +1126,11 @@ int32_t  ucnv_convert(const char *toConverterName,
 	  /*updates the output parameter to contain the number of char required */
 	  targetCapacity += (target2_alias - target2) + 1;
 	}
-      /*We will set the erro code to BUFFER_OVERFLOW_ERROR only if
+      /*We will set the erro code to U_BUFFER_OVERFLOW_ERROR only if
        *nothing graver happened in the previous loop*/
       (targetCapacity)--;
-      if (SUCCESS (*err))
-	*err = BUFFER_OVERFLOW_ERROR;
+      if (U_SUCCESS (*err))
+	*err = U_BUFFER_OVERFLOW_ERROR;
     }
 
   ucnv_close (inConverter);
@@ -1128,7 +1139,7 @@ int32_t  ucnv_convert(const char *toConverterName,
   return targetCapacity;
 }
 
-UCNV_TYPE ucnv_getType(const UConverter* converter)
+UConverterType ucnv_getType(const UConverter* converter)
 {
   return converter->sharedData->conversionType;
 }
@@ -1137,11 +1148,11 @@ void ucnv_getStarters(const UConverter* converter,
 		      bool_t starters[256],
 		      UErrorCode* err)
 {
-  if (FAILURE(*err)) return;
-  /*Fire off an error if converter is not MBCS*/
-  if (converter->sharedData->conversionType != MBCS) 
+  if (U_FAILURE(*err)) return;
+  /*Fire off an error if converter is not UCNV_MBCS*/
+  if (converter->sharedData->conversionType != UCNV_MBCS) 
     {
-      *err = ILLEGAL_ARGUMENT_ERROR;
+      *err = U_ILLEGAL_ARGUMENT_ERROR;
       return;
     }
   
@@ -1149,5 +1160,3 @@ void ucnv_getStarters(const UConverter* converter,
   icu_memcpy(starters, converter->sharedData->table->mbcs.starters, 256*sizeof(bool_t));
   return;
 }
-
-

@@ -127,7 +127,7 @@ void setNuConvTestName(const char *codepage, const char *direction)
 bool_t testConvertFromU( const UChar *source, int sourceLen,  const char *expect, int expectLen, 
 			    const char *codepage, int32_t *expectOffsets)
 {
-	UErrorCode status = ZERO_ERROR;
+	UErrorCode status = U_ZERO_ERROR;
 	UConverter *conv = 0;
 	char	junkout[NEW_MAX_BUFFER]; /* FIX */
 	int32_t	junokout[NEW_MAX_BUFFER]; /* FIX */
@@ -153,7 +153,7 @@ bool_t testConvertFromU( const UChar *source, int sourceLen,  const char *expect
 	log_verbose("\n=========  %s\n", gNuConvTestName);
 
 	conv = ucnv_open(codepage, &status);
-	if(FAILURE(status))
+	if(U_FAILURE(status))
 	{
 		log_err("Couldn't open converter %s\n",codepage);	
 		return FALSE;
@@ -190,7 +190,7 @@ bool_t testConvertFromU( const UChar *source, int sourceLen,  const char *expect
 	    log_verbose("calling fromUnicode @ SOURCE:%08lx to %08lx  TARGET: %08lx to %08lx, flush=%s\n", src,sourceLimit, targ,end, doFlush?"TRUE":"FALSE");
 	    
 
-	    status = ZERO_ERROR;
+	    status = U_ZERO_ERROR;
  
 	    ucnv_fromUnicode (conv,
 			      &targ,
@@ -201,9 +201,9 @@ bool_t testConvertFromU( const UChar *source, int sourceLen,  const char *expect
 			      doFlush, /* flush if we're at the end of the input data */
 			      &status);
 	
-	  } while ( (status == INDEX_OUTOFBOUNDS_ERROR) || (sourceLimit < realSourceEnd) );
+	  } while ( (status == U_INDEX_OUTOFBOUNDS_ERROR) || (sourceLimit < realSourceEnd) );
 	    
-	if(FAILURE(status))
+	if(U_FAILURE(status))
 	  {
 	    log_err("Problem tdoing fromUnicode, errcode %d %s\n", codepage, status, gNuConvTestName);
 		return FALSE;
@@ -269,7 +269,7 @@ bool_t testConvertFromU( const UChar *source, int sourceLen,  const char *expect
 bool_t testConvertToU( const char *source, int sourcelen, const UChar *expect, int expectlen, 
 		       const char *codepage, int32_t *expectOffsets)
 {
-	UErrorCode status = ZERO_ERROR;
+	UErrorCode status = U_ZERO_ERROR;
 	UConverter *conv = 0;
 	UChar	junkout[NEW_MAX_BUFFER]; /* FIX */
 	int32_t	junokout[NEW_MAX_BUFFER]; /* FIX */
@@ -297,7 +297,7 @@ bool_t testConvertToU( const char *source, int sourcelen, const UChar *expect, i
 	log_verbose("\n=========  %s\n", gNuConvTestName);
 
 	conv = ucnv_open(codepage, &status);
-	if(FAILURE(status))
+	if(U_FAILURE(status))
 	{
 		log_err("Couldn't open converter %s\n",gNuConvTestName);
 		return FALSE;
@@ -333,7 +333,7 @@ bool_t testConvertToU( const char *source, int sourcelen, const UChar *expect, i
 
 	    /* oldTarg = targ; */
 
-	    status = ZERO_ERROR;
+	    status = U_ZERO_ERROR;
 
 	    ucnv_toUnicode (conv,
 			    &targ,
@@ -346,9 +346,9 @@ bool_t testConvertToU( const char *source, int sourcelen, const UChar *expect, i
 
 	    /*	    offs += (targ-oldTarg); */
 
-	  } while ( (status == INDEX_OUTOFBOUNDS_ERROR) || (srcLimit < realSourceEnd) ); /* while we just need another buffer */
+	  } while ( (status == U_INDEX_OUTOFBOUNDS_ERROR) || (srcLimit < realSourceEnd) ); /* while we just need another buffer */
 
-	if(FAILURE(status))
+	if(U_FAILURE(status))
 	{
 		log_err("Problem doing toUnicode, errcode %d %s\n", status, gNuConvTestName);
 		return FALSE;
@@ -501,7 +501,7 @@ void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
 
 	if(!testConvertFromU(sampleText, sizeof(sampleText)/sizeof(sampleText[0]),
 			expectedIBM943, sizeof(expectedIBM943), "ibm-943", toIBM943Offs ))
-		log_err("u-> ibm-943 [MBCS] not match.\n");
+		log_err("u-> ibm-943 [UCNV_MBCS] not match.\n");
 
 	if(!testConvertFromU(sampleText, sizeof(sampleText)/sizeof(sampleText[0]),
 			expectedUTF16LE, sizeof(expectedUTF16LE), "utf-16le", toUTF16LEOffs ))
@@ -536,7 +536,7 @@ void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
 void TestConverterTypesAndStarters()
 {
 	UConverter* myConverter[3];
-	UErrorCode err = ZERO_ERROR;
+	UErrorCode err = U_ZERO_ERROR;
 	bool_t mystarters[256];
 	int i;
 	
@@ -572,17 +572,17 @@ void TestConverterTypesAndStarters()
   log_verbose("Testing KSC, ibm-930, ibm-878  for starters and their conversion types.");
 
 	myConverter[0] = ucnv_open("ksc", &err);
-	if (FAILURE(err)) log_err("Failed to create an ibm-949 converter\n");
+	if (U_FAILURE(err)) log_err("Failed to create an ibm-949 converter\n");
 	myConverter[1] = ucnv_open("ibm-930", &err);
-	if (FAILURE(err)) log_err("Failed to create an ibm-930 converter\n");
+	if (U_FAILURE(err)) log_err("Failed to create an ibm-930 converter\n");
 	myConverter[2] = ucnv_open("ibm-878", &err);
-	if (FAILURE(err)) log_err("Failed to create an ibm-815 converter\n");
+	if (U_FAILURE(err)) log_err("Failed to create an ibm-815 converter\n");
 
-	if (ucnv_getType(myConverter[0])!=MBCS) log_err("ucnv_getType Failed for ibm-949\n");
+	if (ucnv_getType(myConverter[0])!=UCNV_MBCS) log_err("ucnv_getType Failed for ibm-949\n");
 	else log_verbose("ucnv_getType ibm-949 ok\n");
-	if (ucnv_getType(myConverter[1])!=EBCDIC_STATEFUL) log_err("ucnv_getType Failed for ibm-930\n");
+	if (ucnv_getType(myConverter[1])!=UCNV_EBCDIC_STATEFUL) log_err("ucnv_getType Failed for ibm-930\n");
 	else log_verbose("ucnv_getType ibm-930 ok\n");
-	if (ucnv_getType(myConverter[2])!=SBCS) log_err("ucnv_getType Failed for ibm-815\n");
+	if (ucnv_getType(myConverter[2])!=UCNV_SBCS) log_err("ucnv_getType Failed for ibm-815\n");
 	else log_verbose("ucnv_getType ibm-815 ok\n");
 
 

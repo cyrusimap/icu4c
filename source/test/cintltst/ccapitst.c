@@ -11,11 +11,11 @@
 *****************************************************************************************
 ********************************************************************************
 *
-* File CCAPITST.C
+* File CU_CAPITST.C
 *
 * Modification History:
 *        Name                      Description            
-*     Madhu Katragadda              Ported for CAPI
+*     Madhu Katragadda              Ported for C API
 *********************************************************************************
 */
 #include <stdio.h>
@@ -39,13 +39,8 @@ void WriteToFile(const UChar *a, FILE *myfile);
 /*Case insensitive compare*/
 int32_t strCaseIcmp(const char* a1,const char * a2); 
 /*returns an action other than the one provided*/
-UCNV_FromUCallBack otherUnicodeAction(UCNV_FromUCallBack MIA);
-UCNV_ToUCallBack otherCharAction(UCNV_ToUCallBack MIA);
-/*Asciifies the ErrorCodes*/
-const char* errorString(UErrorCode err); 
-const char* myErrorName(UErrorCode err);
-
-
+UConverterFromUCallback otherUnicodeAction(UConverterFromUCallback MIA);
+UConverterToUCallback otherCharAction(UConverterToUCallback MIA);
 
 
 void addTestConvert(TestNode** root)
@@ -89,11 +84,11 @@ void TestConvert()
     int32_t             k                   =   0;
     uint16_t            codepage_index      =   0;
     int32_t             cp                  =   0;
-    UErrorCode          err                 =   ZERO_ERROR;
+    UErrorCode          err                 =   U_ZERO_ERROR;
     const char*            available_conv;  
     char                ucs_file_name[UCS_FILE_NAME_SIZE];
-    UCNV_FromUCallBack          MIA1;
-    UCNV_ToUCallBack              MIA2;
+    UConverterFromUCallback          MIA1;
+    UConverterToUCallback              MIA2;
     UChar                myUnitarget[MAX_FILE_LEN];
     UChar                *myUnitarget_1 = myUnitarget;
     UConverter*            someConverters[5];
@@ -168,20 +163,20 @@ void TestConvert()
     };
 
     
-    const UCNV_PLATFORM        CodePagesPlatform[NUM_CODEPAGE]    =
+    const UConverterPlatform        CodePagesPlatform[NUM_CODEPAGE]    =
     { 
-        IBM
+        UCNV_IBM
     
     };
 
-    const UCNV_ToUCallBack CodePagesMissingCharAction[NUM_CODEPAGE] =
+    const UConverterToUCallback CodePagesMissingCharAction[NUM_CODEPAGE] =
     {
-      MissingCharAction_SUBSTITUTE
+      UCNV_TO_U_CALLBACK_SUBSTITUTE
     };
     
-    const UCNV_FromUCallBack CodePagesMissingUnicodeAction[NUM_CODEPAGE] =
+    const UConverterFromUCallback CodePagesMissingUnicodeAction[NUM_CODEPAGE] =
     {
-      MissingUnicodeAction_SUBSTITUTE
+      UCNV_FROM_U_CALLBACK_SUBSTITUTE
     };
 
     const char* CodePagesLocale[NUM_CODEPAGE] =
@@ -224,19 +219,19 @@ void TestConvert()
     /*Testing ucnv_open()*/
 
     someConverters[0] = ucnv_open("ibm-949", &err);
-    if (FAILURE(err)) { log_err("FAILURE!  %s\n", myErrorName(err)); }
+    if (U_FAILURE(err)) { log_err("FAILURE!  %s\n", myErrorName(err)); }
     
     someConverters[1] = ucnv_open("ibm-949", &err);
-    if (FAILURE(err)) { log_err("FAILURE!  %s\n", myErrorName(err)); }
+    if (U_FAILURE(err)) { log_err("FAILURE!  %s\n", myErrorName(err)); }
     
     someConverters[2] = ucnv_open("ibm-949", &err);
-    if (FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err)); }
+    if (U_FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err)); }
     
     someConverters[3] = ucnv_open("ibm-834", &err);
-    if (FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err)); }
+    if (U_FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err)); }
     
     someConverters[4] = ucnv_open("ibm-943", &err);
-    if (FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err));}
+    if (U_FAILURE(err)) { log_err("FAILURE! %s\n", myErrorName(err));}
     
     /* Testing ucnv_flushCache() */
     log_verbose("\n---Testing ucnv_flushCache...\n");
@@ -268,8 +263,8 @@ void TestConvert()
     someConverters[0] = ucnv_open(NULL,&err);
     someConverters[1] = ucnv_open(NULL,&err);
     someConverters[2] = ucnv_open("utf8", &err);
-    someConverters[3] = ucnv_openCCSID(949,IBM,&err);
-    if (FAILURE(err)){ log_err("FAILURE! %s\n", myErrorName(err));}
+    someConverters[3] = ucnv_openCCSID(949,UCNV_IBM,&err);
+    if (U_FAILURE(err)){ log_err("FAILURE! %s\n", myErrorName(err));}
     
     /* Testing ucnv_getName()*/
 	/*default code page */
@@ -338,10 +333,10 @@ void TestConvert()
 
      /*Creates a converter and testing ucnv_openCCSID(u_int code_page, platform, errstatus*/
 
-	/*     myConverter =ucnv_openCCSID(CodePageNumberToTest[codepage_index],IBM, &err); */
+	/*     myConverter =ucnv_openCCSID(CodePageNumberToTest[codepage_index],UCNV_IBM, &err); */
 	/*	ucnv_flushCache(); */
 	myConverter =ucnv_open( "ibm-949", &err);
-        if (!myConverter || FAILURE(err))   
+        if (!myConverter || U_FAILURE(err))   
         {
             log_err("Error creating the convertor \n");
             
@@ -351,7 +346,7 @@ void TestConvert()
     /*testing for ucnv_getName()  */
     log_verbose("Testing ucnv_getName()...\n");
     ucnv_getName(myConverter, &err);
-    if(FAILURE(err))
+    if(U_FAILURE(err))
         log_err("Error in getName\n");
     else
     {
@@ -392,10 +387,10 @@ void TestConvert()
     
     log_verbose("\n---Testing ucnv_setSubstChars RoundTrip Test ...\n");
     ucnv_setSubstChars(myConverter, myptr, ii, &err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err)); }
     ucnv_getSubstChars(myConverter,save, &ii, &err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err)); }
     
     if (strncmp(save, myptr, ii)) 
@@ -419,12 +414,12 @@ void TestConvert()
     displayname=(UChar*)malloc(1 * sizeof(UChar));
     len=0;
     disnamelen = ucnv_getDisplayName(myConverter,locale,displayname, len, &err); 
-    if(err==BUFFER_OVERFLOW_ERROR)
+    if(err==U_BUFFER_OVERFLOW_ERROR)
       {    
-         err=ZERO_ERROR;
+         err=U_ZERO_ERROR;
          displayname=(UChar*)realloc(displayname, (disnamelen+1) * sizeof(UChar));
          ucnv_getDisplayName(myConverter,locale,displayname,disnamelen+1, &err);
-         if(FAILURE(err))
+         if(U_FAILURE(err))
          {
            log_err("getDisplayName failed the error is  %s\n", myErrorName(err));
          }
@@ -439,7 +434,7 @@ void TestConvert()
             
     log_verbose("\n---Testing ucnv_setFromUCallBack...\n");
     ucnv_setFromUCallBack(myConverter,otherUnicodeAction(MIA1), &err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err)); }
     
     if (ucnv_getFromUCallBack(myConverter) != otherUnicodeAction(MIA1)) 
@@ -449,7 +444,7 @@ void TestConvert()
 
     log_verbose("\n---Testing getFromUCallBack Roundtrip...\n");
     ucnv_setFromUCallBack(myConverter,MIA1, &err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err));  }
     
     if (ucnv_getFromUCallBack(myConverter)!= MIA1) 
@@ -464,7 +459,7 @@ void TestConvert()
     
     log_verbose("\n---Testing setTo UCallBack...\n");
     ucnv_setToUCallBack(myConverter,otherCharAction(MIA2),&err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err));}
 
     if (ucnv_getToUCallBack(myConverter) != otherCharAction(MIA2)) 
@@ -474,7 +469,7 @@ void TestConvert()
     
     log_verbose("\n---Testing setTo UCallBack Roundtrip...\n");
     ucnv_setToUCallBack(myConverter,MIA2, &err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { log_err("FAILURE! %s\n", myErrorName(err));  }
     
     if (ucnv_getToUCallBack(myConverter) != MIA2)
@@ -486,7 +481,7 @@ void TestConvert()
     /*getcodepageid testing ucnv_getCCSID() */
     log_verbose("\n----Testing getCCSID....\n");
     cp =    ucnv_getCCSID(myConverter,&err);
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     {
         log_err("FAILURE!..... %s\n", myErrorName(err));
     }
@@ -504,7 +499,7 @@ void TestConvert()
     else 
         log_verbose("Platform codepage test ok\n");
     
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     { 
         log_err("FAILURE! %s\n", myErrorName(err));
     }
@@ -547,7 +542,7 @@ void TestConvert()
       testLong1 = MAX_FILE_LEN;
       log_verbose("\n---Testing ucnv_fromUChars()\n");
            targetcapacity = ucnv_fromUChars(myConverter, output_cp_buffer, testLong1,  uchar1, &err);
-      if (FAILURE(err))  
+      if (U_FAILURE(err))  
       {
             log_err("\nFAILURE...%s\n", myErrorName(err));
       }
@@ -568,9 +563,9 @@ void TestConvert()
 				 &err);
       /*if there is an buffer overflow then trap the values and pass them and make the actual call*/
 
-      if(err==BUFFER_OVERFLOW_ERROR)
+      if(err==U_BUFFER_OVERFLOW_ERROR)
       {    
-         err=ZERO_ERROR;
+         err=U_ZERO_ERROR;
          uchar2=(UChar*)malloc((targetsize) * sizeof(UChar));
 	          targetsize = ucnv_toUChars(myConverter, 
                    uchar2,
@@ -579,7 +574,7 @@ void TestConvert()
                    strlen(output_cp_buffer),
                    &err);
          
-         if(FAILURE(err))
+         if(U_FAILURE(err))
            log_err("ucnv_toUChars() FAILED %s\n", myErrorName(err));
          else
            log_verbose(" ucnv_toUChars() o.k.\n");
@@ -601,7 +596,7 @@ void TestConvert()
                  &err);
      consumedUni = (UChar*)tmp_consumedUni;
     
-     if (FAILURE(err)) 
+     if (U_FAILURE(err)) 
       { 
          log_err("FAILURE! %s\n", myErrorName(err));
      }
@@ -620,7 +615,7 @@ void TestConvert()
                FALSE,
                &err);
       consumed = (char*)tmp_consumed;
-     if (FAILURE(err)) 
+     if (U_FAILURE(err)) 
      { log_err("FAILURE! %s\n", myErrorName(err)); }
      else
          log_verbose("ucnv_toUnicode()  o.k.\n");
@@ -680,17 +675,14 @@ int32_t strCaseIcmp(const char* a1, const char * a2)
     return ret;
 }
 
-UCNV_FromUCallBack otherUnicodeAction(UCNV_FromUCallBack MIA)
+UConverterFromUCallback otherUnicodeAction(UConverterFromUCallback MIA)
 {
-    return (MIA==(UCNV_FromUCallBack)MissingUnicodeAction_STOP)?(UCNV_FromUCallBack)MissingUnicodeAction_SUBSTITUTE:(UCNV_FromUCallBack)MissingUnicodeAction_STOP;
+    return (MIA==(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_STOP)?(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_SUBSTITUTE:(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_STOP;
 }
 
 
-UCNV_ToUCallBack otherCharAction(UCNV_ToUCallBack MIA)
+UConverterToUCallback otherCharAction(UConverterToUCallback MIA)
 
 {
-    return (MIA==(UCNV_ToUCallBack)MissingCharAction_STOP)?(UCNV_ToUCallBack)MissingCharAction_SUBSTITUTE:(UCNV_ToUCallBack)MissingCharAction_STOP;
+    return (MIA==(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP)?(UConverterToUCallback)UCNV_TO_U_CALLBACK_SUBSTITUTE:(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP;
 }
-
-
-

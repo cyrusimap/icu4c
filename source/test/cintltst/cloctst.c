@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda            Ported for CAPI
+*     Madhu Katragadda            Ported for C API
 *********************************************************************************
 */
 #include "utypes.h"
@@ -84,7 +84,7 @@ void addLocaleTest(TestNode** root)
 void TestBasicGetters() {
     int32_t i;
     int32_t cap;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     char *testLocale = 0;
     char *temp = 0, *name = 0;
     log_verbose("Testing Basic Getters\n");
@@ -94,12 +94,12 @@ void TestBasicGetters() {
         
         log_verbose("Testing   %s  .....\n", testLocale);
         cap=uloc_getLanguage(testLocale, NULL, 0, &status);
-        if(status==BUFFER_OVERFLOW_ERROR){
-            status=ZERO_ERROR;
+        if(status==U_BUFFER_OVERFLOW_ERROR){
+            status=U_ZERO_ERROR;
             temp=(char*)malloc(sizeof(char) * (cap+1));
             uloc_getLanguage(testLocale, temp, cap, &status);
         }
-        if(FAILURE(status)){
+        if(U_FAILURE(status)){
             log_err("ERROR: in uloc_getLanguage  %s\n", myErrorName(status));
         }
         if (0 !=strcmp(temp,rawData2[LANG][i]))    {
@@ -109,12 +109,12 @@ void TestBasicGetters() {
         
         
         cap=uloc_getCountry(testLocale, temp, cap, &status);
-        if(status==BUFFER_OVERFLOW_ERROR){
-            status=ZERO_ERROR;
+        if(status==U_BUFFER_OVERFLOW_ERROR){
+            status=U_ZERO_ERROR;
             temp=(char*)realloc(temp, sizeof(char) * (cap+1));
             uloc_getCountry(testLocale, temp, cap, &status);
         }
-        if(FAILURE(status)){
+        if(U_FAILURE(status)){
             log_err("ERROR: in uloc_getCountry  %s\n", myErrorName(status));
         }
         if (0 != strcmp(temp, rawData2[CTRY][i])) {
@@ -123,12 +123,12 @@ void TestBasicGetters() {
           }
 
         cap=uloc_getVariant(testLocale, temp, cap, &status);
-        if(status==BUFFER_OVERFLOW_ERROR){
-            status=ZERO_ERROR;
+        if(status==U_BUFFER_OVERFLOW_ERROR){
+            status=U_ZERO_ERROR;
             temp=(char*)realloc(temp, sizeof(char) * (cap+1));
             uloc_getVariant(testLocale, temp, cap, &status);
         }
-        if(FAILURE(status)){
+        if(U_FAILURE(status)){
             log_err("ERROR: in uloc_getVariant  %s\n", myErrorName(status));
         }
         if (0 != strcmp(temp, rawData2[VAR][i])) {
@@ -139,12 +139,12 @@ void TestBasicGetters() {
         
            
         cap=uloc_getName(testLocale, NULL, 0, &status);
-        if(status==BUFFER_OVERFLOW_ERROR){
-            status=ZERO_ERROR;
+        if(status==U_BUFFER_OVERFLOW_ERROR){
+            status=U_ZERO_ERROR;
             name=(char*)malloc(sizeof(char) * (cap+1));
             uloc_getName(testLocale, name, cap, &status);
         }
-        if(FAILURE(status)){
+        if(U_FAILURE(status)){
             log_err("ERROR: in uloc_getName   %s\n", myErrorName(status));
         }
         if (0 != strcmp(name, rawData2[NAME][i])){
@@ -209,7 +209,7 @@ void TestDisplayNames()
     const char *saveDefault;
     char *defaultLocale;
     
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
     
 
     saveDefault = uloc_getDefault();
@@ -221,7 +221,7 @@ void TestDisplayNames()
     strcpy(defaultLocale, saveDefault);
 
     uloc_setDefault("en_US", &err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         log_err("uloc_setDefault returned error code ");
         return;
     }
@@ -242,7 +242,7 @@ void TestDisplayNames()
     doTestDisplayNames("el_GR", DLANG_EL, FALSE);
 
    uloc_setDefault("fr_FR", &err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         log_err("Locale::setDefault returned error code  %s\n", myErrorName(err));
         return;
     }
@@ -261,7 +261,7 @@ void TestDisplayNames()
     doTestDisplayNames("el_GR", DLANG_EL, TRUE);
 
     uloc_setDefault(defaultLocale, &err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         log_err("Locale::setDefault returned error code  %s\n", myErrorName(err));
         return;
     }
@@ -304,7 +304,7 @@ void TestDataDirectory()
 
     char            oldDirectory[80];
     const char     *temp,*testValue1,*testValue2,*testValue3;
-    UErrorCode       err = ZERO_ERROR;
+    UErrorCode       err = U_ZERO_ERROR;
     const char path[40] ="d:\\icu\\source\\test\\intltest\\" ; /*give the required path */
 
     
@@ -351,7 +351,7 @@ void doTestDisplayNames(const char* inLocale,
                                     int32_t compareIndex,
                                     int32_t defaultIsFrench)
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     int32_t i;
     int32_t maxresultsize;
     
@@ -374,7 +374,7 @@ void doTestDisplayNames(const char* inLocale,
     
        
     uloc_getLanguage(uloc_getDefault(), temp, 5, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in getDefault  %s \n", myErrorName(status));
     }
     if (defaultIsFrench && 0 != strcmp(temp, "fr"))    {
@@ -400,52 +400,52 @@ void doTestDisplayNames(const char* inLocale,
         if (strcmp(inLocale, defaultDefaultLocale)==0) {
             maxresultsize=0;
             maxresultsize=uloc_getDisplayLanguage(testLocale, NULL, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testLang=(UChar*)malloc(sizeof(UChar) * (maxresultsize + 1));
                 uloc_getDisplayLanguage(testLocale, NULL, testLang, maxresultsize, &status);
 
 
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                     log_err("Error in getDisplayLanguage()  %s\n", myErrorName(status));
                     
             }
             maxresultsize=0;
             maxresultsize=uloc_getDisplayCountry(testLocale, NULL, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testCtry=(UChar*)malloc(sizeof(UChar) * (maxresultsize + 1));
                 uloc_getDisplayCountry(testLocale, NULL, testCtry, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                     log_err("Error in getDisplayCountry()  %s\n", myErrorName(status));
                     
             }
             
             maxresultsize=0;
             maxresultsize=uloc_getDisplayVariant(testLocale, NULL, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testVar=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayVariant(testLocale, NULL, testVar, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                     log_err("Error in getDisplayVariant()  %s\n", myErrorName(status));
                 
             }
             maxresultsize=0;
             maxresultsize=uloc_getDisplayName(testLocale, NULL, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testName=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayName(testLocale, NULL, testName, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                     log_err("Error in getDisplayName()  %s\n", myErrorName(status));
                 
             }
@@ -454,49 +454,49 @@ void doTestDisplayNames(const char* inLocale,
         else {
             maxresultsize=0;
             maxresultsize=uloc_getDisplayLanguage(testLocale, inLocale, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testLang=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayLanguage(testLocale, inLocale, testLang, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                 log_err("Error in getDisplayLanguage()  %s\n", myErrorName(status));
             }
 
             maxresultsize=0;
             maxresultsize=uloc_getDisplayCountry(testLocale, inLocale, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testCtry=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayCountry(testLocale, inLocale, testCtry, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                 log_err("Error in getDisplayCountry()  %s\n", myErrorName(status));
             }
             
             maxresultsize=0;
             maxresultsize=uloc_getDisplayVariant(testLocale, inLocale, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testVar=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayVariant(testLocale, inLocale, testVar, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                     log_err("Error in getDisplayVariant()  %s\n", myErrorName(status));
             }
             
             maxresultsize=0;
             maxresultsize=uloc_getDisplayName(testLocale, inLocale, NULL, maxresultsize, &status);
-            if(status==BUFFER_OVERFLOW_ERROR)
+            if(status==U_BUFFER_OVERFLOW_ERROR)
             {
-                status=ZERO_ERROR;
+                status=U_ZERO_ERROR;
                 testName=(UChar*)malloc(sizeof(UChar) * (maxresultsize+1));
                 uloc_getDisplayName(testLocale, inLocale, testName, maxresultsize, &status);
             }
-            if(FAILURE(status)){
+            if(U_FAILURE(status)){
                 log_err("Error in getDisplayName()  %s\n", myErrorName(status));
             }
 

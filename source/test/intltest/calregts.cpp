@@ -70,33 +70,16 @@ CalendarRegressionTest::runIndexedTest( int32_t index, bool_t exec, char* &name,
         CASE(32,Test4165343) 
         CASE(33,Test4166109) 
         CASE(34,Test4167060) 
+        CASE(35,Test4197699)
 
     default: name = ""; break;
-    }
-}
-
-const char* 
-CalendarRegressionTest::errorName(UErrorCode code)
-{
-    switch (code) {
-        case ZERO_ERROR:                return "ZERO_ERROR";
-        case ILLEGAL_ARGUMENT_ERROR:    return "ILLEGAL_ARGUMENT_ERROR";
-        case MISSING_RESOURCE_ERROR:    return "MISSING_RESOURCE_ERROR";
-        case INVALID_FORMAT_ERROR:      return "INVALID_FORMAT_ERROR";
-        case FILE_ACCESS_ERROR:         return "FILE_ACCESS_ERROR";
-        case INTERNAL_PROGRAM_ERROR:    return "INTERNAL_PROGRAM_ERROR";
-        case MESSAGE_PARSE_ERROR:       return "MESSAGE_PARSE_ERROR";
-        case MEMORY_ALLOCATION_ERROR:   return "MEMORY_ALLOCATION_ERROR";
-        case USING_FALLBACK_ERROR:      return "USING_FALLBACK_ERROR";
-        case USING_DEFAULT_ERROR:       return "USING_DEFAULT_ERROR";
-        default:                        return "[BOGUS UErrorCode]";
     }
 }
 
 bool_t 
 CalendarRegressionTest::failure(UErrorCode status, const char* msg)
 {
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln(UnicodeString("FAIL: ") + msg + " failed, error " + errorName(status));
         return TRUE;
     }
@@ -110,7 +93,7 @@ CalendarRegressionTest::failure(UErrorCode status, const char* msg)
 void 
 CalendarRegressionTest::test4100311()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     GregorianCalendar *cal = (GregorianCalendar*)Calendar::createInstance(status);
     failure(status, "Calendar::createInstance(status)");
     cal->set(Calendar::YEAR, 1997);
@@ -128,7 +111,7 @@ CalendarRegressionTest::test4100311()
 void
 CalendarRegressionTest::test4074758()
 {       //Set system time to between 12-1 (am or pm) and then run
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     GregorianCalendar *cal = new GregorianCalendar(status);
     failure(status, "new GregorianCalendar");
     for (int32_t h=0; h<25; ++h) {
@@ -146,7 +129,7 @@ CalendarRegressionTest::test4074758()
 void
 CalendarRegressionTest::test4028518()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     GregorianCalendar *cal1 = new GregorianCalendar(status) ;
     failure(status, "new GregorianCalendar");
     GregorianCalendar *cal2 = (GregorianCalendar*) cal1->clone() ;
@@ -162,7 +145,7 @@ CalendarRegressionTest::test4028518()
 void 
 CalendarRegressionTest::printdate(GregorianCalendar *cal, char *string)
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     logln(UnicodeString(string));
     log(UnicodeString("") + cal->get(GregorianCalendar::MONTH, status)) ;
     failure(status, "cal->get");
@@ -181,7 +164,7 @@ CalendarRegressionTest::test4031502()
 {
     // This bug actually occurs on Windows NT as well, and doesn't
     // require the host zone to be set; it can be set in Java.
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     int32_t count = 0;
     const UnicodeString **ids = TimeZone::createAvailableIDs(count);
     bool_t bad = FALSE;
@@ -191,7 +174,7 @@ CalendarRegressionTest::test4031502()
         failure(status, "new GregorianCalendar");
         cal->clear();
         cal->set(1900, 15, 5, 5, 8, 13);
-        if (cal->get(Calendar::HOUR, status) != 5 || FAILURE(status)) {
+        if (cal->get(Calendar::HOUR, status) != 5 || U_FAILURE(status)) {
             UnicodeString temp;
             logln(zone->getID(temp) + " " +
                                //zone.useDaylightTime() + " " +
@@ -212,7 +195,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4035301() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *c = new GregorianCalendar(98, 8, 7,status);
         GregorianCalendar *d = new GregorianCalendar(98, 8, 7,status);
         if (c->after(*d,status) ||
@@ -234,7 +217,7 @@ CalendarRegressionTest::test4031502()
         int32_t count = 0;
         const UnicodeString **ids = TimeZone::createAvailableIDs(-8 * 60 * 60 * 1000, count);
         SimpleTimeZone *pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, *ids[0]);
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         pdt->setStartRule(Calendar::APRIL, 1, Calendar::SUNDAY, 2 * 60 * 60 * 1000, status);
         pdt->setEndRule(Calendar::OCTOBER, -1, Calendar::SUNDAY, 2 * 60 * 60 * 1000, status);
         Calendar *calendar = new GregorianCalendar(pdt, status);
@@ -271,13 +254,13 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4051765() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         Calendar *cal = Calendar::createInstance(status);
         cal->setLenient(FALSE);
         cal->set(Calendar::DAY_OF_WEEK, 0);
         //try {
             cal->getTime(status);
-            if( ! FAILURE(status))
+            if( ! U_FAILURE(status))
                 errln("Fail: DAY_OF_WEEK 0 should be disallowed");
         /*}
         catch (IllegalArgumentException e) {
@@ -349,7 +332,7 @@ CalendarRegressionTest::test4031502()
      * @bug 4059654
      */
     void CalendarRegressionTest::test4059654() {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *gc = new GregorianCalendar(status);
         
         gc->set(1997, 3, 1, 15, 16, 17); // April 1, 1997
@@ -374,7 +357,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4061476() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         SimpleDateFormat *fmt = new SimpleDateFormat("ddMMMyy", Locale::UK,status);
         Calendar *cal = Calendar::createInstance(TimeZone::createTimeZone("GMT"), 
                                         Locale::UK,status);
@@ -401,7 +384,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4070502() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         UDate d = getAssociatedDate(makeDate(1998,0,30), status);
         Calendar *cal = new GregorianCalendar(status);
         cal->setTime(d,status);
@@ -452,7 +435,7 @@ CalendarRegressionTest::test4031502()
 
     void CalendarRegressionTest::dowTest(bool_t lenient) 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal = new GregorianCalendar(status);
         cal->set(1997, Calendar::AUGUST, 12); // Wednesday
         // cal.getTime(); // Force update
@@ -477,7 +460,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4071385() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         Calendar *cal = Calendar::createInstance(status);
         cal->setTime(makeDate(1998, Calendar::JUNE, 24),status);
         cal->set(Calendar::MONTH, Calendar::NOVEMBER); // change a field
@@ -493,7 +476,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4073929() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *foo1 = new GregorianCalendar(1997, 8, 27,status);
         foo1->add(Calendar::DAY_OF_MONTH, + 1, status);
         int32_t testyear = foo1->get(Calendar::YEAR, status);
@@ -512,7 +495,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4083167() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         TimeZone *saveZone = TimeZone::createDefault();
         //try {
         TimeZone *newZone = TimeZone::createTimeZone("UTC");
@@ -553,7 +536,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4086724() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         SimpleDateFormat *date;
         TimeZone *saveZone = TimeZone::createDefault();
         Locale saveLocale = Locale::getDefault();
@@ -591,7 +574,7 @@ CalendarRegressionTest::test4031502()
      * @bug 4092362
      */
     void CalendarRegressionTest::test4092362() {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal1 = new GregorianCalendar(1997, 10, 11, 10, 20, 40,status); 
         /*cal1.set( Calendar::YEAR, 1997 ); 
         cal1.set( Calendar::MONTH, 10 ); 
@@ -626,7 +609,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4095407() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *a = new GregorianCalendar(1997,Calendar::NOVEMBER, 13,status);
         int32_t dow = a->get(Calendar::DAY_OF_WEEK, status);
         if (dow != Calendar::THURSDAY)
@@ -640,7 +623,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4096231() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         TimeZone *GMT = TimeZone::createTimeZone("GMT");
         TimeZone *PST = TimeZone::createTimeZone("PST");
         int32_t sec = 0, min = 0, hr = 0, day = 1, month = 10, year = 1997;
@@ -701,7 +684,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4096539() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         int32_t y [] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
         for (int32_t x=0;x<12;x++) {
@@ -729,7 +712,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test41003112() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal = (GregorianCalendar*)Calendar::createInstance(status);
         cal->set(Calendar::YEAR, 1997);
         cal->set(Calendar::DAY_OF_YEAR, 1);
@@ -745,7 +728,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4103271() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         SimpleDateFormat *sdf = new SimpleDateFormat(status); 
         int32_t numYears=40, startYear=1997, numDays=15; 
         UnicodeString output, testDesc; 
@@ -935,7 +918,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4106136() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         Locale saveLocale = Locale::getDefault();
         //try {
         Locale locales [] = { Locale::CHINESE, Locale::CHINA };
@@ -966,7 +949,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4108764() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         UDate d00 = makeDate(1997, Calendar::MARCH, 15, 12, 00, 00);
         UDate d01 = makeDate(1997, Calendar::MARCH, 15, 12, 00, 56);
         UDate d10 = makeDate(1997, Calendar::MARCH, 15, 12, 34, 00);
@@ -1010,7 +993,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4114578() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         int32_t ONE_HOUR = 60*60*1000;
         Calendar *cal = Calendar::createInstance(status);
         cal->adoptTimeZone(TimeZone::createTimeZone("PST"));
@@ -1074,7 +1057,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4118384() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         Calendar *cal = Calendar::createInstance(status);
         if (cal->getMaximum(Calendar::HOUR) != 11 ||
             cal->getLeastMaximum(Calendar::HOUR) != 11 ||
@@ -1090,7 +1073,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4125881() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal = (GregorianCalendar*) Calendar::createInstance(status);
         DateFormat *fmt = new SimpleDateFormat("MMMM d, yyyy G",status);
         cal->clear();
@@ -1114,7 +1097,7 @@ CalendarRegressionTest::test4031502()
      * at 45 BC, and not have leap years before then).
      */
     void CalendarRegressionTest::test4125892() {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal = (GregorianCalendar*) Calendar::createInstance(status);
         DateFormat *fmt = new SimpleDateFormat("MMMM d, yyyy G",status);
         cal->clear();
@@ -1123,7 +1106,7 @@ CalendarRegressionTest::test4031502()
         cal->set(Calendar::MONTH, Calendar::FEBRUARY);
         cal->set(Calendar::DATE, 28);
         cal->add(Calendar::DATE, 1,status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("add(DATE,1) failed");
         if (cal->get(Calendar::DATE,status) != 29 ||
             !cal->isLeapYear(-80)) // -80 == 81 BC
@@ -1138,7 +1121,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4141665() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *cal = new GregorianCalendar(status);
         GregorianCalendar *cal2 = (GregorianCalendar*)cal->clone();
         UDate cut = cal->getGregorianChange();
@@ -1162,11 +1145,11 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4142933() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *calendar = new GregorianCalendar(status);
         //try {
         calendar->roll((Calendar::EDateFields)-1, TRUE, status);
-            if(SUCCESS(status))
+            if(U_SUCCESS(status))
                 errln("Test failed, no exception thrown");
         //}
         //catch (IllegalArgumentException e) {
@@ -1191,7 +1174,7 @@ CalendarRegressionTest::test4031502()
      */
     void CalendarRegressionTest::test4145158() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *calendar = new GregorianCalendar(status);
 
         calendar->adoptTimeZone(TimeZone::createTimeZone("GMT"));
@@ -1225,7 +1208,7 @@ CalendarRegressionTest::test4031502()
     // small change in millis.
     void CalendarRegressionTest::test4145983() 
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *calendar = new GregorianCalendar(status);
         calendar->adoptTimeZone(TimeZone::createTimeZone("GMT"));
         UDate DATES [] = { LATEST_SUPPORTED_MILLIS, EARLIEST_SUPPORTED_MILLIS };
@@ -1270,7 +1253,7 @@ CalendarRegressionTest::test4031502()
             "ZONE_OFFSET", 
             "DST_OFFSET"
         };
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar *calendar = new GregorianCalendar(status);
         calendar->setLenient(FALSE);
         UDate date = makeDate(1996, Calendar::JANUARY, 3); // Arbitrary date
@@ -1286,7 +1269,7 @@ CalendarRegressionTest::test4031502()
                 calendar->getTime(status); // Force time computation
                 // We expect an exception to be thrown. If we fall through
                 // to the next line, then we have a bug.
-                if(SUCCESS(status))
+                if(U_SUCCESS(status))
                 errln(UnicodeString("Test failed with field ") + fieldName[field] +
                       ", date before: " + date +
                       ", date after: " + calendar->getTime(status) +
@@ -1306,14 +1289,14 @@ CalendarRegressionTest::test4031502()
 void 
 CalendarRegressionTest::Test4149677() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     TimeZone *zones [] = { 
         TimeZone::createTimeZone("GMT"),
         TimeZone::createTimeZone("PST"),
         TimeZone::createTimeZone("EAT") 
     };
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create zones");
         return;
         // could leak memory
@@ -1321,27 +1304,27 @@ CalendarRegressionTest::Test4149677()
 
     for (int32_t i=0; i < 3; ++i) {
         GregorianCalendar *calendar = new GregorianCalendar(zones[i], status);
-        if(FAILURE(status)) {
+        if(U_FAILURE(status)) {
             errln("Couldnt' create calendar.");
             return;
         }
 
         // Make sure extreme values don't wrap around
         calendar->setTime(EARLIEST_SUPPORTED_MILLIS, status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("setTime failed");
-        if (calendar->get(Calendar::ERA, status) != GregorianCalendar::BC || FAILURE(status)) {
+        if (calendar->get(Calendar::ERA, status) != GregorianCalendar::BC || U_FAILURE(status)) {
             errln("Fail: Date(EARLIEST_SUPPORTED_MILLIS) has an AD year");
         }
         calendar->setTime(LATEST_SUPPORTED_MILLIS, status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("setTime failed");
-        if (calendar->get(Calendar::ERA, status) != GregorianCalendar::AD || FAILURE(status)) {
+        if (calendar->get(Calendar::ERA, status) != GregorianCalendar::AD || U_FAILURE(status)) {
             errln("Fail: Date(LATEST_SUPPORTED_MILLIS) has a BC year");
         }
 
         calendar->setGregorianChange(LATEST_SUPPORTED_MILLIS, status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("setGregorianChange failed");
         // to obtain a pure Julian calendar
         
@@ -1366,12 +1349,12 @@ CalendarRegressionTest::Test4149677()
 void 
 CalendarRegressionTest::Test4162587() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     TimeZone *tz = TimeZone::createTimeZone("PST");
     TimeZone::adoptDefault(tz);
     
     GregorianCalendar *cal = new GregorianCalendar(tz, status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create calendar");
         return;
     }
@@ -1383,7 +1366,7 @@ CalendarRegressionTest::Test4162587()
         cal->clear();
         cal->set(1998, Calendar::APRIL, 5, i, 0);
         d0 = cal->getTime(status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("Coudln't get time (1)");
         //String s0 = d.toString();
         logln(UnicodeString("0 ") + i + ": " + d0/*s0*/);
@@ -1391,7 +1374,7 @@ CalendarRegressionTest::Test4162587()
         cal->clear();
         cal->set(1998, Calendar::APRIL, 4, i+24, 0);
         dPlus = cal->getTime(status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("Coudln't get time (2)");
         //String sPlus = d.toString();
         logln(UnicodeString("+ ") + i + ": " + dPlus/*sPlus*/);
@@ -1399,7 +1382,7 @@ CalendarRegressionTest::Test4162587()
         cal->clear();
         cal->set(1998, Calendar::APRIL, 6, i-24, 0);
         dMinus = cal->getTime(status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             errln("Coudln't get time (3)");
         //String sMinus = d.toString();
         logln(UnicodeString("- ") + i + ": " + dMinus/*sMinus*/);
@@ -1417,31 +1400,31 @@ CalendarRegressionTest::Test4162587()
 void 
 CalendarRegressionTest::Test4165343() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     GregorianCalendar *calendar = new GregorianCalendar(1996, Calendar::FEBRUARY, 29, status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create calendar");
         return;
     }
     UDate start = calendar->getTime(status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't getTime (1)");
     logln(UnicodeString("init date: ") + start);
     calendar->add(Calendar::MONTH, 12, status); 
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't add(MONTH, 12)");
     UDate date1 = calendar->getTime(status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't getTime (2)");
     logln(UnicodeString("after adding 12 months: ") + date1);
     calendar->setTime(start, status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't setTime");
     calendar->add(Calendar::YEAR, 1, status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't add(YEAR, 1)");
     UDate date2 = calendar->getTime(status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't getTime (3)");
     logln(UnicodeString("after adding one year : ") + date2);
     if (date1 == date2) {
@@ -1470,11 +1453,11 @@ CalendarRegressionTest::Test4166109()
      * 29 30 31
      */
     bool_t passed = TRUE;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Calendar::EDateFields field = Calendar::WEEK_OF_MONTH;
 
     GregorianCalendar *calendar = new GregorianCalendar(Locale::US, status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create calendar");
         return;
     }
@@ -1483,7 +1466,7 @@ CalendarRegressionTest::Test4166109()
     logln(UnicodeString("Date:  ") + calendar->getTime(status));
 
     int32_t firstInMonth = calendar->get(Calendar::DAY_OF_MONTH, status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("get(D_O_M) failed");
 
     for(int32_t firstInWeek = Calendar::SUNDAY; firstInWeek <= Calendar::SATURDAY; firstInWeek++) {
@@ -1514,11 +1497,11 @@ CalendarRegressionTest::Test4166109()
 void 
 CalendarRegressionTest::Test4167060() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Calendar::EDateFields field = Calendar::YEAR;
     DateFormat *format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy G",
         Locale::US, status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create SimpleDateFormat");
         return;
     }
@@ -1528,7 +1511,7 @@ CalendarRegressionTest::Test4167060()
         new GregorianCalendar(-99 /*100BC*/, Calendar::JANUARY, 1, status),
         new GregorianCalendar(1996, Calendar::FEBRUARY, 29, status),
     };
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         errln("Couldn't create GregorianCalendars");
         return;
         // could leak
@@ -1548,12 +1531,12 @@ CalendarRegressionTest::Test4167060()
                 calendar->setGregorianChange(LATEST_SUPPORTED_MILLIS, status);
             }
 
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 errln("setGregorianChange() failed");
             format->adoptCalendar((Calendar*)calendar->clone());
 
             UDate dateBefore = calendar->getTime(status);
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 errln("getTime() failed");
 
             int32_t maxYear = calendar->getActualMaximum(field);
@@ -1568,13 +1551,13 @@ CalendarRegressionTest::Test4167060()
                 bool_t valid = years[i] <= maxYear;
                 calendar->set(field, years[i]);
                 UDate dateAfter = calendar->getTime(status);
-                if(FAILURE(status))
+                if(U_FAILURE(status))
                     errln("getTime() failed");
                 int32_t newYear = calendar->get(field, status);
-                if(FAILURE(status))
+                if(U_FAILURE(status))
                     errln(UnicodeString("get(") + (int32_t)field + ") failed");
                 calendar->setTime(dateBefore, status); // restore calendar for next use
-                if(FAILURE(status))
+                if(U_FAILURE(status))
                     errln("setTime() failed");
 
                 temp.remove();
@@ -1598,8 +1581,53 @@ CalendarRegressionTest::Test4167060()
     delete calendars[2];
 }
 
+/**
+ * Week of year is wrong at the start and end of the year.
+ */
+void CalendarRegressionTest::Test4197699() {
+    UErrorCode status = U_ZERO_ERROR;
+    GregorianCalendar cal(status);
+    cal.setFirstDayOfWeek(Calendar::MONDAY);
+    cal.setMinimalDaysInFirstWeek(4);
+    SimpleDateFormat fmt("E dd MMM yyyy  'DOY='D 'WOY='w",
+                         Locale::US, status);
+    fmt.setCalendar(cal);
+    if (U_FAILURE(status)) {
+        errln("Couldn't initialize test");
+        return;
+    }
 
+    int32_t DATA[] = {
+        2000,  Calendar::JANUARY,   1,   52,
+        2001,  Calendar::DECEMBER,  31,  1,
+    };
+    int32_t DATA_length = sizeof(DATA) / sizeof(DATA[0]);
 
+    UnicodeString str;
+    DateFormat& dfmt = *(DateFormat*)&fmt;
+    for (int32_t i=0; i<DATA_length; ) {
+        cal.clear();
+        cal.set(DATA[i], DATA[i+1], DATA[i+2]);
+        i += 3;
+        int32_t expWOY = DATA[i++];
+        int32_t actWOY = cal.get(Calendar::WEEK_OF_YEAR, status);
+        if (expWOY == actWOY) {
+            logln(UnicodeString("Ok: ") + dfmt.format(cal.getTime(status), str.remove()));
+        } else {
+            errln(UnicodeString("FAIL: ") + dfmt.format(cal.getTime(status), str.remove())
+                  + ", expected WOY=" + expWOY);
+            cal.add(Calendar::DATE, -8, status);
+            for (int j=0; j<14; ++j) {
+                cal.add(Calendar::DATE, 1, status);
+                logln(dfmt.format(cal.getTime(status), str.remove()));
+            }
+        }
+        if (U_FAILURE(status)) {
+            errln("FAIL: Unexpected error from Calendar");
+            return;
+        }
+    }
+}
 
 UDate
 CalendarRegressionTest::makeDate(int32_t y, int32_t m, int32_t d,
@@ -1607,7 +1635,7 @@ CalendarRegressionTest::makeDate(int32_t y, int32_t m, int32_t d,
 {
     UDate result;
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(status);
     cal->clear();
 

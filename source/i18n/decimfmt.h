@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -68,7 +69,7 @@ class DigitList;
  * .    if (locCount > 12) locCount = 12;  //limit output
  * .
  * .    double myNumber = -1234.56;
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    NumberFormat* form; //= NumberFormat::createInstance(success);
  * .
  * .    // just for fun, we print out a number with the locale number, currency
@@ -304,6 +305,25 @@ public:
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos,
                                   UErrorCode& status) const;
+
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
+
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(double number,
+                          UnicodeString& output) const;
+
+    /**
+     * Redeclared NumberFormat method.
+     */
+    UnicodeString& format(int32_t number,
+                          UnicodeString& output) const;
 
    /**
     * Parse the given string using this object's choices. The method
@@ -784,7 +804,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
@@ -796,7 +816,7 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const { return getStaticClassID(); }
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
     static char fgClassID;
@@ -940,6 +960,27 @@ protected:
     static const int32_t  kDoubleIntegerDigits;
     static const int32_t  kDoubleFractionDigits;
 };
+
+inline UnicodeString&
+DecimalFormat::format(const Formattable& obj,
+                      UnicodeString& result,
+                      UErrorCode& status) const {
+    // Don't use Format:: - use immediate base class only,
+    // in case immediate base modifies behavior later.
+    return NumberFormat::format(obj, result, status);
+}
+
+inline UnicodeString&
+DecimalFormat::format(double number,
+                      UnicodeString& output) const {
+    return NumberFormat::format(number, output);
+}
+
+inline UnicodeString&
+DecimalFormat::format(int32_t number,
+                      UnicodeString& output) const {
+    return NumberFormat::format(number, output);
+}
  
 #endif // _DECIMFMT
 //eof

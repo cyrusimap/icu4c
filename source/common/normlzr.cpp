@@ -169,7 +169,7 @@ Normalizer::compose(const UnicodeString& source,
             UnicodeString& result, 
             UErrorCode &status)
 {
-  if (FAILURE(status)) {
+  if (U_FAILURE(status)) {
     return;
   }
   result.truncate(0);
@@ -493,7 +493,7 @@ UChar Normalizer::nextCompose()
  */
 UChar Normalizer::prevCompose()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     initBuffer();
     
     // Slurp up characters until we hit a base char or an initial Jamo
@@ -592,7 +592,7 @@ Normalizer::decompose(const UnicodeString& source,
               UnicodeString& result, 
               UErrorCode &status)
 {
-  if (FAILURE(status)) {
+  if (U_FAILURE(status)) {
     return;
   }
   bool_t     hangul = (options & IGNORE_HANGUL) == 0;
@@ -1012,12 +1012,12 @@ void
 Normalizer::setText(const UnicodeString& newText, 
             UErrorCode &status)
 {
-  if (FAILURE(status)) {
+  if (U_FAILURE(status)) {
     return;
   }
   CharacterIterator *newIter = new StringCharacterIterator(newText);
   if (newIter == NULL) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
   delete text;
@@ -1033,12 +1033,12 @@ void
 Normalizer::setText(const CharacterIterator& newText, 
             UErrorCode &status) 
 {
-  if (FAILURE(status)) {
+  if (U_FAILURE(status)) {
     return;
   }
   CharacterIterator *newIter = newText.clone();
   if (newIter == NULL) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
   delete text;
@@ -1185,5 +1185,3 @@ void Normalizer::jamoToHangul(UnicodeString& buffer, UTextOffset start) {
 
     buffer.truncate(out);
 }
-
-

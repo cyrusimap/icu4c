@@ -26,6 +26,27 @@
 #include "ucnv_bld.h"
 #include "ucnv_err.h"
 
+U_CDECL_BEGIN
+
+typedef void (*UConverterToUCallback) (UConverter *,
+				  UChar **,
+				  const UChar *,
+				  const char **,
+				  const char *,
+				  int32_t* offsets,
+				  bool_t,
+				  UErrorCode *);
+
+typedef void (*UConverterFromUCallback) (UConverter *,
+				    char **,
+				    const char *,
+				    const UChar **,
+				    const UChar *,
+				    int32_t* offsets,
+				    bool_t,
+				    UErrorCode *);
+
+U_CDECL_END
 
 
 /**
@@ -34,14 +55,14 @@
  * if <TT>NULL</TT> is passed for the converter name, it will create one with the
  * getDefaultName return value.
  * @param converterName : name of the uconv table
- * @param err outgoing error status <TT>MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
+ * @param err outgoing error status <TT>U_MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
  * @return the created Unicode converter object, or <TT>NULL</TT> if an error occured
  * @see ucnv_openU
  * @see ucnv_openCCSID
  * @see ucnv_close
  */
 
-CAPI
+U_CAPI
 UConverter* U_EXPORT2 ucnv_open   (const char *converterName,
 				   UErrorCode * err);
 
@@ -52,13 +73,13 @@ UConverter* U_EXPORT2 ucnv_open   (const char *converterName,
  * if <TT>NULL</TT> is passed for the converter name, it will create one with the
  * getDefaultName return value.
  * @param converterName : name of the uconv table in a zero terminated Unicode string
- * @param err outgoing error status <TT>MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
+ * @param err outgoing error status <TT>U_MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
  * @return the created Unicode converter object, or <TT>NULL</TT> if an error occured
  * @see ucnv_open
  * @see ucnv_openCCSID
  * @see ucnv_close
  */
-CAPI UConverter* U_EXPORT2 ucnv_openU (const UChar * name,
+U_CAPI UConverter* U_EXPORT2 ucnv_openU (const UChar * name,
 				       UErrorCode * err);
 
 
@@ -67,15 +88,15 @@ CAPI UConverter* U_EXPORT2 ucnv_openU (const UChar * name,
  * Creates a UConverter object using a CCSID number.
  * @param codepage : codepage # of the uconv table
  * @param platform : codepage's platform (now only <TT>IBM</TT> supported)
- * @param err error status <TT>MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
+ * @param err error status <TT>U_MEMORY_ALLOCATION_ERROR, TABLE_NOT_FOUND</TT>
  * @return the created Unicode converter object, or <TT>NULL</TT> if and error occured
  * @see ucnv_open
  * @see ucnv_openU
  * @see ucnv_close
  */
 
-CAPI UConverter* U_EXPORT2 ucnv_openCCSID (int32_t codepage,
-					   UCNV_PLATFORM platform,
+U_CAPI UConverter* U_EXPORT2 ucnv_openCCSID (int32_t codepage,
+					   UConverterPlatform platform,
 					   UErrorCode * err);
 
 
@@ -86,7 +107,7 @@ CAPI UConverter* U_EXPORT2 ucnv_openCCSID (int32_t codepage,
  * @see ucnv_openU
  * @see ucnv_openCCSID
  */
-CAPI void  U_EXPORT2 ucnv_close (UConverter * converter);
+U_CAPI void  U_EXPORT2 ucnv_close (UConverter * converter);
 
 
 
@@ -98,11 +119,11 @@ CAPI void  U_EXPORT2 ucnv_close (UConverter * converter);
  * @param len: on input the capacity of subChars, on output the number of bytes copied to it
  * @param  err: the outgoing error status code.
  * If the substitution character array is too small, an
- * <TT>INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
+ * <TT>U_INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
  * @see ucnv_setSubstChars
  */
 
-CAPI void U_EXPORT2
+U_CAPI void U_EXPORT2
     ucnv_getSubstChars (const UConverter * converter,
 			char *subChars,
 			int8_t * len,
@@ -115,12 +136,12 @@ CAPI void U_EXPORT2
  * @param converter the Unicode converter
  * @param subChars the substitution character byte sequence we want set
  * @param len the number of bytes in subChars
- * @param err the error status code.  <TT>INDEX_OUTOFBOUNDS_ERROR </TT> if
+ * @param err the error status code.  <TT>U_INDEX_OUTOFBOUNDS_ERROR </TT> if
  * len is bigger than the maximum number of bytes allowed in subchars
  * @see ucnv_getSubstChars
  */
 
-CAPI void U_EXPORT2
+U_CAPI void U_EXPORT2
     ucnv_setSubstChars (UConverter * converter,
 			const char *subChars,
 			int8_t len,
@@ -136,10 +157,10 @@ CAPI void U_EXPORT2
  * @param len: on input the capacity of errBytes, on output the number of bytes copied to it
  * @param  err: the outgoing error status code.
  * If the substitution character array is too small, an
- * <TT>INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
+ * <TT>U_INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
  */
 
-CAPI void U_EXPORT2
+U_CAPI void U_EXPORT2
     ucnv_getInvalidChars (const UConverter * converter,
 			  char *errBytes,
 			  int8_t * len,
@@ -154,10 +175,10 @@ CAPI void U_EXPORT2
  * @param len: on input the capacity of errUChars, on output the number of UChars copied to it
  * @param  err: the outgoing error status code.
  * If the substitution character array is too small, an
- * <TT>INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
+ * <TT>U_INDEX_OUTOFBOUNDS_ERROR</TT> will be returned.
  */
 
-CAPI void U_EXPORT2
+U_CAPI void U_EXPORT2
     ucnv_getInvalidUChars (const UConverter * converter,
 			   char *errUChars,
 			   int8_t * len,
@@ -170,7 +191,7 @@ CAPI void U_EXPORT2
  * @param converter the Unicode converter
  */
 
-CAPI void U_EXPORT2
+U_CAPI void U_EXPORT2
     ucnv_reset (UConverter * converter);
 
 /**
@@ -179,7 +200,7 @@ CAPI void U_EXPORT2
  * @return the maximum number of bytes allowed by this particular converter
  * @see ucnv_getMinCharSize
  */
-CAPI int8_t U_EXPORT2
+U_CAPI int8_t U_EXPORT2
     ucnv_getMaxCharSize (const UConverter * converter);
 
 
@@ -190,7 +211,7 @@ CAPI int8_t U_EXPORT2
  * @return the minimum number of bytes allowed by this particular converter
  * @see ucnv_getMaxCharSize
  */
-CAPI int8_t U_EXPORT2
+U_CAPI int8_t U_EXPORT2
     ucnv_getMinCharSize (const UConverter * converter);
 
 
@@ -206,7 +227,7 @@ CAPI int8_t U_EXPORT2
  * @return displayNameLength number of UChar needed in displayName
  * @see ucnv_getName
  */
-CAPI
+U_CAPI
   int32_t U_EXPORT2 ucnv_getDisplayName (const UConverter * converter,
 			       const char *displayLocale,
 			       UChar * displayName,
@@ -222,7 +243,7 @@ CAPI
  * @return the internal name of the converter
  * @see ucnv_getDisplayName
  */
-CAPI
+U_CAPI
   const char * U_EXPORT2 ucnv_getName (const UConverter * converter, UErrorCode * err);
 
 
@@ -237,7 +258,7 @@ CAPI
  * @return If any error occurrs, -1 will be returned otherwise, the codepage number
  * will be returned
  */
-CAPI int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
     ucnv_getCCSID (const UConverter * converter,
 		   UErrorCode * err);
 
@@ -249,7 +270,7 @@ CAPI int32_t U_EXPORT2
  * the converter is <TT>NULL</TT> or if converter's data table is <TT>NULL</TT>.
  * @return The codepage platform
  */
-CAPI UCNV_PLATFORM U_EXPORT2
+U_CAPI UConverterPlatform U_EXPORT2
     ucnv_getPlatform (const UConverter * converter,
 		      UErrorCode * err);
 
@@ -259,12 +280,12 @@ CAPI UCNV_PLATFORM U_EXPORT2
  * @param converter: a valid, opened converter
  * @return the type of the converter
  */
-CAPI UCNV_TYPE U_EXPORT2
+U_CAPI UConverterType U_EXPORT2
 ucnv_getType (const UConverter * converter);
 
 /**
  *Gets the "starter" bytes for the converters of type MBCS
- *will fill in an <TT>ILLEGAL_ARGUMENT_ERROR</TT> if converter passed in
+ *will fill in an <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> if converter passed in
  *is not MBCS.
  *fills in an array of boolean, with the value of the byte as offset to the array.
  *At return, if TRUE is found in at offset 0x20, it means that the byte 0x20 is a starter byte
@@ -274,7 +295,7 @@ ucnv_getType (const UConverter * converter);
  * @param err: an array of size 256 to be filled in
  * @see ucnv_getType
  */
-CAPI void U_EXPORT2 ucnv_getStarters(const UConverter* converter, 
+U_CAPI void U_EXPORT2 ucnv_getStarters(const UConverter* converter, 
 				     bool_t starters[256],
 				     UErrorCode* err);
 
@@ -285,7 +306,7 @@ CAPI void U_EXPORT2 ucnv_getStarters(const UConverter* converter,
  * @return a pointer to the callback function
  * @see ucnv_setToUCallBack
  */
-CAPI UCNV_ToUCallBack U_EXPORT2
+U_CAPI UConverterToUCallback U_EXPORT2
     ucnv_getToUCallBack (const UConverter * converter);
 
 /**
@@ -294,7 +315,7 @@ CAPI UCNV_ToUCallBack U_EXPORT2
  * @return a pointer to the callback function
  * @see ucnv_setFromUCallBack
  */
-CAPI UCNV_FromUCallBack U_EXPORT2
+U_CAPI UConverterFromUCallback U_EXPORT2
     ucnv_getFromUCallBack (const UConverter * converter);
 
 /**
@@ -305,9 +326,9 @@ CAPI UCNV_FromUCallBack U_EXPORT2
  * @return the previously assigned callback function pointer
  * @see ucnv_getToUCallBack
  */
-CAPI UCNV_ToUCallBack U_EXPORT2
+U_CAPI UConverterToUCallback U_EXPORT2
     ucnv_setToUCallBack (UConverter * converter,
-			 UCNV_ToUCallBack action,
+			 UConverterToUCallback action,
 			 UErrorCode * err);
 
 /**
@@ -318,9 +339,9 @@ CAPI UCNV_ToUCallBack U_EXPORT2
  * @return the previously assigned callback function pointer
  * @see ucnv_getFromUCallBack
  */
-CAPI UCNV_FromUCallBack U_EXPORT2
+U_CAPI UConverterFromUCallback U_EXPORT2
     ucnv_setFromUCallBack (UConverter * converter,
-			   UCNV_FromUCallBack action,
+			   UConverterFromUCallback action,
 			   UErrorCode * err);
 
 
@@ -348,7 +369,7 @@ CAPI UCNV_FromUCallBack U_EXPORT2
  * For output data carried across calls -1 will be placed for offsets.
  * @param flush <TT>TRUE</TT> if the buffer is the last buffer of the conversion interation
  * and the conversion will finish with this call, FALSE otherwise.
- * @param err the error status.  <TT>ILLEGAL_ARGUMENT_ERROR</TT> will be returned if the
+ * @param err the error status.  <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> will be returned if the
  * converter is <TT>NULL</TT>.
  * @see ucnv_fromUChars
  * @see ucnv_convert
@@ -356,7 +377,7 @@ CAPI UCNV_FromUCallBack U_EXPORT2
  * @see ucnv_setToUCallBack
  */
 
-CAPI
+U_CAPI
   void U_EXPORT2 ucnv_fromUnicode (UConverter * converter,
 			 char **target,
 			 const char *targetLimit,
@@ -387,7 +408,7 @@ CAPI
  * For output data carried across calls -1 will be placed for offsets.
  * @param flush TRUE if the buffer is the last buffer and the conversion will finish
  * in this call, FALSE otherwise. 
- * @param err the error code status  <TT>ILLEGAL_ARGUMENT_ERROR</TT> will be returned if the
+ * @param err the error code status  <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> will be returned if the
  * converter is <TT>NULL</TT>, or if <TT>targetLimit</TT> and <TT>sourceLimit</TT> are misaligned.
  * @see ucnv_toUChars
  * @see ucnv_getNextUChar
@@ -395,7 +416,7 @@ CAPI
  * @see ucnv_setFromUCallBack
  */
 
-CAPI
+U_CAPI
   void U_EXPORT2 ucnv_toUnicode (UConverter * converter,
 		       UChar ** target,
 		       const UChar * targetLimit,
@@ -420,15 +441,15 @@ CAPI
  * codepage do not use '\0' as a string terminator
  * @param targetCapacity Input the number of bytes available in the <TT>target</TT> buffer
  * @param err the error status code.
- * <TT>INDEX_OUTOFBOUNDS_ERROR</TT> will be returned if the
+ * <TT>U_INDEX_OUTOFBOUNDS_ERROR</TT> will be returned if the
  * the # of bytes provided are not enough for transcoding.
- * <TT>ILLEGAL_ARGUMENT_ERROR</TT> is returned if the converter is <TT>NULL</TT> or the source or target string is empty.
- * <TT>BUFFER_OVERFLOW_ERROR</TT> when <TT>targetSize</TT> turns out to be bigger than <TT>targetCapacity</TT>
+ * <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> is returned if the converter is <TT>NULL</TT> or the source or target string is empty.
+ * <TT>U_BUFFER_OVERFLOW_ERROR</TT> when <TT>targetSize</TT> turns out to be bigger than <TT>targetCapacity</TT>
  * @return number of bytes needed in target, regardless of <TT>targetCapacity</TT>
  * @see ucnv_fromUnicode
  * @see ucnv_convert
  */
-CAPI
+U_CAPI
   int32_t U_EXPORT2 ucnv_fromUChars (const UConverter * converter,
 			   char *target,
 			   int32_t targetCapacity,
@@ -455,17 +476,17 @@ CAPI
  * @param targetCapacity capacity of the target buffer
  * @param sourceSize : Number of bytes in <TT>source</TT> to be transcoded
  * @param err the error status code
- * <TT>MEMORY_ALLOCATION_ERROR</TT> will be returned if the
+ * <TT>U_MEMORY_ALLOCATION_ERROR</TT> will be returned if the
  * the internal process buffer cannot be allocated for transcoding.
- * <TT>ILLEGAL_ARGUMENT_ERROR</TT> is returned if the converter is <TT>NULL</TT> or
+ * <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> is returned if the converter is <TT>NULL</TT> or
  * if the source or target string is empty.
- * <TT>BUFFER_OVERFLOW_ERROR</TT> when the input buffer is prematurely exhausted and targetSize non-<TT>NULL</TT>.
+ * <TT>U_BUFFER_OVERFLOW_ERROR</TT> when the input buffer is prematurely exhausted and targetSize non-<TT>NULL</TT>.
  * @return the number of UChar needed in target (including the zero terminator)
  * @see ucnv_getNextUChar
  * @see ucnv_toUnicode
  * @see ucnv_convert
  */
-CAPI
+U_CAPI
   int32_t U_EXPORT2 ucnv_toUChars (const UConverter * converter,
 			 UChar * target,
 			 int32_t targetCapacity,
@@ -488,7 +509,7 @@ CAPI
  *@see ucnv_toUChars
  *@see ucnv_convert
  */
-CAPI
+U_CAPI
   UChar U_EXPORT2 ucnv_getNextUChar (UConverter * converter,
 			   const char **source,
 			   const char *sourceLimit,
@@ -513,7 +534,7 @@ CAPI
 * @see ucnv_toUChars
 * @see ucnv_getNextUChar
 */
-CAPI
+U_CAPI
   int32_t U_EXPORT2 ucnv_convert (const char *toConverterName,
 			const char *fromConverterName,
 			char *target,
@@ -527,7 +548,7 @@ CAPI
  * Iterates through every cached converter and frees all the unused ones.
  * @return the number of cached converters successfully deleted
  */
-CAPI int32_t U_EXPORT2 ucnv_flushCache (void);
+U_CAPI int32_t U_EXPORT2 ucnv_flushCache (void);
 
 
 /**
@@ -537,7 +558,7 @@ CAPI int32_t U_EXPORT2 ucnv_flushCache (void);
  * @return a pointer a string (library owned), or <TT>NULL</TT> if the index is out of bounds.
  * @see ucnv_countAvailable
  */
-CAPI
+U_CAPI
   const char * U_EXPORT2 ucnv_getAvailableName (int32_t index);
 
 /**
@@ -545,14 +566,14 @@ CAPI
  * @return the number of available converters
  * @see ucnv_getAvailableName
  */
-CAPI int32_t U_EXPORT2 ucnv_countAvailable (void);
+U_CAPI int32_t U_EXPORT2 ucnv_countAvailable (void);
 
 /**
  * returns the current default converter name.
  * @return returns the current default converter name
  * @see ucnv_setDefaultName
  */
-CAPI const char * U_EXPORT2 ucnv_getDefaultName (void);
+U_CAPI const char * U_EXPORT2 ucnv_getDefaultName (void);
 
 /**
  * sets the current default converter name.
@@ -561,7 +582,7 @@ CAPI const char * U_EXPORT2 ucnv_getDefaultName (void);
  * @see ucnv_getDefaultName
  *
  */
-CAPI void U_EXPORT2 ucnv_setDefaultName (const char *name);
+U_CAPI void U_EXPORT2 ucnv_setDefaultName (const char *name);
 
 
 #endif

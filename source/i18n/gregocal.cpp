@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1998      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -32,6 +33,9 @@
 *    07/28/98    stephen        Sync up with JDK 1.2
 *    09/14/98    stephen        Changed type of kOneDay, kOneWeek to double.
 *                            Fixed bug in roll() 
+*   10/15/99    aliu        Fixed j31, incorrect WEEK_OF_YEAR computation.
+*   10/15/99    aliu        Fixed j32, cannot set date to Feb 29 2000 AD.
+*                           {JDK bug 4210209 4209272}
 ********************************************************************************
 */
 
@@ -106,13 +110,13 @@ const UDate GregorianCalendar::LATEST_SUPPORTED_MILLIS    =   4503599627370495.0
  * (*) In units of one-hour
  */
 const int32_t GregorianCalendar::kMinValues[] = {
-    0,1,0,1,0,1,1,1,-1,0,0,0,0,0,0,-12*kMillisPerHour,0
+    0,1,0,1,0,1,1,1,-1,0,0,0,0,0,0,-12*U_MILLIS_PER_HOUR,0
 };
 const int32_t GregorianCalendar::kLeastMaxValues[] = {
-    1,140742,11,52,4,28,365,7,4,1,11,23,59,59,999,12*kMillisPerHour,1*kMillisPerHour
+    1,140742,11,52,4,28,365,7,4,1,11,23,59,59,999,12*U_MILLIS_PER_HOUR,1*U_MILLIS_PER_HOUR
 };
 const int32_t GregorianCalendar::kMaxValues[] = {
-    1,144683,11,53,6,31,366,7,6,1,11,23,59,59,999,12*kMillisPerHour,1*kMillisPerHour
+    1,144683,11,53,6,31,366,7,6,1,11,23,59,59,999,12*U_MILLIS_PER_HOUR,1*U_MILLIS_PER_HOUR
 };
 
 char GregorianCalendar::fgClassID = 0; // Value is irrelevant
@@ -310,7 +314,7 @@ bool_t GregorianCalendar::equivalentTo(const Calendar& other) const
 void
 GregorianCalendar::setGregorianChange(UDate date, UErrorCode& status)
 {
-    if (FAILURE(status)) 
+    if (U_FAILURE(status)) 
         return;
 
     fGregorianCutover = date;
@@ -338,7 +342,7 @@ GregorianCalendar::setGregorianChange(UDate date, UErrorCode& status)
     // Normalize the year so BC values are represented as 0 and negative
     // values.
     GregorianCalendar *cal = new GregorianCalendar(getTimeZone(), status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         return;
     cal->setTime(date, status);
     fGregorianCutoverYear = cal->get(YEAR, status);
@@ -378,7 +382,7 @@ GregorianCalendar::isLeapYear(int32_t year) const
 void
 GregorianCalendar::timeToFields(UDate theTime, bool_t quick, UErrorCode& status)
 {
-    if (FAILURE(status)) 
+    if (U_FAILURE(status)) 
         return;
 
     int32_t rawYear;
@@ -467,8 +471,7 @@ GregorianCalendar::timeToFields(UDate theTime, bool_t quick, UErrorCode& status)
     // fall into the last week of the previous year; days at the end of
     // the year may fall into the first week of the next year.
     int32_t relDow = (dayOfWeek + 7 - getFirstDayOfWeek()) % 7; // 0..6
-    int32_t relDowJan1 = (dayOfWeek - dayOfYear + 1 - getFirstDayOfWeek()) % 7; // -6..6
-    if (relDowJan1 < 0) relDowJan1 += 7; // 0..6
+    int32_t relDowJan1 = (dayOfWeek - dayOfYear + 701 - getFirstDayOfWeek()) % 7; // 0..6
     int32_t woy = (dayOfYear - 1 + relDowJan1) / 7; // 0..53
     if ((7 - relDowJan1) >= getMinimalDaysInFirstWeek()) {
         ++woy;
@@ -485,11 +488,7 @@ GregorianCalendar::timeToFields(UDate theTime, bool_t quick, UErrorCode& status)
     else if (woy == 0) {
         // We are the last week of the previous year.
         int32_t prevDoy = dayOfYear + yearLength(rawYear - 1);
-        int32_t prevDow = (dayOfWeek + 6) % 7; // 0..6; This is actually DOW-1 % 7
-        // The following line is unnecessary because weekNumber() will
-        // do any needed normalization internally.
-        //   if (prevDow == 0) prevDow = 7; // 1..7
-        woy = weekNumber(prevDoy, prevDow);
+        woy = weekNumber(prevDoy, dayOfWeek);
     }
     internalSet(WEEK_OF_YEAR, woy);
 
@@ -543,7 +542,7 @@ int32_t
 GregorianCalendar::monthLength(int32_t month) const
 {
     int32_t year = internalGet(YEAR);
-    if(internalGet(ERA) == BC) {
+    if(internalGetEra() == BC) {
         year = 1 - year;
     }
 
@@ -587,7 +586,7 @@ GregorianCalendar::yearLength() const
 void
 GregorianCalendar::computeFields(UErrorCode& status)
 {
-    if (FAILURE(status)) 
+    if (U_FAILURE(status)) 
         return;
 
     int32_t rawOffset = getTimeZone().getRawOffset();
@@ -617,7 +616,7 @@ GregorianCalendar::computeFields(UErrorCode& status)
     // Time to fields takes the wall millis (Standard or DST).
     timeToFields(localMillis, FALSE, status);
 
-    uint8_t era         = (uint8_t) internalGet(ERA);
+    uint8_t era         = (uint8_t) internalGetEra();
     int32_t year         = internalGet(YEAR);
     int32_t month         = internalGet(MONTH);
     int32_t date         = internalGet(DATE);
@@ -626,13 +625,13 @@ GregorianCalendar::computeFields(UErrorCode& status)
     double days = icu_floor(localMillis / kOneDay);
     int32_t millisInDay = (int32_t) (localMillis - (days * kOneDay));
     if (millisInDay < 0) 
-        millisInDay += kMillisPerDay;
+        millisInDay += U_MILLIS_PER_DAY;
 
     // Call getOffset() to get the TimeZone offset.  The millisInDay value must
     // be standard local millis.
     int32_t dstOffset = getTimeZone().getOffset(era, year, month, date, dayOfWeek, millisInDay,
                                             monthLength(month), status) - rawOffset;
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         return;
 
     // Adjust our millisInDay for DST, if necessary.
@@ -642,9 +641,9 @@ GregorianCalendar::computeFields(UErrorCode& status)
     // This happens in DST between 12:00 am and 1:00 am every day.  The call to
     // timeToFields() will give the wrong day, since the Standard time is in the
     // previous day.
-    if (millisInDay >= kMillisPerDay) {
+    if (millisInDay >= U_MILLIS_PER_DAY) {
         UDate dstMillis = localMillis + dstOffset;
-        millisInDay -= kMillisPerDay;
+        millisInDay -= U_MILLIS_PER_DAY;
         // As above, check for and pin extreme values
         if(localMillis > 0 && dstMillis < 0 && dstOffset > 0) {
             dstMillis = LATEST_SUPPORTED_MILLIS;
@@ -764,11 +763,11 @@ GregorianCalendar::getEpochDay(UErrorCode& status)
 void
 GregorianCalendar::computeTime(UErrorCode& status)
 {
-    if (FAILURE(status)) 
+    if (U_FAILURE(status)) 
         return;
 
     if (! isLenient() && ! validateFields()) {
-        status = ILLEGAL_ARGUMENT_ERROR;
+        status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
 
@@ -785,7 +784,7 @@ GregorianCalendar::computeTime(UErrorCode& status)
             year = 1 - year;
         // Even in lenient mode we disallow ERA values other than AD & BC
         else if (era != AD) {
-            status = ILLEGAL_ARGUMENT_ERROR;
+            status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
     }
@@ -1192,7 +1191,7 @@ GregorianCalendar::aggregateStamp(EStampValues stamp_a, EStampValues stamp_b)
 void
 GregorianCalendar::add(EDateFields field, int32_t amount, UErrorCode& status)
 {
-    if (FAILURE(status)) 
+    if (U_FAILURE(status)) 
         return;
 
     if (amount == 0) 
@@ -1201,7 +1200,7 @@ GregorianCalendar::add(EDateFields field, int32_t amount, UErrorCode& status)
 
     if (field == YEAR) {
         int32_t year = internalGet(YEAR);
-        if (internalGet(ERA) == AD) {
+        if (internalGetEra() == AD) {
             year += amount;
             if (year > 0)
                 set(YEAR, year);
@@ -1309,7 +1308,7 @@ GregorianCalendar::add(EDateFields field, int32_t amount, UErrorCode& status)
         case ZONE_OFFSET:
         case DST_OFFSET:
         default:
-            status = ILLEGAL_ARGUMENT_ERROR;
+            status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
 
@@ -1339,7 +1338,7 @@ GregorianCalendar::add(EDateFields field, int32_t amount, UErrorCode& status)
 void
 GregorianCalendar::roll(EDateFields field, int32_t amount, UErrorCode& status)
 {
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         return;
 
     if (amount == 0) 
@@ -1602,7 +1601,7 @@ GregorianCalendar::roll(EDateFields field, int32_t amount, UErrorCode& status)
     case ZONE_OFFSET:
     case DST_OFFSET:
     default:
-        status = ILLEGAL_ARGUMENT_ERROR;
+        status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
         // These fields cannot be rolled
     }
@@ -1681,7 +1680,7 @@ GregorianCalendar::getActualMaximum(EDateFields field) const
      * that we permit it, rather than complicating the code to handle such
      * intricacies. - liu 8/20/98 */
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     switch (field) {
         // we have functions that enable us to fast-path number of days in month
@@ -1725,11 +1724,11 @@ GregorianCalendar::getActualMaximum(EDateFields field) const
             cal->setLenient(TRUE);
             
             int32_t era = cal->get(ERA, status);
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 return 0;
 
             UDate d = cal->getTime(status);
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 return 0;
 
             /* Perform a binary search, with the invariant that lowGood is a
@@ -1765,13 +1764,13 @@ GregorianCalendar::getActualMaximum(EDateFields field) const
 bool_t
 GregorianCalendar::inDaylightTime(UErrorCode& status) const
 {
-    if (FAILURE(status) || !getTimeZone().useDaylightTime()) 
+    if (U_FAILURE(status) || !getTimeZone().useDaylightTime()) 
         return FALSE;
 
     // Force an update of the state of the Calendar.
     ((GregorianCalendar*)this)->complete(status); // cast away const
 
-    return SUCCESS(status) ? (internalGet(DST_OFFSET) != 0) : FALSE;
+    return U_SUCCESS(status) ? (internalGet(DST_OFFSET) != 0) : FALSE;
 }
 
 // -------------------------------------
@@ -1796,6 +1795,15 @@ GregorianCalendar::getISOYear(UErrorCode& status)
         }
     }
     return isoYear;
+}
+
+/**
+ * Return the ERA.  We need a special method for this because the
+ * default ERA is AD, but a zero (unset) ERA is BC.
+ */
+int32_t
+GregorianCalendar::internalGetEra() const {
+    return isSet(ERA) ? internalGet(ERA) : AD;
 }
 
 //eof

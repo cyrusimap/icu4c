@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda            Ported for CAPI
+*     Madhu Katragadda            Ported for C API
 *********************************************************************************
 /**
  * CollationEnglishTest is a third level test class.  This tests the locale
@@ -288,9 +288,9 @@ void TestTertiary( )
     int32_t testMoreSize;
     UCollationResult expected;
     int32_t i,j;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = ucol_open("en_US", &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
     }
     log_verbose("Testing English Collation with Tertiary strength\n");
@@ -329,9 +329,9 @@ void TestPrimary()
 {
     
     int32_t i;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = ucol_open("en_US", &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
     }
     ucol_setNormalization(myCollation, UCOL_DECOMP_CAN_COMP_COMPAT);
@@ -348,9 +348,9 @@ void TestSecondary()
 {
     UCollationResult expected;
     int32_t i,j, testAcuteSize;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = ucol_open("en_US", &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
     }
     ucol_setStrength(myCollation, UCOL_SECONDARY);

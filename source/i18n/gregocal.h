@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -20,6 +21,10 @@
 *    09/04/98    stephen        Re-sync with JDK 8/31 putback
 *    09/14/98    stephen        Changed type of kOneDay, kOneWeek to double.
 *                            Fixed bug in roll() 
+*   10/15/99    aliu        Fixed j31, incorrect WEEK_OF_YEAR computation.
+*                           Added documentation of WEEK_OF_YEAR computation.
+*   10/15/99    aliu        Fixed j32, cannot set date to Feb 29 2000 AD.
+*                           {JDK bug 4210209 4209272}
 ********************************************************************************
 */
          
@@ -43,8 +48,25 @@
  * avoid confusion, this Calendar always uses January 1. A manual adjustment may be made
  * if desired for dates that are prior to the Gregorian changeover and which fall
  * between January 1 and March 24.
- * <P>
- * Example for using GregorianCalendar:
+ *
+ * <p>Values calculated for the <code>WEEK_OF_YEAR</code> field range from 1 to
+ * 53.  Week 1 for a year is the first week that contains at least
+ * <code>getMinimalDaysInFirstWeek()</code> days from that year.  It thus
+ * depends on the values of <code>getMinimalDaysInFirstWeek()</code>,
+ * <code>getFirstDayOfWeek()</code>, and the day of the week of January 1.
+ * Weeks between week 1 of one year and week 1 of the following year are
+ * numbered sequentially from 2 to 52 or 53 (as needed).
+ *
+ * <p>For example, January 1, 1998 was a Thursday.  If
+ * <code>getFirstDayOfWeek()</code> is <code>MONDAY</code> and
+ * <code>getMinimalDaysInFirstWeek()</code> is 4 (these are the values
+ * reflecting ISO 8601 and many national standards), then week 1 of 1998 starts
+ * on December 29, 1997, and ends on January 4, 1998.  If, however,
+ * <code>getFirstDayOfWeek()</code> is <code>SUNDAY</code>, then week 1 of 1998
+ * starts on January 4, 1998, and ends on January 10, 1998; the first three days
+ * of 1998 then are part of week 53 of 1997.
+ *
+ * <p>Example for using GregorianCalendar:
  * <pre>
  * .    // get the supported ids for GMT-08:00 (Pacific Standard Time)
  * .    int32_t idsCount;
@@ -66,7 +88,7 @@
  * .    
  * .    // create a GregorianCalendar with the Pacific Daylight time zone
  * .    // and the current date and time
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    Calendar* calendar = new GregorianCalendar( pdt, success );
  * .    
  * .    // print out a bunch of interesting things
@@ -132,7 +154,7 @@ public:
      * zone with the default locale.
      *
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(UErrorCode& success);
 
@@ -143,7 +165,7 @@ public:
      *
      * @param zoneToAdopt     The given timezone.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(TimeZone* zoneToAdopt, UErrorCode& success);
 
@@ -153,7 +175,7 @@ public:
      *
      * @param zone     The given timezone.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(const TimeZone& zone, UErrorCode& success);
 
@@ -163,7 +185,7 @@ public:
      *
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(const Locale& aLocale, UErrorCode& success);
 
@@ -175,7 +197,7 @@ public:
      * @param zoneToAdopt     The given timezone.
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(TimeZone* zoneToAdopt, const Locale& aLocale, UErrorCode& success);
 
@@ -186,7 +208,7 @@ public:
      * @param zone     The given timezone.
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(const TimeZone& zone, const Locale& aLocale, UErrorCode& success);
 
@@ -199,7 +221,7 @@ public:
      *                 value is 0-based. e.g., 0 for January.
      * @param date     The value used to set the DATE time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, UErrorCode& success);
 
@@ -214,7 +236,7 @@ public:
      * @param hour     The value used to set the HOUR_OF_DAY time field in the calendar.
      * @param minute   The value used to set the MINUTE time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute, UErrorCode& success);
 
@@ -230,7 +252,7 @@ public:
      * @param minute   The value used to set the MINUTE time field in the calendar.
      * @param second   The value used to set the SECOND time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
-     *                 Returns ZERO_ERROR if constructed successfully.
+     *                 Returns U_ZERO_ERROR if constructed successfully.
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute, int32_t second, UErrorCode& success);
 
@@ -391,7 +413,7 @@ public:
      * @return   The class ID for this object. All objects of a given class have the
      *           same class ID. Objects of other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const { return (ClassID)&fgClassID; }
+    virtual UClassID getDynamicClassID(void) const { return (UClassID)&fgClassID; }
 
     /**
      * Return the class ID for this class. This is useful only for comparing to a return
@@ -403,7 +425,7 @@ public:
      *
      * @return   The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
 protected:
 
@@ -439,6 +461,12 @@ private:
      * @see #WEEK_OF_YEAR
      */
     int32_t getISOYear(UErrorCode& status);
+
+    /**
+     * Return the ERA.  We need a special method for this because the
+     * default ERA is AD, but a zero (unset) ERA is BC.
+     */
+    int32_t internalGetEra() const;
 
     // this is 2^52 - 1, the largest allowable mantissa with a 0 exponent in a 64-bit double
     static const UDate EARLIEST_SUPPORTED_MILLIS;

@@ -83,19 +83,19 @@ UChar* myDateFormat(UDateFormat* dat, UDate d1)
     UChar *result1;
     int32_t resultlength, resultlengthneeded;
     UFieldPosition pos;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
 
     resultlength=0;
     resultlengthneeded=udat_format(dat, d1, NULL, resultlength, &pos, &status);
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultlengthneeded+1;
         result1=(UChar*)malloc(sizeof(UChar) * resultlength);
         udat_format(dat, d1, result1, resultlength, &pos, &status);
     }
-    if(FAILURE(status))
+    if(U_FAILURE(status))
     {
         log_err("Error in formatting using udat_format(.....): %s\n", myErrorName(status));
         return 0;
@@ -103,4 +103,3 @@ UChar* myDateFormat(UDateFormat* dat, UDate d1)
     return result1;
 
 }
-

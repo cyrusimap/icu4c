@@ -44,14 +44,14 @@ u_loccache_get(const char *loc)
   UHashtable     *tempCache;
   int32_t     locCount;
   int32_t     hashKey;
-  UErrorCode     status = ZERO_ERROR;
+  UErrorCode     status = U_ZERO_ERROR;
 
   /* Create the cache, if needed */
   if(gLocaleCache == 0) {
     locCount = uloc_countAvailable();
     
     tempCache = uhash_openSize(u_locbund_hash, locCount, &status);
-    if(FAILURE(status)) return 0;
+    if(U_FAILURE(status)) return 0;
     
     /* Lock the cache */
     umtx_lock(0);

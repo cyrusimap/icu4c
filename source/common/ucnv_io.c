@@ -116,10 +116,10 @@ char *
 void 
   setupAliasTableAndAvailableConverters (UErrorCode * err)
 {
-  char fullFileName[MAX_FULL_FILE_NAME_LENGTH];
+  char fullFileName[UCNV_MAX_FULL_FILE_NAME_LENGTH];
   FileStream *converterFile = NULL;
 
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return;
 
   icu_strcpy (fullFileName, uloc_getDataDirectory ());
@@ -128,7 +128,7 @@ void
   converterFile = T_FileStream_open (fullFileName, "r");
   if (converterFile == NULL)
     {
-      *err = FILE_ACCESS_ERROR;
+      *err = U_FILE_ACCESS_ERROR;
     }
   else
     {
@@ -144,11 +144,10 @@ void
 void 
   doSetupAliasTableAndAvailableConverters (FileStream * converterFile, UErrorCode * err)
 {
-  Mutex *convertrsFileOpenMutex = NULL;
-  char myLine[MAX_LINE_TEXT];
+  char myLine[UCNV_MAX_LINE_TEXT];
   char *line = myLine;
-  char actualNameToken[MAX_CONVERTER_NAME_LENGTH];
-  char aliasNameToken[MAX_CONVERTER_NAME_LENGTH];
+  char actualNameToken[UCNV_MAX_CONVERTER_NAME_LENGTH];
+  char aliasNameToken[UCNV_MAX_CONVERTER_NAME_LENGTH];
   char *toBeHashed = NULL;
   UHashtable *myALIASNAMES_HASHTABLE = NULL;
   char **myAVAILABLE_CONVERTERS_NAMES = NULL;
@@ -156,13 +155,13 @@ void
 
   /*We need to do the initial work of setting everything */
   myALIASNAMES_HASHTABLE = uhash_open ((UHashFunction)uhash_hashIString, err);
-  if (FAILURE (*err))
+  if (U_FAILURE (*err))
     return;
 
   if (myALIASNAMES_HASHTABLE == NULL)
     return;
 
-  while (T_FileStream_readLine (converterFile, line, MAX_LINE_TEXT))
+  while (T_FileStream_readLine (converterFile, line, UCNV_MAX_LINE_TEXT))
     {
       removeComments (line);
       if (line[nextTokenOffset (line, SPACE_SEPARATORS)] != '\0')	/*Skips Blank lines */
@@ -171,7 +170,7 @@ void
 	  toBeHashed = (char *) icu_malloc ((icu_strlen (actualNameToken) + 1) * sizeof (char));
 	  if (toBeHashed == NULL)
 	    {
-	      *err = MEMORY_ALLOCATION_ERROR;
+	      *err = U_MEMORY_ALLOCATION_ERROR;
 	      return;
 	    }
 	  icu_strcpy (toBeHashed, actualNameToken);
@@ -179,7 +178,7 @@ void
 			    (myAVAILABLE_CONVERTERS + 1) * sizeof (char *));
 	  if (myAVAILABLE_CONVERTERS_NAMES == NULL)
 	    {
-	      *err = MEMORY_ALLOCATION_ERROR;
+	      *err = U_MEMORY_ALLOCATION_ERROR;
 	      return;
 	    }
 	  myAVAILABLE_CONVERTERS_NAMES[myAVAILABLE_CONVERTERS++] = toBeHashed;
@@ -193,7 +192,7 @@ void
 			    toBeHashed,
 			    err);
 	    }
-	  if (FAILURE (*err))
+	  if (U_FAILURE (*err))
 	    return;
 	}
 
@@ -230,12 +229,12 @@ bool_t
   int32_t i = 0;
   bool_t found = FALSE;
   char *actualName = NULL;
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
 
   /*Lazy evaluates the Alias hashtable */
   if (ALIASNAMES_HASHTABLE == NULL)
     setupAliasTableAndAvailableConverters (&err);
-  if (FAILURE (err))
+  if (U_FAILURE (err))
     return FALSE;
 
 
@@ -259,7 +258,7 @@ bool_t
 FileStream *
   openConverterFile (const char *name)
 {
-  char actualFullFilenameName[MAX_FULL_FILE_NAME_LENGTH];
+  char actualFullFilenameName[UCNV_MAX_FULL_FILE_NAME_LENGTH];
   FileStream *tableFile = NULL;
 
   icu_strcpy (actualFullFilenameName, uloc_getDataDirectory ());

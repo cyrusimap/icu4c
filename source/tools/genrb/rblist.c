@@ -34,17 +34,17 @@ make_rbitem(const UChar *tag,
   struct SRBItem *item;
   UChar *s;
 
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
   
   item = (struct SRBItem*) icu_malloc(sizeof(struct SRBItem));
   if(item == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   s = (UChar*) icu_malloc(sizeof(UChar) * (u_strlen(tag) + 1));
   if(s == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
   u_strcpy(s, tag);
@@ -60,11 +60,11 @@ rblist_open(UErrorCode *status)
 {
   struct SRBItemList *list;
   
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
   
   list = (struct SRBItemList*) icu_malloc(sizeof(struct SRBItemList));
   if(list == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
@@ -84,7 +84,7 @@ void rblist_close(struct SRBItemList *list,
 {
   int32_t i;
 
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
   
   /* deallocate each list */
   for(i = 0; i < list->fCount; ++i) {
@@ -116,13 +116,13 @@ void rblist_setlocale(struct SRBItemList *list,
 		      const UChar *locale, 
 		      UErrorCode *status)
 {
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   /* Allocate enough space */
   list->fLocale = (UChar*) icu_realloc(list->fLocale, 
 				       sizeof(UChar) * (u_strlen(locale) + 1));
   if(list->fLocale == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
 
@@ -135,7 +135,7 @@ void rblist_add(struct SRBItemList *list,
 {
   int32_t index;
   
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
   
   index = list->fCount;
   
@@ -154,7 +154,7 @@ rblist_grow(struct SRBItemList *list,
   int32_t newCapacity;
   struct SRBItem **newData;
   
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
   
   newCapacity = list->fCapacity << 1; 
   
@@ -162,7 +162,7 @@ rblist_grow(struct SRBItemList *list,
   newData = (struct SRBItem**) 
     icu_malloc(sizeof(struct SRBItem*) * newCapacity);
   if(newData == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
 

@@ -29,6 +29,7 @@
 ********************************************************************************
 */
 
+#include "cpputils.h"
 #include "choicfmt.h"
 #include "numfmt.h"
 #include "locid.h"
@@ -151,7 +152,7 @@ ChoiceFormat::getNumberFormat(UErrorCode &status)
     if(theFormat == 0) // If we weren't able to pull it out of the cache, then we have to create it.
     {
         theFormat = NumberFormat::createInstance(Locale::US, status);
-        if(FAILURE(status))
+        if(U_FAILURE(status))
             return 0;
         theFormat->setMinimumFractionDigits(1);
     }
@@ -188,14 +189,14 @@ ChoiceFormat::stod(const UnicodeString& string,
     // or string or vice versa.
     NumberFormat *myFormat = getNumberFormat(status);
 
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         return -1; // OK?
 
     Formattable result;
     myFormat->parse(string, result, status);
     releaseNumberFormat(myFormat);
     double value = 0.0;
-    if (SUCCESS(status))
+    if (U_SUCCESS(status))
     {
         switch(result.getType())
         {
@@ -219,7 +220,7 @@ ChoiceFormat::dtos(double value,
 {
     NumberFormat *myFormat = getNumberFormat(status);
 
-    if (SUCCESS(status)) {
+    if (U_SUCCESS(status)) {
         FieldPosition fieldPos(0);
         myFormat->format(value, string, fieldPos);
     }
@@ -234,7 +235,7 @@ void
 ChoiceFormat::applyPattern(const UnicodeString& newPattern,
                            UErrorCode& status)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
         return;
 
     UnicodeString segments[2];
@@ -261,7 +262,7 @@ ChoiceFormat::applyPattern(const UnicodeString& newPattern,
         }
         else if (ch == 0x003C /*'<'*/ || ch == 0x0023 /*'#'*/ || ch == 0x2264) {
             if (segments[0] == "") {
-                status = ILLEGAL_ARGUMENT_ERROR;
+                status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
 
@@ -278,7 +279,7 @@ ChoiceFormat::applyPattern(const UnicodeString& newPattern,
             else {
                 //segments[0].trim();
                 startValue = stod(tempBuffer, status);
-                if(FAILURE(status))
+                if(U_FAILURE(status))
                     return;
             }
 
@@ -288,7 +289,7 @@ ChoiceFormat::applyPattern(const UnicodeString& newPattern,
             // {sfb} There is a bug in MSVC 5.0 sp3 -- 0.0 <= NaN ==> TRUE
             //if (startValue <= oldStartValue) {
             if (startValue <= oldStartValue && ! icu_isNaN(oldStartValue)) {
-                status = ILLEGAL_ARGUMENT_ERROR;
+                status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
             segments[0].remove();
@@ -341,7 +342,7 @@ ChoiceFormat::toPattern(UnicodeString& result) const
         double tryLessOrEqual = icu_fabs(icu_IEEEremainder(fChoiceLimits[i], 1.0));
         double tryLess = icu_fabs(icu_IEEEremainder(less, 1.0));
 
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         UnicodeString buf;
         // {sfb} hack to get this to work on MSVC - NaN doesn't behave as it should
         if (tryLessOrEqual < tryLess && 
@@ -497,7 +498,7 @@ ChoiceFormat::format(const Formattable* objs,
                      UErrorCode& status) const
 {
     if(cnt < 0) {
-        status = ILLEGAL_ARGUMENT_ERROR;
+        status = U_ILLEGAL_ARGUMENT_ERROR;
         return toAppendTo;
     }
     

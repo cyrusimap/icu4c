@@ -20,11 +20,10 @@ void WriteToFile(const UnicodeString *a, FILE *myfile);
 /*Case insensitive compare*/
 int32_t strCaseIcmp(const char* a1,const char * a2); 
 /*returns an action other than the one provided*/
-UCNV_FromUCallBack otherUnicodeAction(UCNV_FromUCallBack MIA);
-UCNV_ToUCallBack otherCharAction(UCNV_ToUCallBack MIA);
+UConverterFromUCallback otherUnicodeAction(UConverterFromUCallback MIA);
+UConverterToUCallback otherCharAction(UConverterToUCallback MIA);
 /*Asciifies the UErrorCodes*/
-const char* errorString(UErrorCode err); 
-const char* myErrorName(UErrorCode err);
+#define myErrorName(errorCode) errorName(errorCode)
 
 void ConvertTest::runIndexedTest( int32_t index, bool_t exec, char* &name, char* par )
 {
@@ -69,11 +68,11 @@ void ConvertTest::TestConvert()
     int32_t             k                   =   0;
     uint16_t            codepage_index      =   0;
     int32_t             cp                  =   0;
-    UErrorCode           err                 =   ZERO_ERROR;
+    UErrorCode           err                 =   U_ZERO_ERROR;
     const char* const*  available_conv      =   NULL;
     char       ucs_file_name[UCS_FILE_NAME_SIZE];
-    UCNV_FromUCallBack          MIA1;
-    UCNV_ToUCallBack MIA2;
+    UConverterFromUCallback          MIA1;
+    UConverterToUCallback MIA2;
     UChar             myUnitarget[MAX_FILE_LEN];
     UChar             *myUnitarget_1 = myUnitarget;
     UnicodeConverterCPP* someConverters[5];
@@ -130,20 +129,20 @@ void ConvertTest::TestConvert()
     };
 
     
-    const UCNV_PLATFORM        CodePagesPlatform[NUM_CODEPAGE]    =
+    const UConverterPlatform        CodePagesPlatform[NUM_CODEPAGE]    =
     { 
-        IBM
+        UCNV_IBM
     
     };
 
-    const UCNV_ToUCallBack CodePagesMissingCharAction[NUM_CODEPAGE] =
+    const UConverterToUCallback CodePagesMissingCharAction[NUM_CODEPAGE] =
     {
-        MissingCharAction_SUBSTITUTE
+        UCNV_TO_U_CALLBACK_SUBSTITUTE
     };
     
-    const UCNV_FromUCallBack CodePagesMissingUnicodeAction[NUM_CODEPAGE] =
+    const UConverterFromUCallback CodePagesMissingUnicodeAction[NUM_CODEPAGE] =
     {
-      MissingUnicodeAction_SUBSTITUTE
+      UCNV_FROM_U_CALLBACK_SUBSTITUTE
     };
 
     const Locale CodePagesLocale[NUM_CODEPAGE] =
@@ -173,7 +172,7 @@ void ConvertTest::TestConvert()
     logln("\n---Testing UnicodeConverterCPP::getAvailableNames...");
     available_conv = UnicodeConverterCPP::getAvailableNames(testLong1, err);
 
-    if (FAILURE(err)) 
+    if (U_FAILURE(err)) 
     {
         errln("Error getting Available names!");
         exit(0);
@@ -184,15 +183,15 @@ void ConvertTest::TestConvert()
      
 
     someConverters[0] = new UnicodeConverterCPP("ibm-949",err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
     someConverters[1] = new UnicodeConverterCPP("ibm-949",err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
     someConverters[2] = new UnicodeConverterCPP("ibm-949",err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
     someConverters[3] = new UnicodeConverterCPP("ibm-834", err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
     someConverters[4] = new UnicodeConverterCPP("ibm-943", err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + myErrorName(err));
    
     logln("\n---Testing UnicodeConverterCPP::flushCache...");
     if (UnicodeConverterCPP::flushCache()==0) logln("Flush cache ok");
@@ -213,7 +212,7 @@ void ConvertTest::TestConvert()
     someConverters[0] = new UnicodeConverterCPP;
     someConverters[1] = new UnicodeConverterCPP;
     someConverters[2] = new UnicodeConverterCPP("utf8", err);
-    if (FAILURE(err)) errln ((UnicodeString)"FAILURE! " + err);
+    if (U_FAILURE(err)) errln ((UnicodeString)"FAILURE! " + err);
 #ifdef WIN32   
 	if ((strcmp(someConverters[1]->getName(err),"IBM-1252")==0)&&
     (strcmp(someConverters[0]->getName(err),"IBM-1252")==0))
@@ -266,7 +265,7 @@ void ConvertTest::TestConvert()
 
         /*Creates a converter*/
 
-    UnicodeConverterCPP* myConverter = new UnicodeConverterCPP(CodePageNumberToTest[codepage_index],IBM, err);
+    UnicodeConverterCPP* myConverter = new UnicodeConverterCPP(CodePageNumberToTest[codepage_index],UCNV_IBM, err);
     
         if (!myConverter)   
         {
@@ -298,9 +297,9 @@ void ConvertTest::TestConvert()
     
     logln("\n---Testing UnicodeConverterCPP::setSubstitutionChars RoundTrip Test ...");
     myConverter->setSubstitutionChars(myptr, ii, err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
     myConverter->getSubstitutionChars(save, ii, err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
     if (strncmp(save, myptr, ii)) errln("Saved substitution character failed");
     else logln("Saved substitution character ok");
     
@@ -343,14 +342,14 @@ void ConvertTest::TestConvert()
         /*setMissingUnicodeAction*/
     logln("\n---Testing UnicodeConverterCPP::setMissingUnicodeAction...");
     myConverter->setMissingUnicodeAction(otherUnicodeAction(MIA1),err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
     if (myConverter->getMissingUnicodeAction() != otherUnicodeAction(MIA1)) logln("Missing action failed");
     else logln("Missing action ok");
 
 
     logln("\n---Testing UnicodeConverterCPP::setMissingUnicodeAction Roundtrip...");
     myConverter->setMissingUnicodeAction(MIA1, err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
     if (myConverter->getMissingUnicodeAction() != MIA1) errln("Missing action failed");
     else logln("Missing action ok");
 
@@ -358,13 +357,13 @@ void ConvertTest::TestConvert()
         /*setMissingCharAction*/
     logln("\n---Testing UnicodeConverterCPP::setMissingCharAction...");
     myConverter->setMissingCharAction(otherCharAction(MIA2),err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
     if (myConverter->getMissingCharAction() != otherCharAction(MIA2)) errln("Missing action failed");
     else logln("Missing action ok");
     
     logln("\n---Testing UnicodeConverterCPP::setMissingCharAction Roundtrip...");
     myConverter->setMissingCharAction(MIA2, err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
     if (myConverter->getMissingCharAction() != MIA2) errln("Missing action failed");
     else logln("Missing action ok");
 
@@ -372,7 +371,7 @@ void ConvertTest::TestConvert()
         /*getCodepage*/
     logln("\n---Testing UnicodeConverterCPP::getCodepage...");
     cp =    myConverter->getCodepage(err);
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));    
     if (cp != CodePageNumberToTest[codepage_index]) errln("Codepage number test failed");
     else logln("Codepage number test OK");
     
@@ -382,7 +381,7 @@ void ConvertTest::TestConvert()
     logln("\n---Testing UnicodeConverterCPP::getCodepagePlatform ...");
     if (CodePagesPlatform[codepage_index]!=myConverter->getCodepagePlatform(err)) errln("Platform codepage test failed");
     else logln("Platform codepage test ok");
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));  
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));  
 
 
         /*Reads the BOM*/
@@ -416,7 +415,7 @@ void ConvertTest::TestConvert()
 
         logln("\n---Testing UnicodeConverterCPP::fromUnicodeString");
         myConverter->fromUnicodeString(output_cp_buffer, testLong1, *uniString, err);
-        if (FAILURE(err))   logln("\nFAILURE...");
+        if (U_FAILURE(err))   logln("\nFAILURE...");
 
         
         
@@ -435,7 +434,7 @@ void ConvertTest::TestConvert()
         logln("\n---Testing UnicodeConverterCPP::toUnicodeString");
         myConverter->toUnicodeString(*uniString2 , output_cp_buffer, testLong1,  err);
 
-        if (FAILURE(err))   logln ("FAILURE! " + (UnicodeString)myErrorName(err));
+        if (U_FAILURE(err))   logln ("FAILURE! " + (UnicodeString)myErrorName(err));
 
 
 
@@ -458,7 +457,7 @@ void ConvertTest::TestConvert()
                  err);
     //    consumedUni = (UChar*)tmp_consumedUni;
     
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
     
     /*Uni1 ----ToUnicode----> Cp2 ----FromUnicode---->Uni3*/
 
@@ -473,7 +472,7 @@ void ConvertTest::TestConvert()
                FALSE,
                err);
         consumed = (char*)tmp_consumed;
-    if (FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
+    if (U_FAILURE(err)) errln ("FAILURE! " + (UnicodeString)myErrorName(err));
     
     
     logln("\n---Testing UChar* RoundTrip ...");
@@ -495,12 +494,12 @@ void ConvertTest::TestConvert()
     char mySJIS[12] = {(char)0xFA, (char)0X51, (char)0XB8, (char)0XDB, (char)0XBD, (char)0XCB, (char)0XDB, (char)0XCC, (char)0XDE, (char)0XD0 , (char)0XFA, (char)0X50};
     
 
-    UnicodeConverterCPP SJIS(943, IBM, err);
+    UnicodeConverterCPP SJIS(943, UCNV_IBM, err);
     UnicodeString myString;
 
 
     SJIS.toUnicodeString(myString, mySJIS, 12, err);
-    if (FAILURE(err)||(myString.size()!=10)) errln("toUnicodeString test failed");
+    if (U_FAILURE(err)||(myString.size()!=10)) errln("toUnicodeString test failed");
     else logln("toUnicodeString test ok");
 
     fclose(ucs_file_in);    
@@ -543,35 +542,14 @@ int32_t strCaseIcmp(const char* a1, const char * a2)
     return ret;
 }
 
-UCNV_FromUCallBack otherUnicodeAction(UCNV_FromUCallBack MIA)
+UConverterFromUCallback otherUnicodeAction(UConverterFromUCallback MIA)
 {
-    return (MIA==(UCNV_FromUCallBack)MissingUnicodeAction_STOP)?(UCNV_FromUCallBack)MissingUnicodeAction_SUBSTITUTE:(UCNV_FromUCallBack)MissingUnicodeAction_STOP;
+    return (MIA==(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_STOP)?(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_SUBSTITUTE:(UConverterFromUCallback)UCNV_FROM_U_CALLBACK_STOP;
 }
 
 
-UCNV_ToUCallBack otherCharAction(UCNV_ToUCallBack MIA)
+UConverterToUCallback otherCharAction(UConverterToUCallback MIA)
 
 {
-    return (MIA==(UCNV_ToUCallBack)MissingCharAction_STOP)?(UCNV_ToUCallBack)MissingCharAction_SUBSTITUTE:(UCNV_ToUCallBack)MissingCharAction_STOP;
-}
-
-
-const char* myErrorName(UErrorCode err)
-{
-    switch (err)
-    {
-        case ZERO_ERROR:                return "ZERO_ERROR";
-        case ILLEGAL_ARGUMENT_ERROR:    return "ILLEGAL_ARGUMENT_ERROR";
-        case MISSING_RESOURCE_ERROR:    return "MISSING_RESOURCE_ERROR";
-        case INVALID_FORMAT_ERROR:      return "INVALID_FORMAT_ERROR";
-        case FILE_ACCESS_ERROR:         return "FILE_ACCESS_ERROR";
-        case INTERNAL_PROGRAM_ERROR:    return "INTERNAL_PROGRAM_ERROR";
-        case MESSAGE_PARSE_ERROR:       return "MESSAGE_PARSE_ERROR";
-        case MEMORY_ALLOCATION_ERROR:   return "MEMORY_ALLOCATION_ERROR";
-        case USING_FALLBACK_ERROR:      return "USING_FALLBACK_ERROR";
-        case USING_DEFAULT_ERROR:       return "USING_DEFAULT_ERROR";
-        case INDEX_OUTOFBOUNDS_ERROR:   return "INDEX_OUTOFBOUNDS_ERROR";
-        case PARSE_ERROR:               return "PARSE_ERROR";
-        default:                        return "[BOGUS UErrorCode]";
-    }
+    return (MIA==(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP)?(UConverterToUCallback)UCNV_TO_U_CALLBACK_SUBSTITUTE:(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP;
 }

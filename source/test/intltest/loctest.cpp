@@ -193,10 +193,10 @@ LocaleTest::TestDisplayNames()
     Locale  french("fr", "FR");
     Locale  croatian("hr", "HR");
     Locale  greek("el", "GR");
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
 
     Locale::setDefault(english, err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         errln("Locale::setDefault returned error code " + (int)err);
         return;
     }
@@ -214,7 +214,7 @@ LocaleTest::TestDisplayNames()
     doTestDisplayNames(greek, DLANG_EL, FALSE);
 
     Locale::setDefault(french, err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         errln("Locale::setDefault returned error code " + (int)err);
         return;
     }
@@ -232,7 +232,7 @@ LocaleTest::TestDisplayNames()
     doTestDisplayNames(greek, DLANG_EL, TRUE);
 
     Locale::setDefault(saveDefault, err);
-    if (FAILURE(err)) {
+    if (U_FAILURE(err)) {
         errln("Locale::setDefault returned error code " + (int)err);
         return;
     }
@@ -424,7 +424,7 @@ void LocaleTest::TestDataDirectory()
 /*
     char            oldDirectory[80];
     const char*     temp;
-    UErrorCode       err = ZERO_ERROR;
+    UErrorCode       err = U_ZERO_ERROR;
     UnicodeString   testValue;
 
     temp = Locale::getDataDirectory();
@@ -639,25 +639,25 @@ LocaleTest::TestISO3Fallback()
     Locale test("xx", "YY");
     bool_t gotException = FALSE;
     UnicodeString result;
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
 
     //try {
         result = test.getISO3Language(result, err);
     //}
     //catch (MissingResourceException e) {
-        if(FAILURE(err))
+        if(U_FAILURE(err))
             gotException = TRUE;
     //}
     if (!gotException)
         errln("getISO3Language() on xx_YY returned " + result + " instead of throwing an exception");
 
     gotException = FALSE;
-    err = ZERO_ERROR;
+    err = U_ZERO_ERROR;
     //try {
         result = test.getISO3Country(result, err);
     //}
     //catch (MissingResourceException e) {
-        if(FAILURE(err))
+        if(U_FAILURE(err))
             gotException = TRUE;
     //}
     if (!gotException)
@@ -1004,7 +1004,7 @@ LocaleTest::TestAtypicalLocales()
                                      "Belgium" };
 
     int32_t i;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Locale::setDefault(Locale::US, status);
     for (i = 0; i < 9; ++i) {
         UnicodeString name;
@@ -1070,7 +1070,7 @@ LocaleTest::TestNullDefault()
 void 
 LocaleTest::TestThaiCurrencyFormat() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *thaiCurrency = (DecimalFormat*)NumberFormat::createCurrencyInstance(
                     Locale("th", "TH"), status);
     UChar posPrefix = 0x0e3f;
@@ -1105,7 +1105,7 @@ LocaleTest::TestEuroSupport()
     UChar euro = 0x20ac;
     const UnicodeString EURO_CURRENCY(&euro, 1, 1); // Look for this UnicodeString in formatted Euro currency
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     UnicodeString temp;
 
@@ -1194,7 +1194,7 @@ LocaleTest::Test4139940()
 {
     Locale mylocale("hu", "", "");       
     UDate mydate = date(98,3,13); // A Monday
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat df_full("EEEE", mylocale, status);
     UnicodeString str;
     FieldPosition pos(FieldPosition::DONT_CARE);
@@ -1210,14 +1210,14 @@ LocaleTest::Test4139940()
 UDate
 LocaleTest::date(int32_t y, int32_t m, int32_t d, int32_t hr, int32_t min, int32_t sec)
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(status);
     if (cal == 0) 
         return 0.0;
     cal->clear();
     cal->set(1900 + y, m, d, hr, min, sec); // Add 1900 to follow java.util.Date protocol
     UDate dt = cal->getTime(status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
         return 0.0;
     
     delete cal;
@@ -1231,7 +1231,7 @@ LocaleTest::date(int32_t y, int32_t m, int32_t d, int32_t hr, int32_t min, int32
 void 
 LocaleTest::Test4143951() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(Locale("ru", "", ""), status);
     if (cal->getFirstDayOfWeek() != Calendar::MONDAY) {
         errln("Fail: First day of week in Russia should be Monday");
@@ -1253,11 +1253,11 @@ LocaleTest::Test4147315()
     
     //try {
         UnicodeString result;
-        UErrorCode err = ZERO_ERROR;
+        UErrorCode err = U_ZERO_ERROR;
         locale.getISO3Country(result, err);
 
         UnicodeString temp;
-        if(SUCCESS(err))
+        if(U_SUCCESS(err))
             errln("ERROR: getISO3Country() returns: " + result + 
                 " for locale '" + locale.getName(temp) + "' rather than exception" );
     //} catch(MissingResourceException e) { }
@@ -1277,11 +1277,11 @@ LocaleTest::Test4147317()
     
     //try {
         UnicodeString result;
-        UErrorCode err = ZERO_ERROR;
+        UErrorCode err = U_ZERO_ERROR;
         locale.getISO3Language(result, err);
 
         UnicodeString temp;
-        if(SUCCESS(err))
+        if(U_SUCCESS(err))
             errln("ERROR: getISO3Language() returns: " + result + 
                " for locale '" + locale.getName(temp) + "' rather than exception" );
     //} catch(MissingResourceException e) { }
@@ -1403,10 +1403,10 @@ LocaleTest::Test4105828()
 {
     Locale LOC [] = { Locale::CHINESE,  Locale("zh", "CN", ""),
                      Locale("zh", "TW", ""), Locale("zh", "HK", "") };
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     for (int32_t i = 0; i < 4; ++i) {
         NumberFormat *fmt = NumberFormat::createPercentInstance(LOC[i], status);
-        if(FAILURE(status)) {
+        if(U_FAILURE(status)) {
             errln("Couldn't create NumberFormat");
             return;
         }

@@ -32,7 +32,7 @@
  * .    UCalendar *cal;
  * .    UDate d1;
  * .    UDateFormat *def1;
- * .    UErrorCode status = ZERO_ERROR;
+ * .    UErrorCode status = U_ZERO_ERROR;
  * .    str=(UChar*)malloc(sizeof(UChar) * (strlen("disturbance in force") +1));
  * .    u_uastrcpy(str, "disturbance in force");
  * .    tzID=(UChar*)malloc(sizeof(UChar) * 4);
@@ -43,8 +43,8 @@
  * .    u_uastrcpy(pattern, "On {0, date, long}, there was a {1} on planet {2,number,integer}");
  * .    resultlength=0;
  * .    resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, d1, str, 7);
- * .    if(status==BUFFER_OVERFLOW_ERROR){
- * .        status=ZERO_ERROR;
+ * .    if(status==U_BUFFER_OVERFLOW_ERROR){
+ * .        status=U_ZERO_ERROR;
  * .        resultlength=resultLengthOut+1;
  * .        result=(UChar*)realloc(result, sizeof(UChar) * resultlength);
  * .        u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, d1, str, 7);
@@ -58,7 +58,7 @@
  * Example 2:
  * <pre>
  * .    UChar* str;
- * .    UErrorCode status = ZERO_ERROR;
+ * .    UErrorCode status = U_ZERO_ERROR;
  * .    UChar *result;
  * .    UChar pattern[100];
  * .    t_int32 resultlength,resultLengthOut, i;
@@ -69,8 +69,8 @@
  * .    for(i=0; i<3; i++){
  * .      resultlength=0;
  * .    resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, testArgs[i], str);
- * .    if(status==BUFFER_OVERFLOW_ERROR){
- * .        status=ZERO_ERROR;
+ * .    if(status==U_BUFFER_OVERFLOW_ERROR){
+ * .        status=U_ZERO_ERROR;
  * .        resultlength=resultLengthOut+1;
  * .        result=(UChar*)malloc(sizeof(UChar) * resultlength);
  * .        u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, testArgs[i], str);
@@ -173,7 +173,7 @@
 * output was truncated.
 * @see u_parseMessage
 */
-CAPI int32_t
+U_CAPI int32_t
 u_formatMessage(    const    char        *locale,
             const    UChar        *pattern,
                 int32_t        patternLength,
@@ -197,7 +197,7 @@ u_formatMessage(    const    char        *locale,
 * specified in pattern.
 * @see u_formatMessage
 */
-CAPI void 
+U_CAPI void 
 u_parseMessage(    const    char        *locale,
         const    UChar        *pattern,
             int32_t        patternLength,

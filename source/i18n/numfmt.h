@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999           *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -50,7 +51,7 @@ class Locale;
  * <pre>
  * .   double myNumber = 7.0;
  * .   UnicodeString myString;
- * .   UErrorCode success = ZERO_ERROR;
+ * .   UErrorCode success = U_ZERO_ERROR;
  * .   NumberFormat* nf = NumberFormat::createInstance(success)
  * .   nf->format(myNumber, myString);
  * .   cout &lt;&lt; " Example 1: " &lt;&lt; myString &lt;&lt; endl;
@@ -61,7 +62,7 @@ class Locale;
  * conventions multiple times.
  * <pre>
  * .    UnicodeString myString;
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    nf = NumberFormat::createInstance( success );
  * .    int32_t a[] = { 123, 3333, -1234567 };
  * .    const int32_t a_len = sizeof(a) / sizeof(a[0]);
@@ -231,6 +232,13 @@ public:
     virtual UnicodeString& format(int32_t number,
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos) const = 0;
+
+    /**
+     * Redeclared Format method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
 
    /**
     * Return a long if possible (e.g. within range LONG_MAX,
@@ -442,7 +450,7 @@ public:
      * </pre>
      * @return The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Override Calendar
@@ -455,7 +463,7 @@ public:
      * given class have the same class ID.  Objects of
      * other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const { return getStaticClassID(); }
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 protected:
 
@@ -508,6 +516,13 @@ inline bool_t
 NumberFormat::isParseIntegerOnly() const
 {
     return fParseIntegerOnly;
+}
+
+inline UnicodeString&
+NumberFormat::format(const Formattable& obj,
+                     UnicodeString& result,
+                     UErrorCode& status) const {
+    return Format::format(obj, result, status);
 }
  
 #endif // _NUMFMT

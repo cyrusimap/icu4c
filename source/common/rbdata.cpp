@@ -20,9 +20,9 @@
 
 #include "rbdata.h"
 
-ClassID StringList::fgClassID = 0; // Value is irrelevant
-ClassID String2dList::fgClassID = 0; // Value is irrelevant
-ClassID TaggedList::fgClassID = 0; // Value is irrelevant
+UClassID StringList::fgClassID = 0; // Value is irrelevant
+UClassID String2dList::fgClassID = 0; // Value is irrelevant
+UClassID TaggedList::fgClassID = 0; // Value is irrelevant
 
 //-----------------------------------------------------------------------------
 
@@ -42,13 +42,13 @@ const UnicodeString&
 StringList::operator[](int32_t i) const 
 { return fStrings[i]; }
 
-ClassID 
+UClassID 
 StringList::getDynamicClassID() const 
 { return getStaticClassID(); }
 
-ClassID 
+UClassID 
 StringList::getStaticClassID() 
-{ return (ClassID)&fgClassID; }
+{ return (UClassID)&fgClassID; }
 
 //-----------------------------------------------------------------------------
 
@@ -74,19 +74,19 @@ String2dList::getString(int32_t rowIndex,
 			int32_t colIndex) 
 { return fStrings[rowIndex][colIndex]; }
   
-ClassID 
+UClassID 
 String2dList::getDynamicClassID() const 
 { return getStaticClassID(); }
 
-ClassID 
+UClassID 
 String2dList::getStaticClassID() 
-{ return (ClassID)&fgClassID; }
+{ return (UClassID)&fgClassID; }
 
 //-----------------------------------------------------------------------------
 
 TaggedList::TaggedList()
 {
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
   fHashtableValues = uhash_open((UHashFunction)uhash_hashUString, &err);
   uhash_setValueDeleter(fHashtableValues, deleteValue);
   
@@ -103,7 +103,7 @@ void
 TaggedList::put(const UnicodeString& tag, 
 		const UnicodeString& data)
 {
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
   
   uhash_putKey(fHashtableValues, 
 	       tag.hashCode() & 0x7FFFFFFF,
@@ -130,10 +130,10 @@ TaggedList::deleteValue(void *value)
 }
 
   
-ClassID 
+UClassID 
 TaggedList::getDynamicClassID() const 
 { return getStaticClassID(); }
 
-ClassID 
+UClassID 
 TaggedList::getStaticClassID() 
-{ return (ClassID)&fgClassID; }
+{ return (UClassID)&fgClassID; }

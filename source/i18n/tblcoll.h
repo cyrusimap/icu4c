@@ -176,12 +176,12 @@ class RuleBasedCollatorStreamer;
  * <p>To create a table-based collation object, simply supply the collation
  * rules to the RuleBasedCollator contructor.  For example:
  * <pre>
- * .    UErrorCode status = ZERO_ERROR;
+ * .    UErrorCode status = U_ZERO_ERROR;
  * .    RuleBasedCollator *mySimple = new RuleBasedCollator(Simple, status);
  * </pre>
  * <p>Another example:
  * <pre>
- * .    UErrorCode status = ZERO_ERROR;
+ * .    UErrorCode status = U_ZERO_ERROR;
  * .    RuleBasedCollator *myNorwegian = new RuleBasedCollator(Norwegian, status);
  * </pre>
  * To add rules on top of an existing table, simply supply the orginal rules
@@ -200,7 +200,7 @@ class RuleBasedCollatorStreamer;
  * the English collation rules and add the additional rules to the table.
  * For example:
  * <pre>
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     UnicodeString rules(DEFAULTRULES);
  * .     rules += "& C &lt; ch, cH, Ch, CH";
  * .     RuleBasedCollator *mySpanish = new RuleBasedCollator(rules, status);
@@ -208,7 +208,7 @@ class RuleBasedCollatorStreamer;
  * <p>In order to sort symbols in the similiar order of sorting their
  * alphabetic equivalents, you can do the following,
  * <pre>
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     UnicodeString rules(DEFAULTRULES);
  * .     rules += "& Question-mark ; '?' & Ampersand ; '&' & Dollar-sign ; '$' ";
  * .     RuleBasedCollator *myTable = new RuleBasedCollator(rules, status);
@@ -216,13 +216,13 @@ class RuleBasedCollatorStreamer;
  * <p>Another way of creating the table-based collation object, mySimple,
  * is:
  * <pre>
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     RuleBasedCollator *mySimple = new
  * .           RuleBasedCollator(" &lt; a &lt; b & b &lt; c & c &lt; d", status);
  * </pre>
  * Or,
  * <pre>
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     RuleBasedCollator *mySimple = new
  * .           RuleBasedCollator(" &lt; a &lt; b &lt; d & b &lt; c", status);
  * </pre>
@@ -277,7 +277,7 @@ class RuleBasedCollatorStreamer;
  * .         '&lt;', 'c', ',', 'C', '&lt;', 'e', ',', 'E', '&', 
  * .         'C', '&lt;', 'd', ',', 'D', 0 };
  * .     UnicodeString oldRules(contents);
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     // change the order of accent characters
  * .     UChar addOn[] = { '&', ',', 0x0300, ';', 0x0308, ';', 0x0302, 0 };
  * .     oldRules += addOn;
@@ -288,12 +288,12 @@ class RuleBasedCollatorStreamer;
  * default setting. For example, in Japanese collation, you can either sort
  * English characters before or after Japanese characters,
  * <pre>
- * .     UErrorCode status = ZERO_ERROR;
+ * .     UErrorCode status = U_ZERO_ERROR;
  * .     // get en_US collation rules
  * .     RuleBasedCollator* en_USCollation = 
  * .         (RuleBasedCollator*) Collator::createInstance(Locale::US, status);
  * .     // Always check the error code after each call.
- * .     if (FAILURE(status)) return;
+ * .     if (U_FAILURE(status)) return;
  * .     // add a few Japanese character to sort before English characters
  * .     // suppose the last character before the first base letter 'a' in
  * .     // the English collation rule is 0x2212
@@ -476,7 +476,7 @@ public :
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-  virtual ClassID getDynamicClassID(void) const
+  virtual UClassID getDynamicClassID(void) const
     { return RuleBasedCollator::getStaticClassID(); }
 
 
@@ -490,7 +490,7 @@ public :
      *
      * @return          The class ID for all objects of this class.
      */
-  static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+  static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
   /*****************************************************************************
  * PRIVATE

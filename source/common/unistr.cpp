@@ -79,7 +79,11 @@ u_arrayCompare(const UChar *src, int32_t srcStart,
 inline void
 us_arrayCopy(const UChar *src, int32_t srcStart,
          UChar *dst, int32_t dstStart, int32_t count)
-{icu_memmove(dst+dstStart, src+srcStart, (size_t)(count*sizeof(*src)));}
+{
+  if(count>0) {
+    icu_memmove(dst+dstStart, src+srcStart, (size_t)(count*sizeof(*src)));
+  }
+}
 
 // static initialization
 const UChar UnicodeString::fgInvalidUChar      = 0xFFFF;
@@ -755,7 +759,8 @@ UnicodeString::extract(UTextOffset start,
   const UChar *mySource    = getArrayStart() + start;
   const UChar *mySourceEnd = mySource + length;
   char *myTarget           = dst;
-  UErrorCode status        = ZERO_ERROR;
+  char *myTargetLimit;
+  UErrorCode status        = U_ZERO_ERROR;
   int32_t arraySize        = 0x0FFFFFFF;
 
   // create the converter
@@ -768,7 +773,7 @@ UnicodeString::extract(UTextOffset start,
     converter = ucnv_open(codepage, &status);
 
   // if we failed, set the appropriate flags and return
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     // close the converter
     if(codepage == 0)
       releaseDefaultConverter(converter);
@@ -777,10 +782,15 @@ UnicodeString::extract(UTextOffset start,
     return 0;
   }
 
+  myTargetLimit = myTarget + arraySize;
+
+  if(myTargetLimit < myTarget)  /* ptr wrapped around: pin to U_MAX_PTR */
+    myTargetLimit = (char*)U_MAX_PTR; 
+
   // perform the conversion
   // there is no loop here since we assume the buffer is large enough
 
-  ucnv_fromUnicode(converter, &myTarget,  myTarget + arraySize,
+  ucnv_fromUnicode(converter, &myTarget,  myTargetLimit,
            &mySource, mySourceEnd, NULL, TRUE, &status);
 
   // close the converter
@@ -806,7 +816,7 @@ UnicodeString::doCodepageCreate(const char *codepageData,
   const char *mySource     = codepageData;
   const char *mySourceEnd  = mySource + sourceLen;
   UChar *myTarget          = getArrayStart();
-  UErrorCode status        = ZERO_ERROR;
+  UErrorCode status        = U_ZERO_ERROR;
   int32_t arraySize        = getCapacity();
 
   // create the converter
@@ -818,7 +828,7 @@ UnicodeString::doCodepageCreate(const char *codepageData,
            : ucnv_open(codepage, &status));
 
   // if we failed, set the appropriate flags and return
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     // close the converter
     if(codepage == 0)
       releaseDefaultConverter(converter);
@@ -831,7 +841,7 @@ UnicodeString::doCodepageCreate(const char *codepageData,
   // perform the conversion
   do {
     // reset the error code
-    status = ZERO_ERROR;
+    status = U_ZERO_ERROR;
 
     // perform the conversion
     ucnv_toUnicode(converter, &myTarget,  myTarget + arraySize,
@@ -876,7 +886,7 @@ UnicodeString::doCodepageCreate(const char *codepageData,
       arraySize   = getCapacity() - fLength;
     }
   }
-  while(status == INDEX_OUTOFBOUNDS_ERROR);
+  while(status == U_INDEX_OUTOFBOUNDS_ERROR);
 
   fHashCode = kInvalidHashCode;
 
@@ -980,8 +990,6 @@ UnicodeString::pinIndices(UTextOffset& start,
   if(length < 0 || start < 0)
     start = length = 0;
   else {
-    if(start < 0)
-      start = 0;
     if(length > (fLength - start))
       length = (fLength - start);
   }
@@ -1014,7 +1022,7 @@ UnicodeString::cloneArrayIfNeeded()
 }
 
 // private function for C API
-C_FUNC const UChar*
+U_CFUNC const UChar*
 T_UnicodeString_getUChars(const UnicodeString *s)
 {
   return s->getUChars();
@@ -1043,7 +1051,7 @@ UnicodeString::getDefaultConverter(UErrorCode &status)
   // if the cache was empty, create a converter
   if(converter == 0) {
     converter = ucnv_open(0, &status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
       return 0;
   }
 
@@ -1243,5 +1251,3 @@ operator<<(ostream& stream,
   stream.setf(saveFlags & ios::basefield, ios::basefield);
   return stream;
 }
-
-

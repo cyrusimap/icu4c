@@ -76,25 +76,28 @@ int32_t UHASH_PRIMES [] =
   Note here that we are assuming 32-bit ints.
 */
 
-CAPI UHashtable*
+U_CAPI UHashtable*
 uhash_open(UHashFunction func,
        UErrorCode *status)
 {
-  return uhash_openSize(func, 3, status);
+  UHashtable* myUHT =  uhash_openSize(func, 3, status);
+  if (U_SUCCESS(*status)) myUHT->isGrowable = TRUE;
+
+  return myUHT;
 }
 
-CAPI UHashtable*
+U_CAPI UHashtable*
 uhash_openSize(UHashFunction func,
-           int32_t size,
-           UErrorCode *status)
+	       int32_t size,
+	       UErrorCode *status)
 {
   UHashtable *result;
   
-  if(FAILURE(*status)) return NULL;
+  if(U_FAILURE(*status)) return NULL;
   
   result = (UHashtable*) icu_malloc(sizeof(UHashtable));
   if(result == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
   
@@ -104,10 +107,11 @@ uhash_openSize(UHashFunction func,
   result->valueDelete        = NULL;
   result->toBeDeleted        = NULL;
   result->toBeDeletedCount    = 0;
+  result->isGrowable    = FALSE;
 
   uhash_initialize(result, uhash_leastGreaterPrimeIndex(size), status);
 
-  if(FAILURE(*status)) {
+  if(U_FAILURE(*status)) {
     icu_free(result);
     return 0;
   }
@@ -115,13 +119,13 @@ uhash_openSize(UHashFunction func,
   return result;
 }
 
-CAPI void
+U_CAPI void
 uhash_setValueDeleter(UHashtable *hash, ValueDeleter del )
 {
     hash->valueDelete = del;
 }
 
-CAPI void
+U_CAPI void
 uhash_close(UHashtable *hash)
 {
   if (hash->valueDelete)
@@ -141,12 +145,12 @@ uhash_close(UHashtable *hash)
   icu_free(hash->toBeDeleted);
 }
 
-CAPI int32_t
+U_CAPI int32_t
 uhash_size(const UHashtable *hash)
 {
   return hash->count;
 }
-CAPI int32_t
+U_CAPI int32_t
 uhash_putKey(UHashtable *hash,
          int32_t valueKey,
          void *value,
@@ -157,10 +161,14 @@ uhash_putKey(UHashtable *hash,
   int32_t hashCode;
   int32_t index;
   
-  if(FAILURE(*status)) return UHASH_INVALID;
+  if(U_FAILURE(*status)) return UHASH_INVALID;
 
   if(hash->count > hash->highWaterMark) {
-    uhash_rehash(hash, status);
+    if (hash->isGrowable)    uhash_rehash(hash, status);
+    else  {
+      *status = U_INDEX_OUTOFBOUNDS_ERROR;
+      return UHASH_INVALID;
+    }
   }
 
   hashCode     = valueKey;
@@ -179,7 +187,7 @@ uhash_putKey(UHashtable *hash,
       void * result = hash->values[index];
     if (result != value) /*Make sure the same object isn't scheduled for a double deletion*/
       {
-        hash->toBeDeleted = (void**) realloc(hash->toBeDeleted, sizeof(void*)*(++(hash->toBeDeletedCount)));
+        hash->toBeDeleted = (void**) icu_realloc(hash->toBeDeleted, sizeof(void*)*(++(hash->toBeDeletedCount)));
         hash->toBeDeleted[(hash->toBeDeletedCount)-1] = result;
       }
       hash->values[index] = 0;
@@ -193,7 +201,7 @@ uhash_putKey(UHashtable *hash,
   return hashCode;
 }
 
-CAPI int32_t
+U_CAPI int32_t
 uhash_put(UHashtable *hash,
       void *value,
       UErrorCode *status)
@@ -203,10 +211,14 @@ uhash_put(UHashtable *hash,
   int32_t hashCode;
   int32_t index;
   
-  if(FAILURE(*status)) return UHASH_INVALID;
+  if(U_FAILURE(*status)) return UHASH_INVALID;
 
   if(hash->count > hash->highWaterMark) {
-    uhash_rehash(hash, status);
+    if (hash->isGrowable)    uhash_rehash(hash, status);
+    else  {
+      *status = U_INDEX_OUTOFBOUNDS_ERROR;
+      return UHASH_INVALID;
+    }
   }
 
   hashCode     = (hash->hashFunction)(value);
@@ -225,7 +237,7 @@ uhash_put(UHashtable *hash,
       void* result = hash->values[index];
     if (result != value) /*Make sure the same object isn't scheduled for a double deletion*/
       {
-        hash->toBeDeleted = (void**) realloc(hash->toBeDeleted,
+        hash->toBeDeleted = (void**) icu_realloc(hash->toBeDeleted,
                          sizeof(void*)*(++(hash->toBeDeletedCount)));
         hash->toBeDeleted[(hash->toBeDeletedCount)-1] = result;
       }
@@ -240,7 +252,7 @@ uhash_put(UHashtable *hash,
   return hashCode;
 }
 
-CAPI void*
+U_CAPI void*
 uhash_get(const UHashtable *hash, 
       int32_t key)
 {
@@ -253,7 +265,7 @@ uhash_get(const UHashtable *hash,
   return result;  
 }
 
-CAPI void*
+U_CAPI void*
 uhash_remove(UHashtable *hash,
          int32_t key,
          UErrorCode *status)
@@ -291,7 +303,7 @@ uhash_remove(UHashtable *hash,
   return result;
 }
 
-CAPI void*
+U_CAPI void*
 uhash_nextElement(const UHashtable *hash,
           int32_t *pos)
 {
@@ -325,7 +337,7 @@ uhash_initialize(UHashtable *hash,
 {
   int32_t i;
   
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   if(primeIndex < 0) {
     primeIndex = 0;
@@ -339,13 +351,13 @@ uhash_initialize(UHashtable *hash,
 
   hash->values         = (void**) icu_malloc(sizeof(void*) * hash->length);
   if(hash->values == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
 
   hash->hashes         = (int32_t*) icu_malloc(sizeof(int32_t) * hash->length);
   if(hash->values == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     icu_free(hash->values);
     return;
   }
@@ -389,7 +401,7 @@ uhash_rehash(UHashtable *hash,
   int32_t     newPrimeIndex     = hash->primeIndex;
   int32_t     i;
 
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   if(hash->count > hash->highWaterMark) {
     ++newPrimeIndex;
@@ -490,7 +502,7 @@ uhash_find(const UHashtable *hash,
 
 /* Predefined hash functions */
 
-CAPI int32_t
+U_CAPI int32_t
 uhash_hashUString(const void *parm)
 {
   const UChar *key     = (const UChar*) parm;
@@ -519,7 +531,7 @@ uhash_hashUString(const void *parm)
   return hash & 0x7FFFFFFF;
 }
 
-CAPI int32_t
+U_CAPI int32_t
 uhash_hashString(const void *parm)
 {
   const char *key     = (const char*) parm;
@@ -548,11 +560,9 @@ uhash_hashString(const void *parm)
   return hash & 0x7FFFFFFF;
 }
 
-CAPI int32_t
+U_CAPI int32_t
 uhash_hashLong(const void *parm)
 {
   int32_t hash = (int32_t) parm;
   return (int32_t) (hash & 0x7FFFFFFF);
 }
-
-

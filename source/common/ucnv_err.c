@@ -36,9 +36,9 @@
 #define ToOffset(a) a<=9?(0x0030+a):(0x0030+a+7)
 
 bool_t 
-  CONVERSION_SUCCESS (UErrorCode err)
+  CONVERSION_U_SUCCESS (UErrorCode err)
 {
-  if ((err == INVALID_CHAR_FOUND) || (err == ILLEGAL_CHAR_FOUND))    return FALSE;
+  if ((err == U_INVALID_CHAR_FOUND) || (err == U_ILLEGAL_CHAR_FOUND))    return FALSE;
   else    return TRUE;
 }
 
@@ -78,7 +78,7 @@ static void   itou (UChar * buffer, int32_t i, int32_t radix, int32_t pad)
 }
 
 /*Function Pointer STOPS at the ILLEGAL_SEQUENCE */
-void   MissingUnicodeAction_STOP (UConverter * _this,
+void   UCNV_FROM_U_CALLBACK_STOP (UConverter * _this,
 				  char **target,
 				  const char *targetLimit,
 				  const UChar ** source,
@@ -92,7 +92,7 @@ void   MissingUnicodeAction_STOP (UConverter * _this,
 
 
 /*Function Pointer STOPS at the ILLEGAL_SEQUENCE */
-void   MissingCharAction_STOP (UConverter * _this,
+void   UCNV_TO_U_CALLBACK_STOP (UConverter * _this,
 			       UChar ** target,
 			       const UChar * targetLimit,
 			       const char **source,
@@ -104,7 +104,7 @@ void   MissingCharAction_STOP (UConverter * _this,
   return;
 }
 
-void   MissingUnicodeAction_SKIP (UConverter * _this,
+void   UCNV_FROM_U_CALLBACK_SKIP (UConverter * _this,
 				  char **target,
 				  const char *targetLimit,
 				  const UChar ** source,
@@ -113,11 +113,11 @@ void   MissingUnicodeAction_SKIP (UConverter * _this,
 				  bool_t flush,
 				  UErrorCode * err)
 {
-  if (CONVERSION_SUCCESS (*err))    return;
-  *err = ZERO_ERROR;
+  if (CONVERSION_U_SUCCESS (*err))    return;
+  *err = U_ZERO_ERROR;
 }
 
-void   MissingUnicodeAction_SUBSTITUTE (UConverter * _this,
+void   UCNV_FROM_U_CALLBACK_SUBSTITUTE (UConverter * _this,
 					char **target,
 					const char *targetLimit,
 					const UChar ** source,
@@ -131,12 +131,12 @@ void   MissingUnicodeAction_SUBSTITUTE (UConverter * _this,
 
 
 
-  if (CONVERSION_SUCCESS (*err)) return;
+  if (CONVERSION_U_SUCCESS (*err)) return;
   
-  /*In case we're dealing with a modal converter a la EBCDIC_STATEFUL,
+  /*In case we're dealing with a modal converter a la UCNV_EBCDIC_STATEFUL,
     we need to make sure that the emitting of the substitution charater in the right mode*/
   icu_memcpy(togo, _this->subChar, togoLen = _this->subCharLen);
-  if (ucnv_getType(_this) == EBCDIC_STATEFUL)
+  if (ucnv_getType(_this) == UCNV_EBCDIC_STATEFUL)
     {
       if ((_this->fromUnicodeStatus)&&(togoLen != 2))
 	{
@@ -161,7 +161,7 @@ void   MissingUnicodeAction_SUBSTITUTE (UConverter * _this,
     {
       icu_memcpy (*target, togo, togoLen);
       *target += togoLen;
-      *err = ZERO_ERROR;
+      *err = U_ZERO_ERROR;
       if (offsets)
 	{
 	  int i=0;
@@ -188,7 +188,7 @@ void   MissingUnicodeAction_SUBSTITUTE (UConverter * _this,
 		  togoLen - (targetLimit - *target));
       _this->charErrorBufferLength += togoLen - (targetLimit - *target);
       *target += (targetLimit - *target);
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
 
   return;
@@ -200,7 +200,7 @@ void   MissingUnicodeAction_SUBSTITUTE (UConverter * _this,
  *escape sequence to the target codepage (if conversion failure happens then
  *we revert to substituting with subchar)
  */
-void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
+void   UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
 						 char **target,
 						 const char *targetLimit,
 						 const UChar ** source,
@@ -220,19 +220,19 @@ void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
   char myTarget[VALUE_STRING_LENGTH];
   char *myTargetAlias = myTarget;
   const UChar *myValueSource = NULL;
-  UErrorCode err2 = ZERO_ERROR;
+  UErrorCode err2 = U_ZERO_ERROR;
   uint32_t myFromUnicodeStatus = _this->fromUnicodeStatus;
 
 
-  if (CONVERSION_SUCCESS (*err))   return;
+  if (CONVERSION_U_SUCCESS (*err))   return;
 
   ucnv_reset (&myConverter);
   myConverter.fromUnicodeStatus = myFromUnicodeStatus;
   
   ucnv_setFromUCallBack (&myConverter,
-			 (UCNV_FromUCallBack) MissingUnicodeAction_STOP,
+			 (UConverterFromUCallback) UCNV_FROM_U_CALLBACK_STOP,
 			 &err2);
-  if (FAILURE (err2))
+  if (U_FAILURE (err2))
     {
       *err = err2;
       return;
@@ -260,9 +260,9 @@ void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
 		    TRUE,
 		    &err2);
   
-  if (FAILURE (err2))
+  if (U_FAILURE (err2))
     {
-      MissingUnicodeAction_SUBSTITUTE (_this,
+      UCNV_FROM_U_CALLBACK_SUBSTITUTE (_this,
 				       target,
 				       targetLimit,
 				       source,
@@ -284,7 +284,7 @@ void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
     {
       icu_memcpy (*target, myTarget, valueStringLength);
       *target += valueStringLength;
-      *err = ZERO_ERROR;
+      *err = U_ZERO_ERROR;
 
       if (offsets)
 	{
@@ -313,7 +313,7 @@ void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
 		  valueStringLength - (targetLimit - *target));
       _this->charErrorBufferLength += valueStringLength - (targetLimit - *target);
       *target += (targetLimit - *target);
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
 
   return;
@@ -321,7 +321,7 @@ void   MissingUnicodeAction_SUBSTITUTEwithValue (UConverter * _this,
 
 
 
-void MissingCharAction_SKIP (UConverter * _this,
+void UCNV_TO_U_CALLBACK_SKIP (UConverter * _this,
 			     UChar ** target,
 			     const UChar * targetLimit,
 			     const char **source,
@@ -330,11 +330,11 @@ void MissingCharAction_SKIP (UConverter * _this,
 			     bool_t flush,
 			     UErrorCode * err)
 {
-  if (CONVERSION_SUCCESS (*err))   return;
-  *err = ZERO_ERROR;
+  if (CONVERSION_U_SUCCESS (*err))   return;
+  *err = U_ZERO_ERROR;
 }
 
-void   MissingCharAction_SUBSTITUTE (UConverter * _this,
+void   UCNV_TO_U_CALLBACK_SUBSTITUTE (UConverter * _this,
 				     UChar ** target,
 				     const UChar * targetLimit,
 				     const char **source,
@@ -344,20 +344,20 @@ void   MissingCharAction_SUBSTITUTE (UConverter * _this,
 				     UErrorCode * err)
 {
   
-  if (CONVERSION_SUCCESS (*err))   return;
+  if (CONVERSION_U_SUCCESS (*err))   return;
   
   if ((targetLimit - *target) >= 1)
     {
       **target = 0xFFFD;
       (*target)++;
       if (offsets)  *offsets = 0;
-      *err = ZERO_ERROR;
+      *err = U_ZERO_ERROR;
     }
   else
     {
       _this->UCharErrorBuffer[_this->UCharErrorBufferLength] = 0xFFFD;
       _this->UCharErrorBufferLength++;
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
   
   return;
@@ -367,7 +367,7 @@ void   MissingCharAction_SUBSTITUTE (UConverter * _this,
 /*uses itou to get a unicode escape sequence of the offensive sequence,
  *and uses that as the substitution sequence
  */
-void  MissingCharAction_SUBSTITUTEwithValue (UConverter * _this,
+void  UCNV_TO_U_CALLBACK_ESCAPE (UConverter * _this,
 					     UChar ** target,
 					     const UChar * targetLimit,
 					     const char **source,
@@ -383,7 +383,7 @@ void  MissingCharAction_SUBSTITUTEwithValue (UConverter * _this,
   int32_t j = 0, i = 0;
   const int32_t* offsets_end = offsets +( targetLimit - *target);
   
-  if (CONVERSION_SUCCESS (*err))   return;
+  if (CONVERSION_U_SUCCESS (*err))   return;
   
   codepoint[0] = (UChar) UNICODE_PERCENT_SIGN_CODEPOINT;	/* adding % */
   codepoint[1] = (UChar) UNICODE_X_CODEPOINT;	/* adding X */
@@ -407,7 +407,7 @@ void  MissingCharAction_SUBSTITUTEwithValue (UConverter * _this,
 	}
       *target += valueStringLength;
       
-      *err = ZERO_ERROR;
+      *err = U_ZERO_ERROR;
     }
   else
     {
@@ -428,15 +428,8 @@ void  MissingCharAction_SUBSTITUTEwithValue (UConverter * _this,
 		  (sizeof (UChar)) * (valueStringLength - (targetLimit - *target)));
       _this->UCharErrorBufferLength += valueStringLength - (targetLimit - *target);
       *target += (targetLimit - *target);
-      *err = INDEX_OUTOFBOUNDS_ERROR;
+      *err = U_INDEX_OUTOFBOUNDS_ERROR;
     }
   
   return;
 }
-
-
-
-
-
-
-

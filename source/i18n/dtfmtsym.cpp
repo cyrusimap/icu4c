@@ -417,7 +417,7 @@ DateFormatSymbols::setLocalPatternChars(const UnicodeString& newLocalPatternChar
 void
 DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, bool_t useLastResortData)
 {
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
 
     fIsOwned = 0; // Nothing is owned
 
@@ -427,7 +427,7 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, bool
      * these.
      */
     ResourceBundle resource(Locale::getDataDirectory(), locale, status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         if (useLastResortData)
         {
@@ -436,7 +436,7 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, bool
             // we just need to produce something that will be semi-intelligible
             // in most locales.
 
-            status = USING_FALLBACK_ERROR;
+            status = U_USING_FALLBACK_ERROR;
 
             fEras = (UnicodeString*)fgLastResortEras;
             fErasCount = sizeof(fgLastResortEras[0]) / sizeof(fgLastResortEras[0]);

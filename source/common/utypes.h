@@ -14,7 +14,7 @@
 *
 *   Date        Name        Description
 *   12/11/96    helena      Creation.
-*   02/27/97    aliu        Added typedefs for ClassID, int8, int16, int32,
+*   02/27/97    aliu        Added typedefs for UClassID, int8, int16, int32,
 *                           uint8, uint16, and uint32.
 *   04/01/97    aliu        Added XP_CPLUSPLUS and modified to work under C as
 *                            well as C++.
@@ -39,8 +39,6 @@
 
 #include <memory.h>
 #include <wchar.h>
-
-
 #include <stdlib.h>
 
 /*===========================================================================*/
@@ -49,12 +47,49 @@
 /*===========================================================================*/
 
 #if defined(WIN32) || defined(_WIN32)
-#include "pwin32.h"
+#   include "pwin32.h"
 #elif defined(__OS2__)
-#include "pos2.h"
+#   include "pos2.h"
+#elif defined(__OS400__)
+#   include "pos400.h"
 #else
-#include "platform.h"
+#   include "platform.h"
 #endif
+
+/* XP_CPLUSPLUS is a cross-platform symbol which should be defined when 
+   using C++.  It should not be defined when compiling under C. */
+#ifdef __cplusplus
+#   ifndef XP_CPLUSPLUS
+#       define XP_CPLUSPLUS
+#   endif
+#else
+#   undef XP_CPLUSPLUS
+#endif
+
+/*===========================================================================*/
+/* Boolean data type                                                         */
+/*===========================================================================*/
+
+#if ! HAVE_BOOL_T
+typedef int8_t bool_t;
+#endif
+
+#ifndef TRUE
+#   define TRUE  1
+#endif
+#ifndef FALSE
+#   define FALSE 0
+#endif
+
+/*===========================================================================*/
+/* Unicode string offset                                                     */
+/*===========================================================================*/
+typedef int32_t UTextOffset;
+
+/*===========================================================================*/
+/* Unicode character                                                         */
+/*===========================================================================*/
+typedef uint16_t UChar;
 
 /*===========================================================================*/
 /* ICU version number                                                        */
@@ -77,67 +112,65 @@
 
 
 /*===========================================================================*/
-/* For C wrappers, we use the symbol CAPI.                                   */
+/* For C wrappers, we use the symbol U_CAPI.                                   */
 /* This works properly if the includer is C or C++.                          */
-/* ADDED MVS SPECIFICS - JJD   Including: FUNC_EXPORT                        */
-/*                                 Since _Export MUST come after return type */
+/* Functions are declared   U_CAPI return-type U_EXPORT2 function-name() ...   */
 /*===========================================================================*/
 
 #ifdef XP_CPLUSPLUS
-# define C_FUNC extern "C"
-# ifdef OS390OE
-#  define CAPI C_FUNC
-#  define U_EXPORT2 U_EXPORT
-# else
-#  define CAPI C_FUNC U_EXPORT
-#  define U_EXPORT2
-# endif
+#   define U_CFUNC extern "C"
+#   define U_CDECL_BEGIN extern "C" {
+#   define U_CDECL_END   }
 #else
-#define C_FUNC
-#if defined(OS390OE)
-# define CAPI
-# define U_EXPORT2 U_EXPORT
+#   define U_CFUNC
+#   define U_CDECL_BEGIN
+#   define U_CDECL_END
+#endif
+#define U_CAPI U_CFUNC U_EXPORT
+
+
+/* Define NULL pointer value  if it isn't already defined */
+
+#ifndef NULL
+#ifdef XP_CPLUSPLUS
+#define NULL    0
 #else
-# define CAPI U_EXPORT
-# define U_EXPORT2
+#define NULL    ((void *)0)
 #endif
 #endif
 
-
+/* Maximum value of a (void*) - use to indicate the limit of
+   an 'infinite' buffer.  */
+#define U_MAX_PTR ((void*)-1)
 
 /*===========================================================================*/
 /* Calendar/TimeZone data types                                              */
 /*===========================================================================*/
 
+/**
+ * Date and Time data type.
+ * This is a primitive data type that holds the date and time
+ * as the number of milliseconds since 1970-jan-01, 00:00 UTC.
+ * UTC leap seconds are ignored.
+ */
 typedef double UDate;
 
 /* Common time manipulation constants */
-#define kMillisPerSecond        (1000)
-#define kMillisPerMinute       (60000)
-#define kMillisPerHour       (3600000)
-#define kMillisPerDay       (86400000)
+#define U_MILLIS_PER_SECOND        (1000)
+#define U_MILLIS_PER_MINUTE       (60000)
+#define U_MILLIS_PER_HOUR       (3600000)
+#define U_MILLIS_PER_DAY       (86400000)
 
-
-/** A struct representing a range of text containing a specific field */
-struct UFieldPosition {
-  /** The field */
-  int32_t field;
-  /** The start of the text range containing field */
-  int32_t beginIndex;
-  /** The limit of the text range containing field */
-  int32_t endIndex;
-};
-typedef struct UFieldPosition UFieldPosition;
 
 /*===========================================================================*/
-/* ClassID-based RTTI */
+/* UClassID-based RTTI */
 /*===========================================================================*/
 
 /**
- * ClassID is used to identify classes without using RTTI, since RTTI
+ * UClassID is used to identify classes without using RTTI, since RTTI
  * is not yet supported by all C++ compilers.  Each class hierarchy which needs
  * to implement polymorphic clone() or operator==() defines two methods,
- * described in detail below.  ClassID values can be compared using
+ * described in detail below.  UClassID values can be compared using
  * operator==(). Nothing else should be done with them.
  *
  * getDynamicClassID() is declared in the base class of the hierarchy as
@@ -145,12 +178,12 @@ typedef struct UFieldPosition UFieldPosition;
  *
  *      class Base {
  *      public:
- *          virtual ClassID getDynamicClassID() const = 0;
+ *          virtual UClassID getDynamicClassID() const = 0;
  *      }
  *
  *      class Derived {
  *      public:
- *          virtual ClassID getDynamicClassID() const
+ *          virtual UClassID getDynamicClassID() const
  *            { return Derived::getStaticClassID(); }
  *      }
  *
@@ -159,18 +192,18 @@ typedef struct UFieldPosition UFieldPosition;
  *
  *      class Derived {
  *      public:
- *          static ClassID getStaticClassID();
+ *          static UClassID getStaticClassID();
  *      private:
  *          static char fgClassID;
  *      }
  *
  *      // In Derived.cpp:
- *      ClassID Derived::getStaticClassID()
- *        { return (ClassID)&Derived::fgClassID; }
+ *      UClassID Derived::getStaticClassID()
+ *        { return (UClassID)&Derived::fgClassID; }
  *      char Derived::fgClassID = 0; // Value is irrelevant
  */
 
-typedef void* ClassID;
+typedef void* UClassID;
 
 /*===========================================================================*/
 /* Shared library/DLL import-export API control                              */
@@ -198,25 +231,30 @@ typedef void* ClassID;
 
 /** Error code to replace exception handling */
 enum UErrorCode {
-  ZERO_ERROR              =  0,
-  ILLEGAL_ARGUMENT_ERROR  =  1,       /* Start of codes indicating failure */
-  MISSING_RESOURCE_ERROR  =  2,
-  INVALID_FORMAT_ERROR    =  3,
-  FILE_ACCESS_ERROR       =  4,
-  INTERNAL_PROGRAM_ERROR  =  5,       /* Indicates a bug in the library code */
-  MESSAGE_PARSE_ERROR     =  6,
-  MEMORY_ALLOCATION_ERROR =  7,       /* Memory allocation error */
-  INDEX_OUTOFBOUNDS_ERROR =  8,
-  PARSE_ERROR             =  9,       /* Equivalent to Java ParseException */
-  INVALID_CHAR_FOUND      = 10,       /* In the Character conversion routines: Invalid character or sequence was encountered*/
-  TRUNCATED_CHAR_FOUND    = 11,       /* In the Character conversion routines: More bytes are required to complete the conversion successfully*/
-  ILLEGAL_CHAR_FOUND     =  12,       /* In codeset conversion: a sequence that does NOT belong in the codepage has been encountered*/
-  INVALID_TABLE_FORMAT   =  13,       /*Conversion table file found, nut corrupted*/
-  INVALID_TABLE_FILE     =  14,       /*Conversion table file not found*/
-  BUFFER_OVERFLOW_ERROR =   15,        /* A result would not fit in the supplied buffer */
-  UNSUPPORTED_ERROR     = 16,         /* Requested operation not supported in current context */
-  USING_FALLBACK_ERROR  = -128,       /* Start of information results (semantically successful) */
-  USING_DEFAULT_ERROR   = -127
+    U_ERROR_INFO_START        = -128,     /* Start of information results (semantically successful) */
+    U_USING_FALLBACK_ERROR    = -128,
+    U_USING_DEFAULT_ERROR     = -127,
+    U_ERROR_INFO_LIMIT,
+
+    U_ZERO_ERROR              =  0,       /* success */
+
+    U_ILLEGAL_ARGUMENT_ERROR  =  1,       /* Start of codes indicating failure */
+    U_MISSING_RESOURCE_ERROR  =  2,
+    U_INVALID_FORMAT_ERROR    =  3,
+    U_FILE_ACCESS_ERROR       =  4,
+    U_INTERNAL_PROGRAM_ERROR  =  5,       /* Indicates a bug in the library code */
+    U_MESSAGE_PARSE_ERROR     =  6,
+    U_MEMORY_ALLOCATION_ERROR =  7,       /* Memory allocation error */
+    U_INDEX_OUTOFBOUNDS_ERROR =  8,
+    U_PARSE_ERROR             =  9,       /* Equivalent to Java ParseException */
+    U_INVALID_CHAR_FOUND      = 10,       /* In the Character conversion routines: Invalid character or sequence was encountered*/
+    U_TRUNCATED_CHAR_FOUND    = 11,       /* In the Character conversion routines: More bytes are required to complete the conversion successfully*/
+    U_ILLEGAL_CHAR_FOUND      = 12,       /* In codeset conversion: a sequence that does NOT belong in the codepage has been encountered*/
+    U_INVALID_TABLE_FORMAT    = 13,       /* Conversion table file found, but corrupted*/
+    U_INVALID_TABLE_FILE      = 14,       /* Conversion table file not found*/
+    U_BUFFER_OVERFLOW_ERROR   = 15,       /* A result would not fit in the supplied buffer */
+    U_UNSUPPORTED_ERROR       = 16,       /* Requested operation not supported in current context */
+    U_ERROR_LIMIT
 };
 
 #ifndef XP_CPLUSPLUS
@@ -226,11 +264,11 @@ typedef enum UErrorCode UErrorCode;
 /* Use the following to determine if an UErrorCode represents */
 /* operational success or failure. */
 #ifdef XP_CPLUSPLUS
-inline bool_t SUCCESS(UErrorCode code) { return (bool_t)(code<=ZERO_ERROR); }
-inline bool_t FAILURE(UErrorCode code) { return (bool_t)(code>ZERO_ERROR); }
+inline bool_t U_SUCCESS(UErrorCode code) { return (bool_t)(code<=U_ZERO_ERROR); }
+inline bool_t U_FAILURE(UErrorCode code) { return (bool_t)(code>U_ZERO_ERROR); }
 #else
-#define SUCCESS(x) ((x)<=ZERO_ERROR)
-#define FAILURE(x) ((x)>ZERO_ERROR)
+#define U_SUCCESS(x) ((x)<=U_ZERO_ERROR)
+#define U_FAILURE(x) ((x)>U_ZERO_ERROR)
 #endif
 
 
@@ -238,55 +276,6 @@ inline bool_t FAILURE(UErrorCode code) { return (bool_t)(code>ZERO_ERROR); }
    T_INT32 is replaced) */
 #define T_INT32(i) ((int32_t)i)
 
-
-/*===========================================================================*/
-/* Wide-character functions                                                  */
-/*===========================================================================*/
-#define icu_wcscat(dst, src) wcscat(dst, src)
-#define icu_wcscpy(dst, src) wcscpy(dst, src)
-#define icu_wcslen(src) wcslen(src)
-#define icu_wcstombs(mbstr, wcstr, count) wcstombs(mbstr, wcstr, count)
-#define icu_mbstowcs(wcstr, mbstr, count) mbstowcs(wcstr, mbstr, count)
-
-/*===========================================================================*/
-/* Array copy utility functions */
-/*===========================================================================*/
-
-#ifdef XP_CPLUSPLUS
-inline void icu_arrayCopy(const double* src, double* dst, int32_t count)
-{ memcpy(dst, src, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const double* src, int32_t srcStart,
-              double* dst, int32_t dstStart, int32_t count)
-{ memcpy(dst+dstStart, src+srcStart, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int8_t* src, int8_t* dst, int32_t count)
-    { memcpy(dst, src, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int8_t* src, int32_t srcStart,
-              int8_t* dst, int32_t dstStart, int32_t count)
-{ memcpy(dst+dstStart, src+srcStart, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int16_t* src, int16_t* dst, int32_t count)
-{ memcpy(dst, src, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int16_t* src, int32_t srcStart,
-              int16_t* dst, int32_t dstStart, int32_t count)
-{ memcpy(dst+dstStart, src+srcStart, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int32_t* src, int32_t* dst, int32_t count)
-{ memcpy(dst, src, (size_t)(count * sizeof(*src))); }
-
-inline void icu_arrayCopy(const int32_t* src, int32_t srcStart,
-              int32_t* dst, int32_t dstStart, int32_t count)
-{ memcpy(dst+dstStart, src+srcStart, (size_t)(count * sizeof(*src))); }
-
-inline void
-icu_arrayCopy(const UChar *src, int32_t srcStart,
-        UChar *dst, int32_t dstStart, int32_t count)
-{ memcpy(dst+dstStart, src+srcStart, (size_t)(count * sizeof(*src))); }
-
-#endif
 
 /*===========================================================================*/
 /* Debugging */
@@ -297,42 +286,56 @@ icu_arrayCopy(const UChar *src, int32_t srcStart,
 /* This function is useful for debugging; it returns the text name */
 /* of an UErrorCode result.  This is not the most efficient way of */
 /* doing this but it's just for Debug builds anyway. */
-#if defined(_DEBUG) && defined(XP_CPLUSPLUS)
-inline const char* errorName(UErrorCode code)
-{
-  switch (code) {
-  case ZERO_ERROR:                return "ZERO_ERROR";
-  case ILLEGAL_ARGUMENT_ERROR:    return "ILLEGAL_ARGUMENT_ERROR";
-  case MISSING_RESOURCE_ERROR:    return "MISSING_RESOURCE_ERROR";
-  case INVALID_FORMAT_ERROR:      return "INVALID_FORMAT_ERROR";
-  case FILE_ACCESS_ERROR:         return "FILE_ACCESS_ERROR";
-  case INTERNAL_PROGRAM_ERROR:    return "INTERNAL_PROGRAM_ERROR";
-  case MESSAGE_PARSE_ERROR:       return "MESSAGE_PARSE_ERROR";
-  case MEMORY_ALLOCATION_ERROR:   return "MEMORY_ALLOCATION_ERROR";
-  case PARSE_ERROR:               return "PARSE_ERROR";
-  case INVALID_CHAR_FOUND:        return "INVALID_CHAR_FOUND";
-  case TRUNCATED_CHAR_FOUND:      return "TRUNCATED_CHAR_FOUND";
-  case ILLEGAL_CHAR_FOUND:        return "ILLEGAL_CHAR_FOUND";
-  case INVALID_TABLE_FORMAT:      return "INVALID_TABLE_FORMAT";
-  case INVALID_TABLE_FILE:        return "INVALID_TABLE_FILE";
-  case BUFFER_OVERFLOW_ERROR:     return "BUFFER_OVERFLOW_ERROR";
-  case USING_FALLBACK_ERROR:      return "USING_FALLBACK_ERROR";
-  case USING_DEFAULT_ERROR:       return "USING_DEFAULT_ERROR";
-  default:                        return "[BOGUS UErrorCode]";
-  }
-}
-#endif
 
-/* Define NULL pointer value  if it isn't already defined */
+/* Do not use these arrays directly: they will move to a .c file! */
+static const char *
+_uErrorInfoName[U_ERROR_INFO_LIMIT-U_ERROR_INFO_START]={
+    "U_USING_FALLBACK_ERROR",
+    "U_USING_DEFAULT_ERROR"
+};
 
-#ifndef NULL
+static const char *
+_uErrorName[U_ERROR_LIMIT]={
+    "U_ZERO_ERROR",
+
+    "U_ILLEGAL_ARGUMENT_ERROR",
+    "U_MISSING_RESOURCE_ERROR",
+    "U_INVALID_FORMAT_ERROR",
+    "U_FILE_ACCESS_ERROR",
+    "U_INTERNAL_PROGRAM_ERROR",
+    "U_MESSAGE_PARSE_ERROR",
+    "U_MEMORY_ALLOCATION_ERROR",
+    "U_INDEX_OUTOFBOUNDS_ERROR",
+    "U_PARSE_ERROR",
+    "U_INVALID_CHAR_FOUND",
+    "U_TRUNCATED_CHAR_FOUND",
+    "U_ILLEGAL_CHAR_FOUND",
+    "U_INVALID_TABLE_FORMAT",
+    "U_INVALID_TABLE_FILE",
+    "U_BUFFER_OVERFLOW_ERROR",
+    "U_UNSUPPORTED_ERROR"
+};
+
 #ifdef XP_CPLUSPLUS
-#define NULL    0
+inline const char *
+errorName(UErrorCode code)
+{
+    if(code>=0 && code<U_ERROR_LIMIT) {
+        return _uErrorName[code];
+    } else if(code>=U_ERROR_INFO_START && code<U_ERROR_INFO_LIMIT) {
+        return _uErrorInfoName[code-U_ERROR_INFO_START];
+    } else {
+        return "[BOGUS UErrorCode]";
+    }
+}
 #else
-#define NULL    ((void *)0)
+#   define errorName(code) \
+        ((code)>=0 && (code)<U_ERROR_LIMIT) ? \
+            _uErrorName[code] : \
+            ((code)>=U_ERROR_INFO_START && (code)<U_ERROR_INFO_LIMIT) ? \
+                _uErrorInfoName[code-U_ERROR_INFO_START] : \
+                "[BOGUS UErrorCode]"
 #endif
-#endif
-
 
 /*===========================================================================*/
 /* Include header for platform utilies */
@@ -341,7 +344,3 @@ inline const char* errorName(UErrorCode code)
 #include "putil.h"
 
 #endif /* _UTYPES */
-
-
-
-

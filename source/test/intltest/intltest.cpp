@@ -112,9 +112,9 @@ UnicodeString toString(const Formattable& f) {
     switch (f.getType()) {
     case Formattable::kDate:
         {
-            UErrorCode status = ZERO_ERROR;
+            UErrorCode status = U_ZERO_ERROR;
             SimpleDateFormat fmt(status);
-            if (SUCCESS(status)) {
+            if (U_SUCCESS(status)) {
                 FieldPosition pos;
                 fmt.format(f.getDate(), s, pos);
                 s.insert(0, "[Date:");
@@ -347,8 +347,16 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
     char  sepChar;
     const char inpSepChar = '|';
     
-    #ifdef _WIN32
-        mainDir = "";   //  . is part of the relative path
+    #if defined(_WIN32) || defined(WIN32) || defined(__OS2__) || defined(OS2)
+        char mainDirBuffer[200];
+        mainDir = getenv("ICU_DATA");
+        if(mainDir!=NULL) {
+            strcpy(mainDirBuffer, mainDir);
+            strcat(mainDirBuffer, "..\\..");
+        } else {
+            mainDirBuffer[0]='\0';
+        }
+        mainDir=mainDirBuffer;
         sepChar = '\\';
     #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX)
         mainDir = getenv("HOME");

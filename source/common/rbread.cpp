@@ -53,7 +53,7 @@ read_ustring(FileStream *rb,
   int32_t len = 0, readLen = 0, remain = 0;
   UChar buf [BUF_SIZE];
 
-  if(FAILURE(status)) return;
+  if(U_FAILURE(status)) return;
 
   /* Read the string's length */
   T_FileStream_read(rb, &len, sizeof(len));
@@ -68,7 +68,7 @@ read_ustring(FileStream *rb,
 
     /* Read the next chunk of data */
     readLen = icu_min(BUF_SIZE, remain);
-    memset(buf, 0, readLen*sizeof(UChar));
+    icu_memset(buf, 0, readLen*sizeof(UChar));
     T_FileStream_read(rb, buf, sizeof(UChar) * readLen);
 
     /* Append the chunk to the string */
@@ -88,18 +88,18 @@ read_strlist(FileStream *rb,
   int32_t i, count = 0;
   StringList *retval;
 
-  if(FAILURE(status)) return 0;
+  if(U_FAILURE(status)) return 0;
 
   /* Setup the string list */
   retval = new StringList();
   if(retval == 0) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   /* Read the name of this string list */
   read_ustring(rb, listname, status);
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     delete retval;
     return 0;
   }
@@ -111,7 +111,7 @@ read_strlist(FileStream *rb,
   /* Allocate space for the array of strings */
   retval->fStrings = new UnicodeString [ retval->fCount ];
   if(retval->fStrings == 0) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     delete retval;
     return 0;
   }
@@ -121,7 +121,7 @@ read_strlist(FileStream *rb,
     read_ustring(rb, retval->fStrings[i], status);
 
     /* handle error */
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
       delete [] retval->fStrings;
       delete retval;
       return 0;
@@ -141,18 +141,18 @@ read_strlist2d(FileStream *rb,
   int32_t rows, itemcount;
   String2dList *retval;
 
-  if(FAILURE(status)) return 0;
+  if(U_FAILURE(status)) return 0;
   
   /* Setup the 2-d string list */
   retval = new String2dList();
   if(retval == 0) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   /* Read the name of this 2-d string list */
   read_ustring(rb, listname, status);
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     delete retval;
     return 0;
   }
@@ -164,7 +164,7 @@ read_strlist2d(FileStream *rb,
   /* Allocate space for the array of strings */
   retval->fStrings = new UnicodeString* [ retval->fRowCount ];
   if(retval->fStrings == 0) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     delete retval;
     return 0;
   }
@@ -181,7 +181,7 @@ read_strlist2d(FileStream *rb,
     /* Allocate enough space for each item */
     retval->fStrings[i] = new UnicodeString[itemcount];
     if(retval->fStrings[i] == 0) {
-      status = MEMORY_ALLOCATION_ERROR;
+      status = U_MEMORY_ALLOCATION_ERROR;
       /* Complicated cleanup later */
       delete retval;
       return 0;
@@ -192,7 +192,7 @@ read_strlist2d(FileStream *rb,
       read_ustring(rb, retval->fStrings[i][j], status);
       
       /* handle error */
-      if(FAILURE(status)) {
+      if(U_FAILURE(status)) {
 	/* Complicated cleanup later */
 	delete retval;
 	return 0;
@@ -213,18 +213,18 @@ read_taglist(FileStream *rb,
   int32_t i, count = 0;
   UnicodeString tag, value;
 
-  if(FAILURE(status)) return 0;
+  if(U_FAILURE(status)) return 0;
 
   /* Setup the tagged list */
   retval = new TaggedList();
   if(retval == 0) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   /* Read the name of this tagged list */
   read_ustring(rb, listname, status);
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     delete retval;
     return 0;
   }
@@ -238,7 +238,7 @@ read_taglist(FileStream *rb,
     read_ustring(rb, value, status);
     
     /* handle error */
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
       delete retval;
       return 0;
     }
@@ -264,12 +264,12 @@ rb_parse(FileStream *f,
   String2dList *strlist2d;
   TaggedList *taglist;
 
-  if(FAILURE(status)) return 0;
+  if(U_FAILURE(status)) return 0;
 
   /* Open the hashtable for saving data */
   retval = uhash_open((UHashFunction)uhash_hashUString, &status);
-  if(retval == 0 || FAILURE(status)) {
-    status = MEMORY_ALLOCATION_ERROR;
+  if(retval == 0 || U_FAILURE(status)) {
+    status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
   uhash_setValueDeleter(retval, RBHashtable_valueDeleter);
@@ -280,13 +280,13 @@ rb_parse(FileStream *f,
   /* Verify the byte ordering matches */
   if(bom != sBOM) {
     uhash_close(retval);
-    status = INVALID_FORMAT_ERROR;
+    status = U_INVALID_FORMAT_ERROR;
     return 0;
   }
 
   /* Read the locale name from the file */
   read_ustring(f, localename, status);
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     uhash_close(retval);
     return 0;
   }
@@ -308,7 +308,7 @@ rb_parse(FileStream *f,
       strlist = read_strlist(f, listname, status);
       uhash_putKey(retval, listname.hashCode() & 0x7FFFFFFF, 
 		   strlist, &status);
-      if(FAILURE(status)) {
+      if(U_FAILURE(status)) {
 	uhash_close(retval);
 	return 0;
       }
@@ -318,7 +318,7 @@ rb_parse(FileStream *f,
       strlist2d = read_strlist2d(f, listname, status);
       uhash_putKey(retval, listname.hashCode() & 0x7FFFFFFF, 
 		   strlist2d, &status);
-      if(FAILURE(status)) {
+      if(U_FAILURE(status)) {
 	uhash_close(retval);
 	return 0;
       }
@@ -328,7 +328,7 @@ rb_parse(FileStream *f,
       taglist = read_taglist(f, listname, status);
       uhash_putKey(retval, listname.hashCode() & 0x7FFFFFFF, 
 		   taglist, &status);
-      if(FAILURE(status)) {
+      if(U_FAILURE(status)) {
 	uhash_close(retval);
 	return 0;
       }
@@ -338,7 +338,7 @@ rb_parse(FileStream *f,
 
   /* Check if any errors occurred during reading */
   if(T_FileStream_error(f) != 0) {
-    status = FILE_ACCESS_ERROR;
+    status = U_FILE_ACCESS_ERROR;
     delete retval;
     return 0;
   }

@@ -225,7 +225,7 @@ RuleBasedCollator::RuleBasedCollator(const  UnicodeString&  rules,
       data(0),
       dataIsOwned(FALSE)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -244,7 +244,7 @@ RuleBasedCollator::RuleBasedCollator(const  UnicodeString&  rules,
     data(0),
     dataIsOwned(FALSE)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -263,7 +263,7 @@ RuleBasedCollator::RuleBasedCollator(const  UnicodeString&  rules,
     data(0),
     dataIsOwned(FALSE)
 {
-  if (FAILURE(status))
+  if (U_FAILURE(status))
     {
       return;
     }
@@ -283,7 +283,7 @@ RuleBasedCollator::RuleBasedCollator(const  UnicodeString&  rules,
       data(0),
       dataIsOwned(FALSE)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -295,14 +295,14 @@ void RuleBasedCollator::constructFromRules(const UnicodeString& rules,
                                         UErrorCode& status)
 {
     // Construct this collator's ruleset from its string representation
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
 
     if (rules.isBogus())
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
 
@@ -318,7 +318,7 @@ void RuleBasedCollator::constructFromRules(const UnicodeString& rules,
     data = new TableCollationData;
     if (data->isBogus())
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         delete data;
         data = 0;
         return;
@@ -341,7 +341,7 @@ RuleBasedCollator::constructFromFile(const char* fileName,
     // The 'fileName' parameter should contain a full pathname valid on
     // the local environment.
 
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -358,7 +358,7 @@ RuleBasedCollator::constructFromFile(const char* fileName,
 
     FileStream* ifs = T_FileStream_open(fileName, "rb");
     if (ifs == 0) {
-        status = FILE_ACCESS_ERROR;
+        status = U_FILE_ACCESS_ERROR;
         return;
     }
 
@@ -367,17 +367,17 @@ RuleBasedCollator::constructFromFile(const char* fileName,
 
     if (!T_FileStream_error(ifs))
     {
-        status = ZERO_ERROR;
+        status = U_ZERO_ERROR;
     }
     else if (data && data->isBogus())
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         delete data;
         data = 0;
     }
     else
     {
-        status = MISSING_RESOURCE_ERROR;
+        status = U_MISSING_RESOURCE_ERROR;
         delete data;
         data = 0;
     }
@@ -402,7 +402,7 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       targetCursor(0),
       mPattern(0)
 {
-  if (FAILURE(status))
+  if (U_FAILURE(status))
     {
       return;
     }
@@ -435,20 +435,20 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
     {
       if (next == eDone)
             {
-          // We've failed to load a locale, but should never return MISSING_RESOURCE_ERROR
-          UErrorCode intStatus = ZERO_ERROR;
+          // We've failed to load a locale, but should never return U_MISSING_RESOURCE_ERROR
+          UErrorCode intStatus = U_ZERO_ERROR;
 
           constructFromRules(RuleBasedCollator::DEFAULTRULES, intStatus);
-          if (intStatus == ZERO_ERROR)
+          if (intStatus == U_ZERO_ERROR)
         {
-          status = USING_DEFAULT_ERROR;
+          status = U_USING_DEFAULT_ERROR;
         }
           else
         {
           status = intStatus;     // bubble back
         }
 
-          if (status == MEMORY_ALLOCATION_ERROR)
+          if (status == U_MEMORY_ALLOCATION_ERROR)
         {
           return;
         }
@@ -469,7 +469,7 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       switch (next)
             {
             case eTryDefaultLocale:
-          status = USING_DEFAULT_ERROR;
+          status = U_USING_DEFAULT_ERROR;
           Locale::getDefault().getName(localeName);
           next = eTryDefaultCollation;
           break;
@@ -479,7 +479,7 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
           // using a default collation object and the condition of
           // using a default locale to get a collation object currently.
           // That is, the caller can't distinguish based on UErrorCode.
-          status = USING_DEFAULT_ERROR;
+          status = U_USING_DEFAULT_ERROR;
           localeName = ResourceBundle::kDefaultFilename;
           next = eDone;
           break;
@@ -489,10 +489,10 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       // First try to load the collation from the in-memory static cache.
       // Note that all of the caching logic is handled here, and in the
       // call to RuleBasedCollator::addToCache, below.
-      UErrorCode intStatus = ZERO_ERROR;
+      UErrorCode intStatus = U_ZERO_ERROR;
 
       constructFromCache(localeName, intStatus);
-      if (SUCCESS(intStatus))
+      if (U_SUCCESS(intStatus))
     {
       break; // Done!
     }
@@ -503,9 +503,9 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       // a binary collation file, or if that is unavailable, it will go
       // to the text resource bundle file (with the corresponding name)
       // and try to get the collation table there.
-      intStatus = ZERO_ERROR;
+      intStatus = U_ZERO_ERROR;
       constructFromFile(desiredLocale, localeName, TRUE, intStatus);
-      if (SUCCESS(intStatus))
+      if (U_SUCCESS(intStatus))
         {
       // If we succeeded in loading the collation from a file, now is the
       // time to add it to the in-memory cache.  We record the real
@@ -519,7 +519,7 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       setDecomposition(Normalizer::NO_OP);
       break; // Done!
         }
-      if (intStatus == MEMORY_ALLOCATION_ERROR)
+      if (intStatus == U_MEMORY_ALLOCATION_ERROR)
     {
       status = intStatus;
       return;
@@ -529,9 +529,9 @@ RuleBasedCollator::RuleBasedCollator(   const Locale& desiredLocale,
       // it less specific, and try again.  Indicate the use of a
       // fallback locale, unless we've already fallen through to
       // a default locale -- then leave the status as is.
-      if (status == ZERO_ERROR)
+      if (status == U_ZERO_ERROR)
     {
-      status = USING_FALLBACK_ERROR;
+      status = U_USING_FALLBACK_ERROR;
     }
 
       chopLocale(localeName);
@@ -557,7 +557,7 @@ RuleBasedCollator::constructFromFile(   const Locale&           locale,
   
   // If tryBinaryFile is true, then try to load from the binary file first.
 
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     return;
   }
   
@@ -575,7 +575,7 @@ RuleBasedCollator::constructFromFile(   const Locale&           locale,
 #ifdef COLLDEBUG
     cerr << localeFileName << " binary load " << errorName(status) << endl;
 #endif
-    if(SUCCESS(status) || status == MEMORY_ALLOCATION_ERROR) 
+    if(U_SUCCESS(status) || status == U_MEMORY_ALLOCATION_ERROR) 
       return;
     }
 
@@ -583,7 +583,7 @@ RuleBasedCollator::constructFromFile(   const Locale&           locale,
   ResourceBundle bundle(Locale::getDataDirectory(), localeFileName, status);
 
   // if there is no resource bundle file for the give locale, break out
-  if(FAILURE(status))
+  if(U_FAILURE(status))
     return;
 
 #ifdef COLLDEBUG
@@ -593,17 +593,17 @@ RuleBasedCollator::constructFromFile(   const Locale&           locale,
   // check and see if this resource bundle contains collation data
   
   UnicodeString colString;
-  UErrorCode intStatus = ZERO_ERROR;
+  UErrorCode intStatus = U_ZERO_ERROR;
 
   bundle.getString("CollationElements", colString, intStatus);
   if(colString.isBogus()) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
 
   // if this bundle doesn't contain collation data, break out
-  if(FAILURE(intStatus)) {
-    status = MISSING_RESOURCE_ERROR;
+  if(U_FAILURE(intStatus)) {
+    status = U_MISSING_RESOURCE_ERROR;
     return;
   }
 
@@ -613,32 +613,32 @@ RuleBasedCollator::constructFromFile(   const Locale&           locale,
 
   colString.insert(0, DEFAULTRULES);
   if(colString.isBogus()) {
-    status = MEMORY_ALLOCATION_ERROR;
+    status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
     
   constructFromRules(colString, intStatus);
-  if(intStatus == MEMORY_ALLOCATION_ERROR) {
-    status = MEMORY_ALLOCATION_ERROR;
+  if(intStatus == U_MEMORY_ALLOCATION_ERROR) {
+    status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
   
-  if(intStatus != ZERO_ERROR)  {
-    status = USING_DEFAULT_ERROR;
+  if(intStatus != U_ZERO_ERROR)  {
+    status = U_USING_DEFAULT_ERROR;
       
     // predefined tables should contain correct grammar
-    intStatus = ZERO_ERROR;
+    intStatus = U_ZERO_ERROR;
     constructFromRules(DEFAULTRULES, intStatus);
-    if(intStatus != ZERO_ERROR) {
+    if(intStatus != U_ZERO_ERROR) {
       status = intStatus;
     }
   } 
   
 #ifdef COLLDEBUG
-  cerr << localeFileName << " ascii load " << (SUCCESS(status) ? "OK" : "Failed") << endl;
+  cerr << localeFileName << " ascii load " << (U_SUCCESS(status) ? "OK" : "Failed") << endl;
 #endif
   
-  if(SUCCESS(status) && tryBinaryFile) {
+  if(U_SUCCESS(status) && tryBinaryFile) {
     // If we get a RuleBasedCollator result, even if it is derived
     // from a default or a fallback, then we write it out as a
     // binary file to the disk.  The next time the system wants to
@@ -682,11 +682,11 @@ RuleBasedCollator::clone() const
 CollationElementIterator*
 RuleBasedCollator::createCollationElementIterator(const UnicodeString& source) const
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     CollationElementIterator *newCursor = 0;
 
     newCursor = new CollationElementIterator(source, this, status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return NULL;
     }
@@ -699,11 +699,11 @@ RuleBasedCollator::createCollationElementIterator(const UnicodeString& source) c
 CollationElementIterator*
 RuleBasedCollator::createCollationElementIterator(const CharacterIterator& source) const
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     CollationElementIterator *newCursor = 0;
 
     newCursor = new CollationElementIterator(source, this, status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return NULL;
     }
@@ -737,12 +737,12 @@ RuleBasedCollator::getRules() const
         // Notice that we pass in a tryBinaryFile value of FALSE, since
         // by design the binary file has NO rules in it!
         RuleBasedCollator temp;
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         temp.constructFromFile(data->desiredLocale, data->realLocaleName, FALSE, status);
 
         // We must check that mPattern is nonzero here, or we run the risk
         // of an infinite loop.
-        if (SUCCESS(status) && temp.mPattern != 0)
+        if (U_SUCCESS(status) && temp.mPattern != 0)
         {
             data->ruleTable = temp.getRules();
             data->isRuleTableLoaded = TRUE;
@@ -802,7 +802,7 @@ RuleBasedCollator::compare(const UnicodeString& source,
     }
 
     Collator::EComparisonResult result = Collator::EQUAL;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     // The basic algorithm here is that we use CollationElementIterators
     // to step through both the source and target strings.  We compare each
@@ -833,7 +833,7 @@ RuleBasedCollator::compare(const UnicodeString& source,
         sourceCursor->setText(source, status);
     }
 
-    if (sourceCursor == NULL || FAILURE(status))
+    if (sourceCursor == NULL || U_FAILURE(status))
     {
         return Collator::EQUAL;
     }
@@ -847,7 +847,7 @@ RuleBasedCollator::compare(const UnicodeString& source,
         targetCursor->setText(target, status);
     }
 
-    if (targetCursor == NULL || FAILURE(status))
+    if (targetCursor == NULL || U_FAILURE(status))
     {
         return Collator::EQUAL;
     }
@@ -868,7 +868,7 @@ RuleBasedCollator::compare(const UnicodeString& source,
         {
             sOrder = sourceCursor->next(status);
 
-            if (FAILURE(status))
+            if (U_FAILURE(status))
             {
                 return Collator::EQUAL;
             }
@@ -880,7 +880,7 @@ RuleBasedCollator::compare(const UnicodeString& source,
         {
             tOrder = targetCursor->next(status);
 
-            if (FAILURE(status))
+            if (U_FAILURE(status))
             {
                 return Collator::EQUAL;
             }
@@ -1141,15 +1141,15 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
                                     CollationKey&   sortkey,
                                     UErrorCode&      status) const
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
-        status = ILLEGAL_ARGUMENT_ERROR;
+        status = U_ILLEGAL_ARGUMENT_ERROR;
         return sortkey.setToBogus();
     }
     
     if (source.isBogus())
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         return sortkey.setToBogus();
     }
 
@@ -1167,7 +1167,7 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
         sourceCursor->setText(source, status);
     }
 
-    if (sourceCursor == NULL || FAILURE(status))
+    if (sourceCursor == NULL || U_FAILURE(status))
     {
         return sortkey.setToBogus();
     }
@@ -1188,7 +1188,7 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
         int32_t secOrder = CollationElementIterator::secondaryOrder(order);
         int32_t terOrder = CollationElementIterator::tertiaryOrder(order);
 
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             return sortkey.setToBogus();
         }
@@ -1239,7 +1239,7 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
       Normalizer::normalize(source, getDecomposition(),
                 0, decomp, status);
 
-        if (SUCCESS(status))
+        if (U_SUCCESS(status))
         {
             totalIdent = decomp.size() + 1;
         }
@@ -1253,7 +1253,7 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
 
     if (sortkey.isBogus())
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         return sortkey;
     }
 
@@ -1270,7 +1270,7 @@ RuleBasedCollator::getCollationKey( const   UnicodeString&  source,
     // now iterate over the source computing the actual entries
     while((order = sourceCursor->next(status)) != CollationElementIterator::NULLORDER)
     {
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             return sortkey.reset();
         }
@@ -1353,7 +1353,7 @@ void
 RuleBasedCollator::build(const UnicodeString&   pattern,
                             UErrorCode&      status)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -1363,7 +1363,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
 
     if (data->mapping->fBogus)
     {
-        status = MEMORY_ALLOCATION_ERROR;
+        status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
 
@@ -1376,7 +1376,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
 
     if (pattern.size() == 0)
     {
-        status = INVALID_FORMAT_ERROR;
+        status = U_INVALID_FORMAT_ERROR;
         return;
     }
 
@@ -1388,7 +1388,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
     // "C < CH" rule in just before the "C < D" rule.
 
     mPattern = new MergeCollation(pattern, getDecomposition(), status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         ucmp32_close(data->mapping);
         data->mapping = 0;
@@ -1413,7 +1413,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
 
             // check if french secondary needs to be turned on
             if ((groupChars.size() > 1) &&
-                (groupChars[groupChars.size()-(T_INT32(1))] == '@'))
+                (groupChars[groupChars.size()-(T_INT32(1))] == 0x0040))
             {
                 data->isFrenchSec = TRUE;
                 groupChars.remove(groupChars.size()-(T_INT32(1)));
@@ -1426,7 +1426,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
                 // encountered an expanding character, where one character on input
                 // expands to several sort elements (e.g. 'ö' --> 'o' 'e')
                 addExpandOrder(groupChars, expChars, order, status);
-                if (FAILURE(status))
+                if (U_FAILURE(status))
                 {
                     return;
                 }
@@ -1437,7 +1437,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
                 // contract into one sort order.  For example, "ch" is treated as a single
                 // character in traditional Spanish sorting.
                 addContractOrder(groupChars, order, status);
-                if (FAILURE(status))
+                if (U_FAILURE(status))
                 {
                     return;
                 }
@@ -1446,7 +1446,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
             {
                 // Nothing out of the ordinary -- one character maps to one sort order
                 addOrder(groupChars[0], order, status);
-                if (FAILURE(status))
+                if (U_FAILURE(status))
                 {
                     return;
                 }
@@ -1471,7 +1471,7 @@ RuleBasedCollator::build(const UnicodeString&   pattern,
  void RuleBasedCollator::addComposedChars()
  {
     UnicodeString buf;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     // Iterate through all of the pre-composed characters in Unicode
     ComposedCharIter iter;
@@ -1633,7 +1633,7 @@ RuleBasedCollator::addOrder(UChar ch,
                          int32_t anOrder,
                          UErrorCode& status)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -1650,7 +1650,7 @@ RuleBasedCollator::addOrder(UChar ch,
         key += ch;
         if (key.isBogus())
         {
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
 
@@ -1670,7 +1670,7 @@ RuleBasedCollator::addExpandOrder(  const   UnicodeString& contractChars,
                                 int32_t anOrder,
                                 UErrorCode& status)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -1742,7 +1742,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
                                     bool_t fwd,
                                     UErrorCode& status)
 {
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         return;
     }
@@ -1754,7 +1754,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
         {
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
     }
@@ -1777,7 +1777,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
             delete entryTable;
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
 
@@ -1787,7 +1787,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
             delete entryTable;
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
             
@@ -1800,7 +1800,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
             delete entryTable;
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
 
@@ -1812,7 +1812,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
             delete entryTable;
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
 
@@ -1846,7 +1846,7 @@ RuleBasedCollator::addContractOrder(const   UnicodeString& groupChars,
             delete entryTable;
             delete data->contractTable;
             data->contractTable = NULL;
-            status = MEMORY_ALLOCATION_ERROR;
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
 
@@ -2147,7 +2147,7 @@ RuleBasedCollator::constructFromCache(const UnicodeString& key,
 {
     // Attempt to construct this RuleBasedCollator object from cached TableCollationData.
     // If no such data is in the cache, return false.
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
     if (dataIsOwned)
     {
         delete data;
@@ -2163,7 +2163,7 @@ RuleBasedCollator::constructFromCache(const UnicodeString& key,
     data = TableCollationData::findInCache(key);
     if (data == NULL)
     {
-        status = MISSING_RESOURCE_ERROR;
+        status = U_MISSING_RESOURCE_ERROR;
     }
 }
 
@@ -2201,7 +2201,7 @@ RuleBasedCollator::chopLocale(UnicodeString& localeName)
 
     for (i = size - 1; i > 0; i--)
     {
-        if (localeName[i] == '_')
+        if (localeName[i] == 0x005F)
         {
             break;
         }

@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
 *   (C) Copyright International Business Machines Corporation,  1997-1999      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -71,7 +72,7 @@ class TimeZone;
  * </pre>
  * You can use a DateFormat to parse also.
  * <pre>
- * .       UErrorCode status = ZERO_ERROR;
+ * .       UErrorCode status = U_ZERO_ERROR;
  * .       UDate myDate = df->parse(myString, status);
  * </pre>
  * Use createDateInstance() to produce the normal date format for that country.
@@ -272,6 +273,13 @@ public:
      * @return          A reference to 'result'.
      */
     UnicodeString& format(UDate date, UnicodeString& result) const;
+
+    /**
+     * Redeclared Format method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
 
     /**
      * Parse a date/time string.
@@ -519,6 +527,13 @@ private:
      */
     static const Locale*    fgLocales;
 };
+
+inline UnicodeString&
+DateFormat::format(const Formattable& obj,
+                   UnicodeString& result,
+                   UErrorCode& status) const {
+    return Format::format(obj, result, status);
+}
 
 #endif // _DATEFMT
 //eof

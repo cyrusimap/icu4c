@@ -4,6 +4,7 @@
 * COPYRIGHT:                                                                  *
 *   (C) Copyright Taligent, Inc.,  1997                                       *
 *   (C) Copyright International Business Machines Corporation,  1997-1999     *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.        *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure   *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                    *
@@ -23,6 +24,8 @@
 *                            Removed subParseLong
 *                            Removed getZoneIndex (added in DateFormatSymbols)
 *   06/14/99    stephen     Removed fgTimeZoneDataSuffix
+*   10/14/99    aliu        Updated class doc to describe 2-digit year parsing
+*                           {j28 4182066}.
 *******************************************************************************
 */
 
@@ -111,7 +114,7 @@ class DateFormatSymbols;
  * </pre>
  * Code Sample:
  * <pre>
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    SimpleTimeZone* pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, "PST");
  * .    pdt->setStartRule( Calendar::APRIL, 1, Calendar::SUNDAY, 2*60*60*1000);
  * .    pdt->setEndRule( Calendar::OCTOBER, -1, Calendar::SUNDAY, 2*60*60*1000);
@@ -135,6 +138,28 @@ class DateFormatSymbols;
  * marker 'a' is left out from the format pattern while the "hour in am/pm"
  * pattern symbol is used. This information loss can happen when formatting the
  * time in PM.
+ *
+ * <p>
+ * When parsing a date string using the abbreviated year pattern ("y" or "yy"),
+ * SimpleDateFormat must interpret the abbreviated year
+ * relative to some century.  It does this by adjusting dates to be
+ * within 80 years before and 20 years after the time the SimpleDateFormat
+ * instance is created. For example, using a pattern of "MM/dd/yy" and a
+ * SimpleDateFormat instance created on Jan 1, 1997,  the string
+ * "01/11/12" would be interpreted as Jan 11, 2012 while the string "05/04/64"
+ * would be interpreted as May 4, 1964.
+ * During parsing, only strings consisting of exactly two digits, as defined by
+ * <code>Unicode::isDigit()</code>, will be parsed into the default century.
+ * Any other numeric string, such as a one digit string, a three or more digit
+ * string, or a two digit string that isn't all digits (for example, "-1"), is
+ * interpreted literally.  So "01/02/3" or "01/02/003" are parsed, using the
+ * same pattern, as Jan 2, 3 AD.  Likewise, "01/02/-3" is parsed as Jan 2, 4 BC.
+ *
+ * <p>
+ * If the year pattern has more than two 'y' characters, the year is
+ * interpreted literally, regardless of the number of digits.  So using the
+ * pattern "MM/dd/yyyy", "01/11/12" parses to Jan 11, 12 A.D.
+ *
  * <P>
  * For time zones that have no names, SimpleDateFormat uses strings GMT+hours:minutes or
  * GMT-hours:minutes.
@@ -264,6 +289,18 @@ public:
                                     UErrorCode& status) const;
 
     /**
+     * Redeclared DateFormat method.
+     */
+    UnicodeString& format(const Formattable& obj,
+                          UnicodeString& result,
+                          UErrorCode& status) const;
+
+    /**
+     * Redeclared DateFormat method.
+     */
+    UnicodeString& format(UDate date, UnicodeString& result) const;
+
+    /**
      * Parse a date/time string starting at the given parse position. For
      * example, a time text "07/10/96 4:5 PM, PDT" will be parsed into a Date
      * that is equivalent to Date(837039928046).
@@ -295,7 +332,7 @@ public:
      * parse() that takes a ParsePosition.
      *
      * @param text  The date/time string to be parsed
-     * @param status Filled in with ZERO_ERROR if the parse was successful, and with
+     * @param status Filled in with U_ZERO_ERROR if the parse was successful, and with
      *              an error value if there was a parse error.
      * @return      A valid UDate if the input could be parsed.
      */
@@ -424,7 +461,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    static ClassID getStaticClassID(void) { return (ClassID)&fgClassID; }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -436,7 +473,7 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual ClassID getDynamicClassID(void) const { return getStaticClassID(); }
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
     static char fgClassID;
@@ -486,7 +523,7 @@ private:
      *                  this function is formatting the field specfied by pos, it
      *                  will fill in pos will the beginning and ending offsets of the
      *                  field.
-     * @param status    Receives a status code, which will be ZERO_ERROR if the operation
+     * @param status    Receives a status code, which will be U_ZERO_ERROR if the operation
      *                  succeeds.
      * @return A reference to "result".
      */
@@ -682,6 +719,20 @@ inline UDate
 SimpleDateFormat::get2DigitYearStart(UErrorCode& status) const
 {
     return fDefaultCenturyStart;
+}
+
+inline UnicodeString&
+SimpleDateFormat::format(const Formattable& obj,
+                         UnicodeString& result,
+                         UErrorCode& status) const {
+    // Don't use Format:: - use immediate base class only,
+    // in case immediate base modifies behavior later.
+    return DateFormat::format(obj, result, status);
+}
+
+inline UnicodeString&
+SimpleDateFormat::format(UDate date, UnicodeString& result) const {
+    return DateFormat::format(date, result);
 }
 
 #endif // _SMPDTFMT

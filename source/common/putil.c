@@ -50,7 +50,7 @@
 #include "cmemory.h"
 #include "cstring.h"
 
-#ifdef AS400
+#ifdef OS400
 #include <float.h>
 #endif
 
@@ -96,9 +96,10 @@ static char* u_bottomNBytesOfDouble(double* d, int n);
   ---------------------------------------------------------------------------*/
 
 /* Assume POSIX, and modify as necessary below*/
-#define POSIX
-#if defined(_WIN32) || defined(XP_MAC) || defined(AS400) || defined(OS2)
-#undef POSIX
+#if defined(_WIN32) || defined(XP_MAC) || defined(OS400) || defined(OS2)
+#   undef POSIX
+#else
+#   define POSIX
 #endif
 
 /*---------------------------------------------------------------------------
@@ -131,19 +132,6 @@ icu_getUTCtime()
   time(&epochtime);
   return epochtime;
 #endif
-}
-
-bool_t
-icu_isBigEndian()
-{
-  union
-  {
-    int16_t     fShort;
-    int8_t      fChars[2];
-  } testPattern;
-    
-  testPattern.fShort = 0x1234;
-  return (testPattern.fChars[0] == 0x12);
 }
 
 /*-----------------------------------------------------------------------------
@@ -564,7 +552,7 @@ icu_tzset()
   tzset();
 #endif
 
-#if defined(AS400) || defined(XP_MAC)
+#if defined(OS400) || defined(XP_MAC)
   /* no initialization*/
 #endif
 
@@ -580,7 +568,7 @@ icu_timezone()
   return timezone;
 #endif
 
-#if defined(AS400) || defined(XP_MAC)
+#if defined(OS400) || defined(XP_MAC)
   time_t t, t1, t2;
   struct tm tmrec;
   bool_t dst_checked;
@@ -610,7 +598,7 @@ icu_tzname(int index)
   return tzname[index];
 #endif
 
-#if defined(AS400) || defined(XP_MAC)
+#if defined(OS400) || defined(XP_MAC)
   return "";
 #endif
 
@@ -649,7 +637,7 @@ icu_getDefaultDataDirectory()
   return PATH;
 #endif
 
-#ifdef AS400
+#ifdef OS400
   return "/icu/data/";
 #endif
 
@@ -678,12 +666,16 @@ icu_getDefaultDataDirectory()
 #endif
 
 #ifdef WIN32
-  return "\\icu\\data\\";
+  char * dpath;
+  dpath = getenv("ICU_DATA");
+  if (!dpath || !*dpath)
+      return "\\icu\\data\\";
+  return dpath;
 #endif
 
 #ifdef OS2
   char * dpath;
-  dpath = getenv("ICUPATH");
+  dpath = getenv("ICU_DATA");
   if (!dpath || !*dpath)
       return "\\icu\\data\\";
   return dpath;
@@ -807,7 +799,7 @@ icu_getDefaultLocaleID()
   return posixID;
 #endif
 
-#ifdef AS400
+#ifdef OS400
   /* TBD */
   return "";
 #endif
@@ -959,23 +951,23 @@ icu_nextDouble(double d, bool_t next)
 static char*
 u_topNBytesOfDouble(double* d, int n)
 {
-  return icu_isBigEndian() ? (char*)d : (char*)(d + 1) - n;
+  return U_IS_BIG_ENDIAN ? (char*)d : (char*)(d + 1) - n;
 }
 
 static char* u_bottomNBytesOfDouble(double* d, int n)
 {
-  return icu_isBigEndian() ? (char*)(d + 1) - n : (char*)d;
+  return U_IS_BIG_ENDIAN ? (char*)(d + 1) - n : (char*)d;
 }
 
 const char* icu_getDefaultCodepage()
 {
   /*Lazy evaluates DEFAULT_CONVERTER_NAME*/
   if (DEFAULT_CONVERTER_NAME[0]) return DEFAULT_CONVERTER_NAME;
-#if defined(AS400)
+#if defined(OS400)
   /* Currently TBD 
      in the future should use thread specific CP
   */
-#elif defined(OS390OE)
+#elif defined(OS390)
   icu_strcpy(DEFAULT_CONVERTER_NAME, "ibm-1047");
 #elif defined(XP_MAC)
   /* TBD */

@@ -176,15 +176,15 @@ void
 DecimalFormatSymbols::initialize(const Locale& locale, UErrorCode& status,
                                  bool_t useLastResortData)
 {
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
 
     ResourceBundle resource(Locale::getDataDirectory(), locale, status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         // Initializes with last resort data if necessary.
         if (useLastResortData)
         {
-            status = USING_FALLBACK_ERROR;
+            status = U_USING_FALLBACK_ERROR;
             initialize(fgLastResortNumberElements, fgLastResortCurrencyElements);
         }
         return;
@@ -196,13 +196,13 @@ DecimalFormatSymbols::initialize(const Locale& locale, UErrorCode& status,
     int32_t currencyElementsLength=0;
     // Gets the currency element array.
     const UnicodeString* currencyElements = resource.getStringArray(fgCurrencyElements, currencyElementsLength, status);
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
 
     // If the array size is too small, something is wrong with the resource
     // bundle, returns the failure error code.
     if (numberElementsLength < fgNumberElementsLength ||
         currencyElementsLength < fgCurrencyElementsLength) {
-        status = INVALID_FORMAT_ERROR;
+        status = U_INVALID_FORMAT_ERROR;
         return;
     }
 

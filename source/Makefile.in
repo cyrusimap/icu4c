@@ -52,7 +52,7 @@ DOCDIRS = common i18n
 SUBDIRS = common i18n $(EXTRA) tools $(TEST) $(SAMPLE)
 
 ## Extra files to install
-EXTRA_DATA = convrtrs.txt UnicodeData-3.0.0d5.txt
+EXTRA_DATA = convrtrs.txt UnicodeData-3.0.0.txt
 
 ## List of phony targets
 .PHONY : all all-local all-recursive install install-local		\
@@ -96,10 +96,12 @@ install-local:
 	  echo $(INSTALL_DATA) $(top_builddir)/../data/$$file $(pkgdatadir)/$(VERSION)/$$file; \
 	  $(INSTALL_DATA) $(top_builddir)/../data/$$file $(pkgdatadir)/$(VERSION)/$$file; \
 	done
+	$(INSTALL_DATA) $(top_builddir)/config/Makefile $(pkgdatadir)/Makefile.inc
+	$(INSTALL_SCRIPT) mkinstalldirs $(sbindir)/mkinstalldirs
 
 ## Generate HTML documentation
 doc:
-	@uniq=`date '+%y%m%d8/13/99M%S'`; \
+	@uniq=`date '+%y%m%d9/30/99M%S'`; \
 	tmpdir="/tmp/icu-$$uniq"; \
 	list='$(DOCDIRS)'; for subdir in $$list; do \
 	  echo "Making install-headers in $$subdir"; \

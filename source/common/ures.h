@@ -107,7 +107,7 @@
  * This is an example for using a possible custom resource:
  * <pre>
  * .    const char *currentLocale;
- * .    UErrorCode success = ZERO_ERROR;
+ * .    UErrorCode success = U_ZERO_ERROR;
  * .    UResourceBundle* myResources=ures_open("MyResources", currentLocale, &success );
  * .
  * .    UChar *button1Title, *button2Title;
@@ -140,16 +140,16 @@ typedef void* UResourceBundle;
 *@param status : fills in the outgoing error code.
 * The UErrorCode err parameter is used to return status information to the user. To
      * check whether the construction succeeded or not, you should check the value of
-     * SUCCESS(err). If you wish more detailed information, you can check for
-     * informational error results which still indicate success. USING_FALLBACK_ERROR
+     * U_SUCCESS(err). If you wish more detailed information, you can check for
+     * informational error results which still indicate success. U_USING_FALLBACK_ERROR
      * indicates that a fall back locale was used. For example, 'de_CH' was requested,
-     * but nothing was found there, so 'de' was used. USING_DEFAULT_ERROR indicates that
+     * but nothing was found there, so 'de' was used. U_USING_DEFAULT_ERROR indicates that
      * the default locale data was used; neither the requested locale nor any of its
      * fall back locales could be found.
 *@return      : a newly allocated resource bundle.
 *@see ures_close
 */
-CAPI UResourceBundle*  U_EXPORT2 ures_open(const char*    path,   /* NULL if none */
+U_CAPI UResourceBundle*  U_EXPORT2 ures_open(const char*    path,   /* NULL if none */
 					   const char*  locale, /* NULL if none */
 					   UErrorCode*     status);
 
@@ -172,7 +172,7 @@ CAPI UResourceBundle*  U_EXPORT2 ures_open(const char*    path,   /* NULL if non
 *@see ures_close
 *@return : a newly allocated resource bundle.
 */
-CAPI UResourceBundle* U_EXPORT2 ures_openW(const wchar_t* path, 
+U_CAPI UResourceBundle* U_EXPORT2 ures_openW(const wchar_t* path, 
                   const char* locale, 
                   UErrorCode* status);
 
@@ -182,16 +182,16 @@ CAPI UResourceBundle* U_EXPORT2 ures_openW(const wchar_t* path,
 *@param resourceBundle: resourceBundle containing the desired string
 *@param resourceTag: key tagging the desired string
 *@param status: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 *@return: a library-owned zero-terminated unicode string (its lifetime
 * is that of the resource bundle.)
 *@see ures_getArrayItem
 *@see ures_get2dArrayItem
 *@see ures_getTaggedItem
 */
-CAPI const UChar* U_EXPORT2 ures_get(const UResourceBundle*    resourceBundle,
+U_CAPI const UChar* U_EXPORT2 ures_get(const UResourceBundle*    resourceBundle,
                const char*              resourceTag,
                UErrorCode*               status);
 
@@ -202,16 +202,16 @@ CAPI const UChar* U_EXPORT2 ures_get(const UResourceBundle*    resourceBundle,
 *@param resourceTag: key tagging the desired array
 *@param resourceIndex: index of the desired string
 *@param status: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 *@return: a library-owned zero-terminated unicode string (its lifetime
 * is that of the resource bundle.)
 *@see ures_get
 *@see ures_get2dArrayItem
 *@see ures_getTaggedItem
 */
-CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resourceBundle,
+U_CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resourceBundle,
                     const char*               resourceTag,
                     int32_t                   resourceIndex,
                     UErrorCode*                status);
@@ -224,9 +224,9 @@ CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resourc
 *@param resourceIndex: x index of the desired string
 *@param resourceIndex: y index of the desired string
 *@param status: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 *@return: a library-owned zero-terminated unicode string (its lifetime
 * is that of the resource bundle.)
 *@see ures_get
@@ -234,7 +234,7 @@ CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resourc
 *@see ures_getTaggedItem
 */
 
-CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resourceBundle,
+U_CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resourceBundle,
                       const char*             resourceTag,
                       int32_t                 rowIndex,
                       int32_t                 columnIndex,
@@ -247,9 +247,9 @@ CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resourc
 *@param resourceTag: key tagging the desired array
 *@param resourceIndex: key tagging the desired string
 *@param status: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 *@return: a library-owned zero-terminated unicode string (its lifetime
 * is that of the resource bundle.)
 *@see ures_get
@@ -257,7 +257,7 @@ CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resourc
 *@see ures_get2dItem
 */
 
-CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   resourceBundle,
+U_CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   resourceBundle,
                       const char*             resourceTag,
                       const char*             itemTag,
                       UErrorCode*              status);
@@ -270,9 +270,9 @@ CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   res
 *@param resourceBundle: resource bundle containing the desired strings
 *@param resourceKey: key tagging the resource
 *@param err: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 *@return: for    <STRONG>Arrays</STRONG>: returns the number of strings in the array
 *                <STRONG>2d Arrays</STRONG>: returns the number of 1d arrays
 *                <STRONG>taggedArrays</STRONG>: returns the number of strings in the array
@@ -283,7 +283,7 @@ CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   res
 *@see ures_get2dArrayItem
 */
 
-CAPI int32_t U_EXPORT2 ures_countArrayItems(const UResourceBundle* resourceBundle,
+U_CAPI int32_t U_EXPORT2 ures_countArrayItems(const UResourceBundle* resourceBundle,
                   const char* resourceKey,
                   UErrorCode* err);
 /**
@@ -291,13 +291,13 @@ CAPI int32_t U_EXPORT2 ures_countArrayItems(const UResourceBundle* resourceBundl
 * on this particular bundle are INVALID henceforth.
 * @param resourceBundle: a succesfully opened resourceBundle.
 * @param status: fills in the outgoing error code
-*                could be <TT>MISSING_RESOURCE_ERROR</T> if the key is not found
+*                could be <TT>U_MISSING_RESOURCE_ERROR</T> if the key is not found
 *                could be a non-failing error 
-*                e.g.: <TT>USING_FALLBACK_ERROR</TT>,<TT>USING_DEFAULT_ERROR </TT>
+*                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
 * @see ures_open
 * @see ures_openW
 */
-CAPI void U_EXPORT2 ures_close(UResourceBundle*    resourceBundle);
+U_CAPI void U_EXPORT2 ures_close(UResourceBundle*    resourceBundle);
 /**
      * Return the version number associated with this ResourceBundle. This version
      * number is a string of the form MAJOR.MINOR, where MAJOR is the version number of
@@ -316,9 +316,6 @@ CAPI void U_EXPORT2 ures_close(UResourceBundle*    resourceBundle);
      *          representing the resource data file. The caller does not own this
      *          string.
      */
-CAPI const char* U_EXPORT2 ures_getVersionNumber(const UResourceBundle*   resourceBundle);
+U_CAPI const char* U_EXPORT2 ures_getVersionNumber(const UResourceBundle*   resourceBundle);
 #endif /*_URES*/
 /*eof*/
-
-
-

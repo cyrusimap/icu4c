@@ -7017,7 +7017,7 @@ void CollationISOTest::quickSort(CollationKey** keyArray, int *indexes, int lo0,
 CollationISOTest::CollationISOTest()
 : myCollation(0)
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = Collator::createInstance(Locale::FRENCH, status);
 }
 
@@ -7048,11 +7048,11 @@ void CollationISOTest::TestAll( char* par )
 
     
     for (i = 0; i < n; i++) {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         testArray[i] = new UnicodeString(testCases[i], 1);
         keyArray[i] = new CollationKey();
         myCollation->getCollationKey(*testArray[i], *keyArray[i], status);
-        if (FAILURE(status)) {
+        if (U_FAILURE(status)) {
             err("Creating collation key failed");
             return;
         }

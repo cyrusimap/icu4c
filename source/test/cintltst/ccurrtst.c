@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda             Ported for CAPI
+*     Madhu Katragadda             Ported for C API
 *********************************************************************************
 */
 
@@ -67,12 +67,12 @@ void currTest()
     int res;
     UCollator *c;
     uint8_t *sortKey1, *sortKey2;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UCollationResult compareResult, keyResult;
     UCollationResult expectedResult = UCOL_EQUAL;
     log_verbose("Testing currency of all locales\n");
     c = ucol_open(NULL, &status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         log_err("collator open failed! :%s\n", myErrorName(status));
         return;
@@ -103,7 +103,7 @@ void currTest()
             compareResult = ucol_strcoll(c, source, u_strlen(source), target, u_strlen(target));
 
             
-            status = ZERO_ERROR;
+            status = U_ZERO_ERROR;
 
             sortklen=ucol_getSortKey(c, source, u_strlen(source),  NULL, 0);
             sortKey1=(uint8_t*)malloc(sizeof(uint8_t) * (sortklen+1));

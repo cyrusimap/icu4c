@@ -59,6 +59,7 @@
 #endif
 
 #include "umutex.h"
+#include "cmemory.h"
 
 /* the global mutex. Use it proudly and wash it often. */
 UMTX    gGlobalMutex = NULL;
@@ -125,7 +126,7 @@ void umtx_unlock( UMTX* mutex )
 #endif /* APP_NO_THREADS not defined */
 }
 
-CAPI void umtx_init( UMTX *mutex )
+U_CAPI void umtx_init( UMTX *mutex )
 {
 #ifndef APP_NO_THREADS
 
@@ -138,12 +139,12 @@ if( mutex == NULL ) /* initialize the global mutex */
     return;
 
 #if defined( _WIN32 )
-  *mutex = malloc(sizeof(CRITICAL_SECTION));
+  *mutex = icu_malloc(sizeof(CRITICAL_SECTION));
   InitializeCriticalSection((CRITICAL_SECTION*)*mutex);
 
 #elif defined( POSIX )
 
-  *mutex = malloc(sizeof(pthread_mutex_t));
+  *mutex = icu_malloc(sizeof(pthread_mutex_t));
 
 #if defined(HPUX)
     pthread_mutex_init((pthread_mutex_t*)*mutex, pthread_mutexattr_default);

@@ -3,6 +3,7 @@
 ********************************************************************
 * COPYRIGHT: 
 * (C) Copyright International Business Machines Corporation, 1998
+* Copyright (C) 1999 Alan Liu and others. All rights reserved. 
 * Licensed Material - Program-Property of IBM - All Rights Reserved. 
 * US Government Users Restricted Rights - Use, duplication, or disclosure 
 * restricted by GSA ADP Schedule Contract with IBM Corp. 
@@ -52,6 +53,8 @@ DateFormatRegressionTest::runIndexedTest( int32_t index, bool_t exec, char* &nam
         CASE(19,Test4151631)
         CASE(20,Test4151706)
         CASE(21,Test4162071)
+        CASE(22,Test4182066)
+        CASE(23,Test4210209)
 
         default: name = ""; break;
     }
@@ -62,7 +65,7 @@ DateFormatRegressionTest::runIndexedTest( int32_t index, bool_t exec, char* &nam
  */
 void DateFormatRegressionTest::Test4029195() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     UDate today = Calendar::getNow();
     logln((UnicodeString) "today: " + today);
@@ -206,7 +209,7 @@ void DateFormatRegressionTest::Test4052408()
  */
 void DateFormatRegressionTest::Test4056591() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     //try {
         SimpleDateFormat *fmt = new SimpleDateFormat("yyMMdd", Locale::US, status);
@@ -260,7 +263,7 @@ void DateFormatRegressionTest::Test4056591()
  */
 void DateFormatRegressionTest::Test4059917() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     SimpleDateFormat *fmt;
     UnicodeString myDate;
@@ -296,7 +299,7 @@ void DateFormatRegressionTest::aux917( SimpleDateFormat *fmt, UnicodeString& str
     fmt->parseObject( str, o, pos );
     //logln( UnicodeString("Parsed object: ") + o );
     
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UnicodeString formatted;
     FieldPosition poss(FieldPosition::DONT_CARE);
     formatted = fmt->format( o, formatted, poss, status );
@@ -320,7 +323,7 @@ void DateFormatRegressionTest::Test4060212()
 
     logln( "dateString= " + dateString );
     logln("Using yyyy-DDD.hh:mm:ss");
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *formatter = new SimpleDateFormat("yyyy-DDD.hh:mm:ss", status);
     failure(status, "new SimpleDateFormat");
     ParsePosition pos(0);
@@ -364,7 +367,7 @@ void DateFormatRegressionTest::Test4060212()
  */
 void DateFormatRegressionTest::Test4061287() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     SimpleDateFormat *df = new SimpleDateFormat("dd/MM/yyyy", status);
     failure(status, "new SimpleDateFormat");
@@ -381,7 +384,7 @@ void DateFormatRegressionTest::Test4061287()
     bool_t ok = FALSE;
     //try {
     logln(UnicodeString("") + df->parse("35/01/1971", status));
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         ok = TRUE;
     //logln(df.parse("35/01/1971").toString());
     //} catch (ParseException e) {ok=TRUE;}
@@ -400,7 +403,7 @@ void DateFormatRegressionTest::Test4065240()
     Locale saveLocale = Locale::getDefault();
     TimeZone *saveZone = TimeZone::createDefault();
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     //try {
         Locale *curLocale = new Locale("de","DE");
         Locale::setDefault(*curLocale, status);
@@ -474,7 +477,7 @@ void DateFormatRegressionTest::Test4071441()
     UDate epoch = date(0, 0, 0);
     UDate xmas = date(61, Calendar::DECEMBER, 25);
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     calA->setTime(epoch, status);
     failure(status, "calA->setTime");
     calB->setTime(epoch, status);
@@ -518,7 +521,7 @@ void DateFormatRegressionTest::Test4073003()
             (UnicodeString) "4/3/2010", 
             (UnicodeString) "4/3/10" 
         };
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         for(int i= 0; i < 4; i+=2) {
             UDate d = fmt->parse(tests[i], status);
             failure(status, "fmt->parse");
@@ -550,7 +553,7 @@ void DateFormatRegressionTest::Test4089106()
     //try {
         TimeZone *z = new SimpleTimeZone((int)(1.25 * 3600000), "FAKEZONE");
         TimeZone::setDefault(*z);
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         SimpleDateFormat *f = new SimpleDateFormat(status);
         failure(status, "new SimpleDateFormat");
         if (f->getTimeZone()!= *z)
@@ -643,7 +646,7 @@ void DateFormatRegressionTest::Test4100302()
  */
 void DateFormatRegressionTest::Test4101483() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *sdf = new SimpleDateFormat("z", Locale::US, status);
     failure(status, "new SimpleDateFormat");
     FieldPosition fp(DateFormat::TIMEZONE_FIELD);
@@ -672,7 +675,7 @@ void DateFormatRegressionTest::Test4101483()
  */
 void DateFormatRegressionTest::Test4103340() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
 
     // choose a date that is the FIRST of some month 
     // and some arbitrary time 
@@ -705,7 +708,7 @@ void DateFormatRegressionTest::Test4103341()
         
     // {sfb} changed from setDefault to adoptDefault
     TimeZone::adoptDefault(TimeZone::createTimeZone("CST"));
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *simple = new SimpleDateFormat("MM/dd/yyyy HH:mm", status);
     failure(status, "new SimpleDateFormat");
     TimeZone *temp = TimeZone::createDefault();
@@ -725,7 +728,7 @@ void DateFormatRegressionTest::Test4103341()
  */
 void DateFormatRegressionTest::Test4104136() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *sdf = new SimpleDateFormat(status); 
     failure(status, "new SimpleDateFormat");
     UnicodeString pattern = "'time' hh:mm"; 
@@ -784,7 +787,7 @@ void DateFormatRegressionTest::Test4104136()
  */
 void DateFormatRegressionTest::Test4104522() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     SimpleDateFormat *sdf = new SimpleDateFormat(status);
     failure(status, "new SimpleDateFormat");
@@ -815,7 +818,7 @@ void DateFormatRegressionTest::Test4106807()
     UDate dt; 
     DateFormat *df = DateFormat::createDateTimeInstance(); 
     
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *sdfs [] = {
         new SimpleDateFormat("yyyyMMddHHmmss", status),
         new SimpleDateFormat("yyyyMMddHHmmss'Z'", status),
@@ -855,9 +858,9 @@ void DateFormatRegressionTest::Test4106807()
             format->setTimeZone(*gmt); 
             dt = format->parse(dateString, status);
             // {sfb} some of these parses will fail purposely
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 break;
-            status = ZERO_ERROR;
+            status = U_ZERO_ERROR;
             UnicodeString fmtd;
             FieldPosition pos(FieldPosition::DONT_CARE);
             fmtd = df->format(dt, fmtd, pos);
@@ -914,7 +917,7 @@ void DateFormatRegressionTest::Test4108407()
  */
 void DateFormatRegressionTest::Test4134203() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UnicodeString dateFormat = "MM/dd/yy HH:mm:ss zzz";
     SimpleDateFormat *fmt = new SimpleDateFormat(dateFormat, status);
     failure(status, "new SimpleDateFormat");
@@ -937,7 +940,7 @@ void DateFormatRegressionTest::Test4151631()
 {
     UnicodeString pattern = "'TO_DATE('''dd'-'MM'-'yyyy HH:mm:ss''' , ''DD-MM-YYYY HH:MI:SS'')'";
     logln("pattern=" + pattern);
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *format = new SimpleDateFormat(pattern, Locale::US, status);
     failure(status, "new SimpleDateFormat");
     UnicodeString result;
@@ -960,7 +963,7 @@ void DateFormatRegressionTest::Test4151631()
  */
 void DateFormatRegressionTest::Test4151706() 
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat *fmt =
         new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss z", Locale::US, status);
     failure(status, "new SimpleDateFormat");
@@ -985,14 +988,14 @@ DateFormatRegressionTest::Test4162071()
 {
     UnicodeString dateString("Thu, 30-Jul-1999 11:51:14 GMT");
     UnicodeString format("EEE', 'dd-MMM-yyyy HH:mm:ss z"); // RFC 822/1123
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat df(format, Locale::US, status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         errln("Couldn't create SimpleDateFormat");
     
     //try {
         UDate x = df.parse(dateString, status);
-        if(SUCCESS(status))
+        if(U_SUCCESS(status))
             logln("Parse format \"" + format + "\" ok");
         else
             errln("Parse format \"" + format + "\" failed.");
@@ -1002,6 +1005,137 @@ DateFormatRegressionTest::Test4162071()
     //} catch (Exception e) {
     //    errln("Parse format \"" + format + "\" failed.");
     //}
+}
+
+/**
+ * DateFormat shouldn't parse year "-1" as a two-digit year (e.g., "-1" -> 1999).
+ */
+void DateFormatRegressionTest::Test4182066() {
+    UErrorCode status = U_ZERO_ERROR;
+    SimpleDateFormat fmt("MM/dd/yy", Locale::US, status);
+    SimpleDateFormat dispFmt("MMM dd yyyy GG", Locale::US, status);
+    if (U_FAILURE(status)) {
+        errln("Couldn't create SimpleDateFormat");
+        return;
+    }
+
+    /* We expect 2-digit year formats to put 2-digit years in the right
+     * window.  Out of range years, that is, anything less than "00" or
+     * greater than "99", are treated as literal years.  So "1/2/3456"
+     * becomes 3456 AD.  Likewise, "1/2/-3" becomes -3 AD == 2 BC.
+     */
+    const char* STRINGS[] = {
+        "02/29/00",
+        "01/23/01",
+        "04/05/-1",
+        "01/23/-9",
+        "11/12/1314",
+        "10/31/1",
+        "09/12/+1",
+        "09/12/001",
+    };
+    int32_t STRINGS_COUNT = sizeof(STRINGS) / sizeof(STRINGS[0]);
+    UDate FAIL_DATE = (UDate) 0;
+    UDate DATES[] = {
+        date(2000-1900, Calendar::FEBRUARY, 29),
+        date(2001-1900, Calendar::JANUARY,  23),
+        date(  -1-1900, Calendar::APRIL,     5),
+        date(  -9-1900, Calendar::JANUARY,  23),
+        date(1314-1900, Calendar::NOVEMBER, 12),
+        date(   1-1900, Calendar::OCTOBER,  31),
+        FAIL_DATE, // "+1" isn't recognized by US NumberFormat
+        date(   1-1900, Calendar::SEPTEMBER,12),
+    };
+
+    UnicodeString out;
+    bool_t pass = TRUE;
+    for (int32_t i=0; i<STRINGS_COUNT; ++i) {
+        UnicodeString str(STRINGS[i]);
+        UDate expected = DATES[i];
+        status = U_ZERO_ERROR;
+        UDate actual = fmt.parse(str, status);
+        if (U_FAILURE(status)) {
+            actual = FAIL_DATE;
+        }
+        UnicodeString actStr;
+        if (actual == FAIL_DATE) {
+            actStr.append("null");
+        } else {
+            // Yuck: See j25
+            ((DateFormat*)&dispFmt)->format(actual, actStr);
+        }
+
+        if (expected == actual) {
+            out.append(str + " => " + actStr + "\n");
+        } else {
+            UnicodeString expStr;
+            if (expected == FAIL_DATE) {
+                expStr.append("null");
+            } else {
+                // Yuck: See j25
+                ((DateFormat*)&dispFmt)->format(expected, expStr);
+            }
+            out.append("FAIL: " + str + " => " + actStr
+                       + ", expected " + expStr + "\n");
+            pass = FALSE;
+        }
+    }
+    if (pass) {
+        log(out);
+    } else {
+        err(out);
+    }
+}
+
+/**
+ * j32 {JDK Bug 4210209 4209272}
+ * DateFormat cannot parse Feb 29 2000 when setLenient(false)
+ */
+void
+DateFormatRegressionTest::Test4210209() {
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeString pattern("MMM d, yyyy");
+    SimpleDateFormat sfmt(pattern, Locale::US, status);
+    SimpleDateFormat sdisp("MMM dd yyyy GG", Locale::US, status);
+    DateFormat& fmt = *(DateFormat*)&sfmt; // Yuck: See j25
+    DateFormat& disp = *(DateFormat*)&sdisp; // Yuck: See j25
+    if (U_FAILURE(status)) {
+        errln("Couldn't create SimpleDateFormat");
+        return;
+    }
+    Calendar* calx = (Calendar*)fmt.getCalendar(); // cast away const!
+    calx->setLenient(FALSE);
+    UDate d = date(2000-1900, Calendar::FEBRUARY, 29);
+    UnicodeString s, ss;
+    fmt.format(d, s);
+    logln(disp.format(d, ss.remove()) + " f> " + pattern +
+          " => \"" + s + "\"");
+    ParsePosition pos(0);
+    d = fmt.parse(s, pos);
+    logln(UnicodeString("\"") + s + "\" p> " + pattern +
+          " => " + disp.format(d, ss.remove()));
+    logln(UnicodeString("Parse pos = ") + pos.getIndex() +
+          ", error pos = " + pos.getErrorIndex());
+    if (pos.getErrorIndex() != -1) {
+        errln(UnicodeString("FAIL: Error index should be -1"));
+    }
+
+    // The underlying bug is in GregorianCalendar.  If the following lines
+    // succeed, the bug is fixed.  If the bug isn't fixed, they will throw
+    // an exception.
+    GregorianCalendar cal(status);
+    if (U_FAILURE(status)) {
+        errln("FAIL: Unable to create Calendar");
+        return;
+    }
+    cal.clear();
+    cal.setLenient(FALSE);
+    cal.set(2000, Calendar::FEBRUARY, 29); // This should work!
+    logln(UnicodeString("Attempt to set Calendar to Feb 29 2000: ") +
+                        disp.format(cal.getTime(status), ss.remove()));
+    if (U_FAILURE(status)) {
+        errln("FAIL: Unable to set Calendar to Feb 29 2000");
+    }
 }
 
 //eof

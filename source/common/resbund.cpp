@@ -96,9 +96,9 @@
  * that data will not be stored into a TaggedList until a TaggedList
  * has been created.  Nonetheless, the code in parse() does some
  * consistency checks as it runs the network, and fails with an
- * INTERNAL_PROGRAM_ERROR if one of these checks fails.  If the input
- * data has a bad format, an INVALID_FORMAT_ERROR is returned.  If you
- * see an INTERNAL_PROGRAM_ERROR the transition matrix has a bug in
+ * U_INTERNAL_PROGRAM_ERROR if one of these checks fails.  If the input
+ * data has a bad format, an U_INVALID_FORMAT_ERROR is returned.  If you
+ * see an U_INTERNAL_PROGRAM_ERROR the transition matrix has a bug in
  * it.
  *
  * Old functionality of multiple locales in a single file is still
@@ -221,22 +221,22 @@ ResourceBundle::LocaleFallbackIterator::nextLocale(UErrorCode& status)
     fTriedDefaultLocale = fTriedDefaultLocale || (fLocale == fDefaultLocale);
   
   chopLocale();
-  if(status != USING_DEFAULT_ERROR) 
-    status = USING_FALLBACK_ERROR;
+  if(status != U_USING_DEFAULT_ERROR) 
+    status = U_USING_FALLBACK_ERROR;
   
   if(fLocale.size() == 0) {
     if(fUseDefaultLocale && !fTriedDefaultLocale) {
       fLocale = fDefaultLocale;
       fTriedDefaultLocale = TRUE;
-      status = USING_DEFAULT_ERROR;
+      status = U_USING_DEFAULT_ERROR;
     }
     else if( ! fTriedRoot) {
       fLocale = fRoot;
       fTriedRoot = TRUE;
-      status = USING_DEFAULT_ERROR;
+      status = U_USING_DEFAULT_ERROR;
     }
     else {
-      status = MISSING_RESOURCE_ERROR;
+      status = U_MISSING_RESOURCE_ERROR;
       return FALSE;
     }
   }
@@ -297,12 +297,13 @@ ResourceBundle::ResourceBundle( const UnicodeString&    path,
       fgCache(fgUserCache),
       fgVisitedFiles(fgUserVisitedFiles)
 {
-  status = ZERO_ERROR;
+  status = U_ZERO_ERROR;
   
   int32_t i;
   for(i = 0; i < kDataCount; ++i) {
     fData[i] = 0;
     fLoaded[i] = FALSE;
+    fDataStatus[i] = U_INTERNAL_PROGRAM_ERROR;
   }
   
   fLocaleIterator = 0;
@@ -313,7 +314,7 @@ ResourceBundle::ResourceBundle( const UnicodeString&    path,
 	  (void*)this, fgCache, status);
   }
   else {
-    status = MISSING_RESOURCE_ERROR;
+    status = U_MISSING_RESOURCE_ERROR;
   }
   
   // Prevent further attempts to load hashtables
@@ -332,6 +333,7 @@ ResourceBundle::saveCollationHashtable(const UnicodeString& localeName,
     if( ! bundle->fLoaded[i]) {
       bundle->fData[i] = hashtable;
       bundle->fLoaded[i] = TRUE;
+      bundle->fDataStatus[i] = U_ZERO_ERROR; /* ??? */
       return;
     }
   }
@@ -375,7 +377,7 @@ ResourceBundle::constructForLocale(const PathInfo& path,
   fIsDataOwned = FALSE;
   fVersionID = 0;
   
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   
   locale.getName(fRealLocaleID);
   
@@ -390,14 +392,16 @@ ResourceBundle::constructForLocale(const PathInfo& path,
   
   for(i = 1; i < kDataCount; ++i) {
     fData[i] = 0;
+    fDataStatus[i] = U_INTERNAL_PROGRAM_ERROR;
     fLoaded[i] = FALSE;
   }
   
   UnicodeString returnedLocale;
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   fData[0] = getHashtableForLocale(fRealLocaleID, returnedLocale, error);
   fLoaded[0] = TRUE;
-  if(SUCCESS(error)) 
+  fDataStatus[0] = U_ZERO_ERROR;
+  if(U_SUCCESS(error)) 
     fRealLocaleID = returnedLocale;
   
   fLocaleIterator = new LocaleFallbackIterator(fRealLocaleID, 
@@ -419,9 +423,9 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
 				      UnicodeString& returnedLocale,
 				      UErrorCode& error)
 {
-  if(FAILURE(error)) return 0;
+  if(U_FAILURE(error)) return 0;
 
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   const UHashtable* h = getFromCache(fPath, desiredLocale, fgCache);
   if(h != 0) {
     returnedLocale = desiredLocale;
@@ -434,29 +438,29 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
   // A note on fileError.  We are tracking two different error states
   // here.  One is that returned while iterating over different files.
   // For instance, when going from de_CH.txt to de.txt we will get a
-  // USING_FALLBACK_ERROR, but we don't care -- because if de.txt
+  // U_USING_FALLBACK_ERROR, but we don't care -- because if de.txt
   // contains the de_CH locale, it isn't a fallback, from our
   // perspective.  Therefore we keep file associated errors in
   // fileError, apart from the error parameter.
-  UErrorCode fileError = ZERO_ERROR;
+  UErrorCode fileError = U_ZERO_ERROR;
 
   for(;;) {
     // Build a filename for the locale.
     if(parseIfUnparsed(fPath, iterator.getLocale(), 
 		       fgCache, fgVisitedFiles, error)) {
-      if(FAILURE(error)) 
+      if(U_FAILURE(error)) 
 	return 0;
       
-      error = ZERO_ERROR;
+      error = U_ZERO_ERROR;
       h = getFromCacheWithFallback(fPath, desiredLocale, 
 				   returnedLocale, fgCache, error);
       didTryCacheWithFallback = TRUE;
-      if(h != 0 && SUCCESS(error)) 
+      if(h != 0 && U_SUCCESS(error)) 
 	return h;
     }
     
     if(!iterator.nextLocale(fileError)) {
-      error = MISSING_RESOURCE_ERROR;
+      error = U_MISSING_RESOURCE_ERROR;
       break;
     }
   }
@@ -468,7 +472,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
   // attempt to load our locale from the cache.
   if(didTryCacheWithFallback) 
     return 0;
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   return getFromCacheWithFallback(fPath, desiredLocale, 
 				  returnedLocale, fgCache, error);
 }
@@ -482,9 +486,9 @@ const UHashtable*
 ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
 				      UErrorCode& error)
 {
-  if(FAILURE(error)) 
+  if(U_FAILURE(error)) 
     return 0;
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   
   // First try the cache
   const UHashtable* h = getFromCache(fPath, desiredLocale, fgCache);
@@ -495,10 +499,10 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
   LocaleFallbackIterator iterator(desiredLocale, kDefaultFilename, FALSE);
   
   for(;;) {
-    UErrorCode parseError = ZERO_ERROR;
+    UErrorCode parseError = U_ZERO_ERROR;
     if(parseIfUnparsed(fPath, iterator.getLocale(), 
 		       fgCache, fgVisitedFiles, parseError)) {
-      if(FAILURE(parseError)) {
+      if(U_FAILURE(parseError)) {
 	error = parseError;
 	return 0;
       }
@@ -525,9 +529,9 @@ ResourceBundle::getFromCacheWithFallback(const PathInfo& path,
 					 ResourceBundleCache* fgCache,
 					 UErrorCode& error)
 {
-  if(FAILURE(error)) 
+  if(U_FAILURE(error)) 
     return 0;
-  error = ZERO_ERROR;
+  error = U_ZERO_ERROR;
   
   LocaleFallbackIterator iterator(desiredLocale, kDefaultLocaleName, TRUE);
   
@@ -581,25 +585,31 @@ const ResourceBundleData*
 ResourceBundle::getDataForTag(const UnicodeString& tag,
 			      UErrorCode& err) const
 {
+  err = U_ZERO_ERROR; /* just to make sure there's no fallback/etc left over */
   // Iterate over the kDataCount hashtables which may be associated with this
   // bundle.  At most we have kDataCount, but we may have as few as one.
   for(int32_t i = 0; i < kDataCount; ++i) {
-    // First try to load up this hashtable, if it hasn't been loaded yet.
+
+  // First try to load up this hashtable, if it hasn't been loaded yet.
     if(!fLoaded[i] && fData[i] == 0) {
       ResourceBundle* nonconst = (ResourceBundle*)this;
       nonconst->fLoaded[i] = TRUE;
       if(fLocaleIterator->nextLocale(err)) {
+	UErrorCode getHashtableStatus = U_ZERO_ERROR;
+
+	nonconst->fDataStatus[i] = err;
 	nonconst->fData[i] = 
-	  nonconst->getHashtableForLocale(fLocaleIterator->getLocale(), err);
+	  nonconst->getHashtableForLocale(fLocaleIterator->getLocale(), getHashtableStatus);
       }
     }
+
     
     if(fData[i] != 0) {
       const ResourceBundleData* s = 
 	(const ResourceBundleData*)uhash_get(fData[i], 
 					     tag.hashCode() & 0x7FFFFFFF);
       if(s != 0) {
-	err = ZERO_ERROR;
+	err = fDataStatus[i];  /* restore the error from the original lookup. */
 	return s;
       }
     }
@@ -609,7 +619,7 @@ ResourceBundle::getDataForTag(const UnicodeString& tag,
   //  cerr << "Failed to find tag " << tag << " in " << fPath << fRealLocaleID << fFilenameSuffix << endl;
   //  cerr << *this;
 #endif
-  err = MISSING_RESOURCE_ERROR;
+  err = U_MISSING_RESOURCE_ERROR;
   return 0;
 }
 
@@ -618,11 +628,11 @@ ResourceBundle::getString(  const UnicodeString&    resourceTag,
                             UnicodeString&          theString,
                             UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
   
   const UnicodeString* temp = getString(resourceTag, err);
-  if(SUCCESS(err))
+  if(U_SUCCESS(err))
     theString = *temp;
 }
 
@@ -630,7 +640,7 @@ const UnicodeString*
 ResourceBundle::getString(  const UnicodeString&    resourceTag,
                             UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return NULL;
   
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
@@ -639,7 +649,7 @@ ResourceBundle::getString(  const UnicodeString&    resourceTag,
      && ((StringList*)data)->fCount == 1) {
     return &(((StringList*)data)->fStrings[0]);
   }
-  else err = MISSING_RESOURCE_ERROR;
+  else err = U_MISSING_RESOURCE_ERROR;
   return NULL;
 }
 
@@ -648,7 +658,7 @@ ResourceBundle::getStringArray( const UnicodeString&    resourceTag,
                                 int32_t&                count,
                                 UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return 0;
   
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
@@ -657,7 +667,7 @@ ResourceBundle::getStringArray( const UnicodeString&    resourceTag,
     count = ((StringList*)data)->fCount;
     return ((StringList*)data)->fStrings;
   }
-  err = MISSING_RESOURCE_ERROR;
+  err = U_MISSING_RESOURCE_ERROR;
   return 0;
 }
 
@@ -667,11 +677,11 @@ ResourceBundle::getArrayItem(   const UnicodeString&    resourceTag,
                                 UnicodeString&          theArrayItem,
                                 UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
 
   const UnicodeString* temp = getArrayItem(resourceTag, index, err);
-  if(SUCCESS(err))
+  if(U_SUCCESS(err))
     theArrayItem = *temp;
 }
 
@@ -680,7 +690,7 @@ ResourceBundle::getArrayItem(   const UnicodeString&    resourceTag,
                                 int32_t                 index,
                                 UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return NULL;
 
   // Casting to unsigned turns a signed value into a large unsigned
@@ -694,7 +704,7 @@ ResourceBundle::getArrayItem(   const UnicodeString&    resourceTag,
     return &(((StringList*)data)->fStrings[index]);
   }
   else
-    err = MISSING_RESOURCE_ERROR;
+    err = U_MISSING_RESOURCE_ERROR;
   return NULL;
 }
 
@@ -704,7 +714,7 @@ ResourceBundle::get2dArray(const UnicodeString&   resourceTag,
 			   int32_t&             columnCount,
 			   UErrorCode&           err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return 0;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
@@ -716,7 +726,7 @@ ResourceBundle::get2dArray(const UnicodeString&   resourceTag,
     // Why is this cast required? It shouldn't be. [LIU]
     return (const UnicodeString**)list->fStrings; 
   }
-  err = MISSING_RESOURCE_ERROR;
+  err = U_MISSING_RESOURCE_ERROR;
   return 0;
 }
 
@@ -727,13 +737,13 @@ ResourceBundle::get2dArrayItem(const UnicodeString&    resourceTag,
 			       UnicodeString&       theArrayItem,
 			       UErrorCode&           err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
   
   const UnicodeString* temp = get2dArrayItem(resourceTag, rowIndex, 
 					     columnIndex, err);
   
-  if(SUCCESS(err))
+  if(U_SUCCESS(err))
     theArrayItem = *temp;
 }
 
@@ -743,7 +753,7 @@ ResourceBundle::get2dArrayItem(const UnicodeString&    resourceTag,
 			       int32_t              columnIndex,
 			       UErrorCode&           err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return NULL;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
@@ -759,7 +769,7 @@ ResourceBundle::get2dArrayItem(const UnicodeString&    resourceTag,
       return &(list->fStrings[rowIndex][columnIndex]);
     }
   }
-  err = MISSING_RESOURCE_ERROR;
+  err = U_MISSING_RESOURCE_ERROR;
   return NULL;
 }
 
@@ -769,12 +779,12 @@ ResourceBundle::getTaggedArrayItem( const UnicodeString&    resourceTag,
                                     UnicodeString&          theArrayItem,
                                     UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
   
   const UnicodeString* temp = getTaggedArrayItem(resourceTag, itemTag, err);
     
-  if(SUCCESS(err)) 
+  if(U_SUCCESS(err)) 
     theArrayItem = *temp;
 }
 
@@ -783,7 +793,7 @@ ResourceBundle::getTaggedArrayItem( const UnicodeString&    resourceTag,
                                     const UnicodeString&    itemTag,
                                     UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return NULL;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
@@ -794,7 +804,7 @@ ResourceBundle::getTaggedArrayItem( const UnicodeString&    resourceTag,
       return s;
   }
   
-  err = MISSING_RESOURCE_ERROR;
+  err = U_MISSING_RESOURCE_ERROR;
   return NULL;
 }
 
@@ -831,13 +841,13 @@ getTaggedArrayUCharsImplementation( const ResourceBundle*   bundle,
   // ResourceBundle.  This function isn't defined as part of the API;
   // The C wrappers know it's here and define it on their own.  --jf
   // 12/16/98
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
 
   const ResourceBundleData* data = bundle->getDataForTag(resourceTag, err);
-  if(FAILURE(err) || data == 0 
+  if(U_FAILURE(err) || data == 0 
      || data->getDynamicClassID() != TaggedList::getStaticClassID()) {
-    err = MISSING_RESOURCE_ERROR;
+    err = U_MISSING_RESOURCE_ERROR;
     return;
   }
   
@@ -864,13 +874,13 @@ ResourceBundle::getTaggedArray( const UnicodeString&    resourceTag,
                                 int32_t&                numItems,
                                 UErrorCode&              err) const
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
-  if(FAILURE(err) || data == 0 
+  if(U_FAILURE(err) || data == 0 
      || data->getDynamicClassID() != TaggedList::getStaticClassID()) {
-    err = MISSING_RESOURCE_ERROR;
+    err = U_MISSING_RESOURCE_ERROR;
     return;
   }
   
@@ -903,7 +913,7 @@ ResourceBundle::getVersionNumber()  const
   if(fVersionID == 0) {
     // If the version ID has not been built yet, then do so.  Retrieve
     // the minor version from the file.
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UnicodeString minor_version;
     getString(kVersionTag, minor_version, status);
     
@@ -913,7 +923,7 @@ ResourceBundle::getVersionNumber()  const
     // the end).
     int32_t len = icu_strlen(ICU_VERSION);
     int32_t minor_len = 0;
-    if(SUCCESS(status) && minor_version.size() > 0) 
+    if(U_SUCCESS(status) && minor_version.size() > 0) 
       minor_len = minor_version.size();
     len += (minor_len > 0) ? minor_len : 1 /*==icu_strlen(kDefaultMinorVersion)*/;
     ++len; // Add length of separator
@@ -943,7 +953,7 @@ ResourceBundle::listInstalledLocales(const UnicodeString& path,
 				     kIndexLocaleName, fgUserCache);
   
   if(h == 0) {
-    UErrorCode error = ZERO_ERROR;
+    UErrorCode error = U_ZERO_ERROR;
     if(parseIfUnparsed(PathInfo(path, kDefaultSuffix), 
 		       kIndexFilename, fgUserCache, 
 		       fgUserVisitedFiles, error)) {
@@ -1000,19 +1010,19 @@ T_ResourceBundle_countArrayItemsImplementation(const ResourceBundle* resourceBun
 					       const char* resourceKey,
 					       UErrorCode& err) 
 {
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return 0;
 
   if(!resourceKey) {
-    err = ILLEGAL_ARGUMENT_ERROR;
+    err = U_ILLEGAL_ARGUMENT_ERROR;
     return 0;
   }
   const ResourceBundleData* data  = resourceBundle->getDataForTag(resourceKey,
 								  err);
-  if(FAILURE(err)) 
+  if(U_FAILURE(err)) 
     return 0;
   
-  ClassID rbkeyClassID = data->getDynamicClassID();
+  UClassID rbkeyClassID = data->getDynamicClassID();
   int32_t numItems = 0;
   
   if(rbkeyClassID == StringList::getStaticClassID()) {
@@ -1025,7 +1035,7 @@ T_ResourceBundle_countArrayItemsImplementation(const ResourceBundle* resourceBun
     numItems = ((String2dList*)data)->fRowCount; 
   }
   else {
-    err = MISSING_RESOURCE_ERROR;
+    err = U_MISSING_RESOURCE_ERROR;
     return 0;
   }
   
@@ -1073,11 +1083,11 @@ ResourceBundle::parse(const PathInfo& path,
   UnicodeString localeName;
   UHashtable *data;
   
-  if (FAILURE(status)) return;
+  if (U_FAILURE(status)) return;
   
   f = path.openFile(locale);
   if(f == 0) {
-    status = FILE_ACCESS_ERROR;
+    status = U_FILE_ACCESS_ERROR;
     return;
   }
   
@@ -1087,7 +1097,7 @@ ResourceBundle::parse(const PathInfo& path,
   /* Close the file */
   T_FileStream_close(f);
 
-  if(FAILURE(status)) {
+  if(U_FAILURE(status)) {
     return;
   }
 
@@ -1103,7 +1113,7 @@ ResourceBundle::addToCache(const UnicodeString& localeName,
 {
   PathInfo *c = (PathInfo*)context;
   UnicodeString keyName(c->makeHashkey(localeName));
-  UErrorCode err = ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
   Mutex lock;
   if(uhash_get(fgCache->hashTable, keyName.hashCode() & 0x7FFFFFFF) == 0) {
     uhash_putKey(fgCache->hashTable, keyName.hashCode() & 0x7FFFFFFF, 

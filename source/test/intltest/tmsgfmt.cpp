@@ -131,10 +131,10 @@ void TestMessageFormat::testBug3()
     for (i= 0; i < 49; i++) {
         UnicodeString buffer;
         it_out << locale[i].getDisplayName(buffer) << endl;
-        UErrorCode success = ZERO_ERROR;
+        UErrorCode success = U_ZERO_ERROR;
 //        form = (DecimalFormat*)NumberFormat::createCurrencyInstance(locale[i], success);
         form = (DecimalFormat*)NumberFormat::createInstance(locale[i], success);
-        if (FAILURE(success)) {
+        if (U_FAILURE(success)) {
             it_errln("Err: Number Format ");
             it_out << "Number format creation failed.\n";
             continue;
@@ -143,13 +143,13 @@ void TestMessageFormat::testBug3()
         FieldPosition pos(0);
         buffer.remove();
         form->format(myNumber, buffer, pos);
-        success = ZERO_ERROR;
+        success = U_ZERO_ERROR;
         ParsePosition parsePos;
         form->parse(buffer, result, parsePos);
 #ifdef _DEBUG
         it_out << " -> " /*<< dec*/ /*<< result*/ << "[supposed output for result]" <<endl;
 #endif
-        if (FAILURE(success)) {
+        if (U_FAILURE(success)) {
             it_errln("Err: Number Format parse");
             it_out << "Number format parse failed.\n";
         }
@@ -176,13 +176,13 @@ void TestMessageFormat::testBug1()
 
 void TestMessageFormat::testBug2()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UnicodeString result;
     // {sfb} use double format in pattern, so result will match (not strictly necessary)
     const UnicodeString pattern = "There {0,choice,0.0#are no files|1.0#is one file|1.0<are {0, number} files} on disk {1}. ";
     it_out << "The input pattern : " << pattern << endl;
     MessageFormat *fmt = new MessageFormat(pattern, status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         it_errln("MessageFormat pattern creation failed.\n");
         it_out << "MessageFormat pattern creation failed.\n";
         return;
@@ -257,10 +257,10 @@ void TestMessageFormat::PatternTest()
         //it_out << "\nPat in:  " << testCases[i] << endl;
 
         MessageFormat *form = 0;
-        UErrorCode success = ZERO_ERROR;
+        UErrorCode success = U_ZERO_ERROR;
         UnicodeString buffer;
         form = new MessageFormat(testCases[i], Locale::US, success);
-        if (FAILURE(success)) {
+        if (U_FAILURE(success)) {
             it_errln ("MessageFormat creation failed.#1");
             it_out << "MessageFormat for "<< testCases[i] << " creation failed.\n";
             continue;
@@ -278,7 +278,7 @@ void TestMessageFormat::PatternTest()
         int32_t count = 4;
         FieldPosition fieldpos(0);
         form->format(testArgs, count, result, fieldpos, success);
-        if (FAILURE(success)) {
+        if (U_FAILURE(success)) {
             it_errln ("MessageFormat failed test #3");
             it_out << "TestMessageFormat::PatternTest failed test #3" << endl;
             continue;
@@ -299,7 +299,7 @@ void TestMessageFormat::PatternTest()
         it_out << "MSG pattern for parse: " << buffer << endl;
 
         Formattable* values = form->parse(result, count, success);
-        if (FAILURE(success)) {
+        if (U_FAILURE(success)) {
             errln("MessageFormat failed test #5");
             logln(UnicodeString("MessageFormat failed test #5 with error code ")+(int32_t)success);
         }else
@@ -324,9 +324,9 @@ void TestMessageFormat::sample()
 {
     MessageFormat *form = 0;
     UnicodeString buffer1, buffer2;
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     form = new MessageFormat("There are {0} files on {1}", success);
-    if (FAILURE(success)) {
+    if (U_FAILURE(success)) {
         it_errln("Err: Message format creation failed");
         it_out << "Sample message format creation failed.\n";
         return;
@@ -344,7 +344,7 @@ void TestMessageFormat::testStaticFormat(char* parm)
 {
     logln("running TestMessageFormat::testStaticFormat");
 
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
     GregorianCalendar cal(err);   
     Formattable arguments[] = {
         T_INT32(7),
@@ -360,7 +360,7 @@ void TestMessageFormat::testStaticFormat(char* parm)
             result,
             err);
 
-        if (FAILURE(err)) {
+        if (U_FAILURE(err)) {
             errln("TestMessageFormat::testStaticFormat #1");
             logln(UnicodeString("TestMessageFormat::testStaticFormat failed test #1 with error code ")+(int32_t)err);
             return;
@@ -380,7 +380,7 @@ void TestMessageFormat::testSimpleFormat(char* parm)
 {
     logln("running TestMessageFormat::testSimpleFormat");
 
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
 
     Formattable testArgs1[] = {T_INT32(0), "MyDisk"};
     Formattable testArgs2[] = {T_INT32(1), "MyDisk"};
@@ -392,14 +392,14 @@ void TestMessageFormat::testSimpleFormat(char* parm)
     UnicodeString string;
     FieldPosition ignore(FieldPosition::DONT_CARE);
     form->format(testArgs1, 2, string, ignore, err);
-    if (FAILURE(err) || string != "The disk \"MyDisk\" contains 0 file(s).") {
+    if (U_FAILURE(err) || string != "The disk \"MyDisk\" contains 0 file(s).") {
         errln(UnicodeString("TestMessageFormat::testSimpleFormat failed on test #1"));
     }
  
     ignore.setField(FieldPosition::DONT_CARE);
     string.remove();
     form->format(testArgs2, 2, string, ignore, err);
-    if (FAILURE(err) || string != "The disk \"MyDisk\" contains 1 file(s).") {
+    if (U_FAILURE(err) || string != "The disk \"MyDisk\" contains 1 file(s).") {
         logln(string);
         errln(UnicodeString("TestMessageFormat::testSimpleFormat failed on test #2")+string);
     }
@@ -407,7 +407,7 @@ void TestMessageFormat::testSimpleFormat(char* parm)
     ignore.setField(FieldPosition::DONT_CARE);
     string.remove();
     form->format(testArgs3, 2, string, ignore, err);
-    if (FAILURE(err) || string != "The disk \"MyDisk\" contains 12 file(s).") {
+    if (U_FAILURE(err) || string != "The disk \"MyDisk\" contains 12 file(s).") {
         errln(UnicodeString("TestMessageFormat::testSimpleFormat failed on test #3")+string);
     }
 
@@ -418,7 +418,7 @@ void TestMessageFormat::testMsgFormatChoice(char* parm)
 {
     logln("running TestMessageFormat::testMsgFormatChoice");
 
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
 
     MessageFormat* form = new MessageFormat("The disk \"{1}\" contains {0}.", err);
     double filelimits[] = {0,1,2};
@@ -463,7 +463,7 @@ void TestMessageFormat::testMsgFormatChoice(char* parm)
 void TestMessageFormat::testCopyConstructor() 
 {
     logln("TestMessageFormat::testCopyConstructor");
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     MessageFormat *x = new MessageFormat("There are {0} files on {1}", success);
     MessageFormat *z = new MessageFormat("There are {0} files on {1} created", success);
     MessageFormat *y = 0;
@@ -494,7 +494,7 @@ void TestMessageFormat::testCopyConstructor()
 void TestMessageFormat::testAssignment() 
 {
     logln("TestMessageFormat::testAssignment");
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     MessageFormat *x = new MessageFormat("There are {0} files on {1}", success);
     MessageFormat *z = new MessageFormat("There are {0} files on {1} created", success);
     MessageFormat *y = new MessageFormat("There are {0} files on {1} created", success);
@@ -524,7 +524,7 @@ void TestMessageFormat::testAssignment()
 void TestMessageFormat::testClone() 
 {
     logln("TestMessageFormat::testClone");
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     MessageFormat *x = new MessageFormat("There are {0} files on {1}", success);
     MessageFormat *z = new MessageFormat("There are {0} files on {1} created", success);
     MessageFormat *y = 0;
@@ -554,7 +554,7 @@ void TestMessageFormat::testClone()
 void TestMessageFormat::testEquals() 
 {
     logln("TestMessageFormat::testClone");
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     MessageFormat x("There are {0} files on {1}", success);
     MessageFormat y("There are {0} files on {1}", success);
     if (!(x == y)) {
@@ -566,7 +566,7 @@ void TestMessageFormat::testEquals()
 
 void TestMessageFormat::testNotEquals() 
 {
-    UErrorCode success = ZERO_ERROR;
+    UErrorCode success = U_ZERO_ERROR;
     MessageFormat x("There are {0} files on {1}", success);
     MessageFormat y(x);
     y.setLocale(Locale("fr"));
@@ -585,7 +585,7 @@ void TestMessageFormat::testNotEquals()
 
 void TestMessageFormat::testSetLocale()
 {
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
     GregorianCalendar cal(err);   
     Formattable arguments[] = {
         456.83,
@@ -664,7 +664,7 @@ void TestMessageFormat::testSetLocale()
 
 void TestMessageFormat::testFormat()
 {
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
     GregorianCalendar cal(err);   
 
     const Formattable ftarray[] = 
@@ -682,7 +682,7 @@ void TestMessageFormat::testFormat()
     UnicodeString formatStr = "On {0,date}, it began.";
     UnicodeString compareStr = "On Aug 8, 1997, it began.";
 
-    err = ZERO_ERROR;
+    err = U_ZERO_ERROR;
     MessageFormat msg( formatStr, err);
     FieldPosition fp(0);
 
@@ -695,10 +695,10 @@ void TestMessageFormat::testFormat()
         fp,
         err);
 
-    if (err != ILLEGAL_ARGUMENT_ERROR) {
+    if (err != U_ILLEGAL_ARGUMENT_ERROR) {
         it_errln("*** MSG format without expected error code.");
     }
-    err = ZERO_ERROR;
+    err = U_ZERO_ERROR;
 
     result = "";
     fp = 0;
@@ -723,7 +723,7 @@ void TestMessageFormat::testFormat()
 
 void TestMessageFormat::testParse()
 {
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
     int32_t count;
     UnicodeString msgFormatString = "{0} =sep= {1}";
     MessageFormat msg( msgFormatString, err);
@@ -731,7 +731,7 @@ void TestMessageFormat::testParse()
     UnicodeString tmp1, tmp2;
 
     Formattable* fmt_arr = msg.parse( source, count, err );
-    if (FAILURE(err) || (!fmt_arr)) {
+    if (U_FAILURE(err) || (!fmt_arr)) {
         it_errln("*** MSG parse (ustring, count, err) error.");
     }else{
         it_out << "MSG parse -- count: " << count << endl;
@@ -799,11 +799,11 @@ void TestMessageFormat::testParse()
 
 void TestMessageFormat::testAdopt()
 {
-    UErrorCode err = ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
 
     UnicodeString formatStr = "{0,date},{1},{2,number}";
     UnicodeString formatStrChange = "{0,number},{1,number},{2,date}";
-    err = ZERO_ERROR;
+    err = U_ZERO_ERROR;
     MessageFormat msg( formatStr, err);
     MessageFormat msgCmp( formatStr, err);
     int32_t count, countCmp;
@@ -1005,7 +1005,7 @@ endtest:
 // not tested and had no problems. Actually, the test failed by *crashing*.
 static void testCopyConstructor2()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UnicodeString formatStr("Hello World on {0,date,full}");
     UnicodeString resultStr(" ");
     UnicodeString result;
@@ -1065,4 +1065,3 @@ void TestMessageFormat::runIndexedTest( int32_t index, bool_t exec, char* &name,
         default: name = ""; break; //needed to end loop
     }
 }
-

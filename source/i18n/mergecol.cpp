@@ -64,7 +64,7 @@ MergeCollation::MergeCollation(const    UnicodeString&  pattern,
   
   if (patterns == NULL)
     {
-      status = MEMORY_ALLOCATION_ERROR;
+      status = U_MEMORY_ALLOCATION_ERROR;
       return;
     }
 
@@ -73,7 +73,7 @@ MergeCollation::MergeCollation(const    UnicodeString&  pattern,
   if (statusArray == NULL)
     {
       delete patterns;
-      status = MEMORY_ALLOCATION_ERROR;
+      status = U_MEMORY_ALLOCATION_ERROR;
       return;
     }
 
@@ -84,7 +84,7 @@ MergeCollation::MergeCollation(const    UnicodeString&  pattern,
     }
 
   setPattern(pattern, decompMode, status);
-  if (FAILURE(status))
+  if (U_FAILURE(status))
     {
       delete [] statusArray;
       statusArray = NULL;
@@ -250,7 +250,7 @@ void MergeCollation::setPattern(const   UnicodeString&  pattern,
                                 Normalizer::EMode decompMode,
                 UErrorCode&      success)
 {
-  if (FAILURE(success))
+  if (U_FAILURE(success))
     {
       return;
     }
@@ -258,7 +258,7 @@ void MergeCollation::setPattern(const   UnicodeString&  pattern,
   patterns->clear();
 
   addPattern(pattern, decompMode, success);
-  if (FAILURE(success))
+  if (U_FAILURE(success))
     {
       delete patterns;
       patterns = NULL;
@@ -273,7 +273,7 @@ void MergeCollation::addPattern(const   UnicodeString&  pattern,
                                 Normalizer::EMode decompMode,
                 UErrorCode&      success)
 {
-  if (FAILURE(success) || (pattern.size() == 0))
+  if (U_FAILURE(success) || (pattern.size() == 0))
     {
       return;
     }
@@ -284,7 +284,7 @@ void MergeCollation::addPattern(const   UnicodeString&  pattern,
 
   while (entry != NULL)
     {
-      if (FAILURE(success))
+      if (U_FAILURE(success))
     {
       delete entry;
       break;
@@ -292,7 +292,7 @@ void MergeCollation::addPattern(const   UnicodeString&  pattern,
 
       fixEntry(entry, success);
 
-      if (FAILURE(success))
+      if (U_FAILURE(success))
     {
       delete entry;
       break;
@@ -400,7 +400,7 @@ void MergeCollation::fixEntry(PatternEntry* newEntry,
       // Find the insertion point for the new entry.
       int32_t lastIndex = findLastEntry(lastEntry, excess, success);
 
-      if (FAILURE(success))
+      if (U_FAILURE(success))
     {
       return;
     }
@@ -441,7 +441,7 @@ MergeCollation::findLastEntry(const PatternEntry*   lastEntry,
                   UnicodeString&  excess,
                   UErrorCode&      success) const
 {
-  if (FAILURE(success))
+  if (U_FAILURE(success))
     {
       return -1;
     }
@@ -474,7 +474,7 @@ MergeCollation::findLastEntry(const PatternEntry*   lastEntry,
       // must exist!
       if (oldIndex == -1)
     {
-      success = INVALID_FORMAT_ERROR;
+      success = U_INVALID_FORMAT_ERROR;
       return oldIndex;
         }
 
@@ -516,12 +516,10 @@ MergeCollation::findLastEntry(const PatternEntry*   lastEntry,
 
       if (i == -1)
     {
-      success = INVALID_FORMAT_ERROR;
+      success = U_INVALID_FORMAT_ERROR;
       return i;
         }
 
       return i + 1;
     }
 }
-
-

@@ -152,10 +152,10 @@ void IntlTestDateFormat::tryDate(UDate theDate)
     int32_t i;
     for (i=0; i<DEPTH; ++i)
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         if (i == 0) date[i] = theDate;
         else date[i] = fFormat->parse(string[i-1], status);
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             describeTest();
             errln("********** FAIL: Parse of " + string[i-1] + " failed.");

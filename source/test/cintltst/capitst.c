@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda             Ported for CAPI
+*     Madhu Katragadda             Ported for C API
 *********************************************************************************
 *//* C API TEST For COLLATOR */
 #include "utypes.h"
@@ -56,12 +56,12 @@ void TestProperty()
     int32_t len;
     UChar *source, *target;
     int32_t tempLength;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     log_verbose("The property tests begin : \n");
     log_verbose("Test ucol_strcoll : \n");
     col = ucol_open(NULL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Default Collator creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -115,12 +115,12 @@ void TestProperty()
     log_verbose("Get display name for the default collation in German : \n");
 
     len=ucol_getDisplayName("en_US", "de_DE", NULL, 0,  &status);
-    if(status==BUFFER_OVERFLOW_ERROR){
-        status=ZERO_ERROR;
+    if(status==U_BUFFER_OVERFLOW_ERROR){
+        status=U_ZERO_ERROR;
         disName=(UChar*)malloc(sizeof(UChar) * (len+1));
         ucol_getDisplayName("en_US", "de_DE", disName, len+1,  &status);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in getDisplayName: %s\n", myErrorName(status));
         return;
     }
@@ -137,7 +137,7 @@ void TestProperty()
 
     log_verbose("open an collator for french locale");
     col = ucol_open("fr_FR", &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
        log_err("ERROR: Creating French collation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -155,12 +155,12 @@ void TestProperty()
     
     log_verbose("Get display name for the french collation in english : \n");
     len=ucol_getDisplayName("fr_FR", "en_US", NULL, 0,  &status);
-    if(status==BUFFER_OVERFLOW_ERROR){
-        status=ZERO_ERROR;
+    if(status==U_BUFFER_OVERFLOW_ERROR){
+        status=U_ZERO_ERROR;
         disName=(UChar*)malloc(sizeof(UChar) * (len+1));
         ucol_getDisplayName("fr_FR", "en_US", disName, len+1,  &status);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in getDisplayName: %s\n", myErrorName(status));
         return;
     }
@@ -180,22 +180,22 @@ void TestRuleBasedColl()
     UChar ruleset2[50];
     const UChar *rule1, *rule2, *rule3, *rule4;
     int32_t tempLength;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     
     u_uastrcpy(ruleset1, "< a, A < b, B < c, C; ch, cH, Ch, CH < d, D, e, E");
     u_uastrcpy(ruleset2, "< a, A < b, B < c, C < d, D, e, E");
     
     col1 = ucol_openRules(ruleset1, u_strlen(ruleset1), UCOL_DEFAULT_NORMALIZATION, UCOL_DEFAULT_STRENGTH, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("RuleBased Collator creation failed.: %s\n", myErrorName(status));
         return;
     }
     else
         log_verbose("PASS: RuleBased Collator creation passed\n");
     
-    status = ZERO_ERROR;
+    status = U_ZERO_ERROR;
     col2 = ucol_openRules(ruleset2, u_strlen(ruleset2),  UCOL_DEFAULT_NORMALIZATION, UCOL_DEFAULT_STRENGTH, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("RuleBased Collator creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -203,9 +203,9 @@ void TestRuleBasedColl()
         log_verbose("PASS: RuleBased Collator creation passed\n");
     
     
-    status = ZERO_ERROR;
+    status = U_ZERO_ERROR;
     col3= ucol_open(NULL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Default Collator creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -221,7 +221,7 @@ void TestRuleBasedColl()
     doAssert((u_strcmp(rule1, rule3) != 0), "Default collator getRules failed");
     
     col4=ucol_openRules(rule2, u_strlen(rule2), UCOL_DEFAULT_NORMALIZATION, UCOL_DEFAULT_STRENGTH, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("RuleBased Collator creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -237,15 +237,15 @@ void TestRuleBasedColl()
 
 void TestCompare()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UCollator *col;
     UChar* test1;
     UChar* test2;
     
     log_verbose("The compare tests begin : \n");
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
     col = ucol_open("en_US", &status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         log_err("ucal_open() collation creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -291,10 +291,10 @@ void TestSortKey()
     int32_t sortklen;
     UCollator *col;
     UChar *test1, *test2, *test3;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     log_verbose("testing SortKey begins...\n");
     col = ucol_open(NULL, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ERROR: Default collation creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -353,10 +353,10 @@ void TestHashCode()
     int32_t sortk1len, sortk2len, sortk3len;
     UCollator *col;
     UChar *test1, *test2, *test3;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     log_verbose("testing getHashCode begins...\n");
     col = ucol_open("en_US", &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ERROR: Default collation creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -404,11 +404,11 @@ void TestElemIter()
     UChar *testString1, *testString2;
     UCollator *col;
     UCollationElements *iterator1, *iterator2, *iterator3;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     log_verbose("testing UCollatorElements begins...\n");
     col = ucol_open(NULL, &status);
     ucol_setNormalization(col, UCOL_NO_NORMALIZATION);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("ERROR: Default collation creation failed.: %s\n", myErrorName(status));
         return;
     }
@@ -421,7 +421,7 @@ void TestElemIter()
     log_verbose("Constructors and comparison testing....\n");
     
     iterator1 = ucol_openElements(col, testString1, u_strlen(testString1), &status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         log_err("ERROR: Default collationElement iterator creation failed.: %s\n", myErrorName(status));
         ucol_close(col);
         return;
@@ -429,7 +429,7 @@ void TestElemIter()
     else{ log_verbose("PASS: Default collationElement iterator1 creation passed\n");}
 
     iterator2 = ucol_openElements(col, testString1, u_strlen(testString1), &status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         log_err("ERROR: Default collationElement iterator creation failed.: %s\n", myErrorName(status));
         ucol_close(col);
         return;
@@ -437,7 +437,7 @@ void TestElemIter()
     else{ log_verbose("PASS: Default collationElement iterator2 creation passed\n");}
 
     iterator3 = ucol_openElements(col, testString2, u_strlen(testString2), &status);
-    if(FAILURE(status)) {
+    if(U_FAILURE(status)) {
         log_err("ERROR: Default collationElement iterator creation failed.: %s\n", myErrorName(status));
         ucol_close(col);
         return;
@@ -446,7 +446,7 @@ void TestElemIter()
 
     offset=ucol_getOffset(iterator1);
     ucol_setOffset(iterator1, 6, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Error in setOffset for UCollatorElements iterator.: %s\n", myErrorName(status));
         return;
     }
@@ -458,19 +458,19 @@ void TestElemIter()
 
     ucol_setOffset(iterator1, 0, &status);
     order1 = ucol_next(iterator1, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Somehow ran out of memory stepping through the iterator1.: %s\n", myErrorName(status));
         return;
     }
     order2=ucol_getOffset(iterator2);
     doAssert((order1 != order2), "The first iterator advance failed");
     order2 = ucol_next(iterator2, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Somehow ran out of memory stepping through the iterator2.: %s\n", myErrorName(status));
         return;
     }
     order3 = ucol_next(iterator3, &status);
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         log_err("Somehow ran out of memory stepping through the iterator3.: %s\n", myErrorName(status));
         return;
     }
@@ -521,5 +521,3 @@ void TestGetAll()
 
 
 }
-
-

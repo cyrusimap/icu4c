@@ -100,10 +100,10 @@ void G7CollationTest::doTest( Collator* myCollation, UnicodeString source, Unico
 {
     Collator::EComparisonResult compareResult = myCollation->compare(source, target);
     CollationKey sortKey1, sortKey2;
-    UErrorCode key1status = ZERO_ERROR, key2status = ZERO_ERROR; //nos
+    UErrorCode key1status = U_ZERO_ERROR, key2status = U_ZERO_ERROR; //nos
     myCollation->getCollationKey(source, /*nos*/ sortKey1, key1status );
     myCollation->getCollationKey(target, /*nos*/ sortKey2, key2status );
-    if (FAILURE(key1status) || FAILURE(key2status)) {
+    if (U_FAILURE(key1status) || U_FAILURE(key2status)) {
         errln("SortKey generation Failed.\n");
         return;
     }
@@ -119,11 +119,11 @@ void G7CollationTest::TestG7Locales( char* par )
     {
         Collator *myCollation= 0;
         UnicodeString dispName;
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         RuleBasedCollator* tblColl1 = 0;
 
         myCollation = Collator::createInstance(locales[i], status);
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             UnicodeString msg;
 
@@ -136,9 +136,9 @@ void G7CollationTest::TestG7Locales( char* par )
         }
 
         const UnicodeString& defRules = ((RuleBasedCollator*)myCollation)->getRules();
-        status = ZERO_ERROR;
+        status = U_ZERO_ERROR;
         tblColl1 = new RuleBasedCollator(((RuleBasedCollator*)myCollation)->getRules(), status);
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             UnicodeString msg, name;
 
@@ -174,14 +174,14 @@ void G7CollationTest::TestG7Locales( char* par )
 void G7CollationTest::TestDemo1( char* par )
 {
     logln("Demo Test 1 : Create a new table collation with rules \"& Z < p, P\"");
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Collator *col = Collator::createInstance(status);
     const UnicodeString baseRules = ((RuleBasedCollator*)col)->getRules();
     UnicodeString newRules(" & Z < p, P");
     newRules.insert(0, baseRules);
     RuleBasedCollator *myCollation = new RuleBasedCollator(newRules, status);
 
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         errln( "Demo Test 1 Table Collation object creation failed.");
         return;
@@ -203,14 +203,14 @@ void G7CollationTest::TestDemo1( char* par )
 void G7CollationTest::TestDemo2( char* par )
 {
     logln("Demo Test 2 : Create a new table collation with rules \"& C < ch , cH, Ch, CH\"");
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Collator *col = Collator::createInstance(status);
     const UnicodeString baseRules = ((RuleBasedCollator*)col)->getRules();
     UnicodeString newRules("& C < ch , cH, Ch, CH");
     newRules.insert(0, baseRules);
     RuleBasedCollator *myCollation = new RuleBasedCollator(newRules, status);
 
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         errln("Demo Test 2 Table Collation object creation failed.");
         return;
@@ -232,14 +232,14 @@ void G7CollationTest::TestDemo2( char* par )
 void G7CollationTest::TestDemo3( char* par )
 {
     logln("Demo Test 3 : Create a new table collation with rules \"& Question'-'mark ; '?' & Hash'-'mark ; '#' & Ampersand ; '&'\"");
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Collator *col = Collator::createInstance(status);
     const UnicodeString baseRules = ((RuleBasedCollator*)col)->getRules();
     UnicodeString newRules = "& Question'-'mark ; '?' & Hash'-'mark ; '#' & Ampersand ; '&'";
     newRules.insert(0, baseRules);
     RuleBasedCollator *myCollation = new RuleBasedCollator(newRules, status);
 
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         errln("Demo Test 3 Table Collation object creation failed.");
         return;
@@ -261,14 +261,14 @@ void G7CollationTest::TestDemo3( char* par )
 void G7CollationTest::TestDemo4( char* par )
 {
     logln("Demo Test 4 : Create a new table collation with rules \" & aa ; a'-' & ee ; e'-' & ii ; i'-' & oo ; o'-' & uu ; u'-' \"");
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Collator *col = Collator::createInstance(status);
     const UnicodeString baseRules = ((RuleBasedCollator*)col)->getRules();
     UnicodeString newRules = " & aa ; a'-' & ee ; e'-' & ii ; i'-' & oo ; o'-' & uu ; u'-' ";
     newRules.insert(0, baseRules);
     RuleBasedCollator *myCollation = new RuleBasedCollator(newRules, status);
 
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
         errln( "Demo Test 4 Table Collation object creation failed." );
         return;

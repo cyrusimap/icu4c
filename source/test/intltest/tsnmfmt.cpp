@@ -33,7 +33,7 @@ void IntlTestNumberFormat::runIndexedTest( int32_t index, bool_t exec, char* &na
             if (exec)
             {
                 logln(name);
-                fStatus = ZERO_ERROR;
+                fStatus = U_ZERO_ERROR;
                 fFormat = NumberFormat::createInstance(fStatus);
                 testFormat(par);
             }
@@ -68,19 +68,19 @@ IntlTestNumberFormat::testLocale(char* par, const Locale& locale, const UnicodeS
     
     name = "Number test";
     logln((UnicodeString)name + " (" + localeName + ")");
-    fStatus = ZERO_ERROR;
+    fStatus = U_ZERO_ERROR;
     fFormat = NumberFormat::createInstance(locale, fStatus);
     testFormat(par);
 
     name = "Currency test";
     logln((UnicodeString)name + " (" + localeName + ")");
-    fStatus = ZERO_ERROR;
+    fStatus = U_ZERO_ERROR;
     fFormat = NumberFormat::createCurrencyInstance(locale, fStatus);
     testFormat(par);
 
     name = "Percent test";
     logln((UnicodeString)name + " (" + localeName + ")");
-    fStatus = ZERO_ERROR;
+    fStatus = U_ZERO_ERROR;
     fFormat = NumberFormat::createPercentInstance(locale, fStatus);
     testFormat(par);
 }
@@ -88,7 +88,7 @@ IntlTestNumberFormat::testLocale(char* par, const Locale& locale, const UnicodeS
 void
 IntlTestNumberFormat::testFormat(char *par)
 {
-    if (FAILURE(fStatus))
+    if (U_FAILURE(fStatus))
     { 
         errln((UnicodeString)"********** FAIL: createXxxInstance failed.");
         if (fFormat != 0) errln("********** FAIL: Non-null format returned by createXxxInstance upon failure.");
@@ -208,10 +208,10 @@ IntlTestNumberFormat::tryIt(double aNumber)
     int32_t i;
     for (i=0; i<DEPTH; ++i)
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         if (i == 0) number[i].setDouble(aNumber);
         else fFormat->parse(string[i-1], number[i], status);
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             errln("********** FAIL: Parse of " + string[i-1] + " failed.");
             dump = TRUE;
@@ -276,10 +276,10 @@ IntlTestNumberFormat::tryIt(int32_t aNumber)
     int32_t i;
     for (i=0; i<DEPTH; ++i)
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         if (i == 0) number[i].setLong(aNumber);
         else fFormat->parse(string[i-1], number[i], status);
-        if (FAILURE(status))
+        if (U_FAILURE(status))
         {
             errln("********** FAIL: Parse of " + string[i-1] + " failed.");
             dump = TRUE;

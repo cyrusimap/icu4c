@@ -18,7 +18,9 @@
 *   04/02/97    aliu        Creation.
 *   03/29/99    helena      Updated for C APIs.
 *   4/15/99     Madhu       Updated for C Implementation and Javadoc
-*   5/20/99     Madhu		Added the function u_getVersion()
+*   5/20/99     Madhu       Added the function u_getVersion()
+*   8/19/1999   srl         Upgraded scripts to Unicode 3.0
+*   8/27/1999   schererm    UCharDirection constants: U_...
 ********************************************************************************
 */
 
@@ -31,39 +33,6 @@
 /*===========================================================================*/
 #define UNICODE_VERSION  "3.0.0.beta"
 
-/**
- * The Unicode C API allows you to query the properties associated with individual 
- * Unicode character values.  
- * <p>
- * The Unicode character information, provided implicitly by the 
- * Unicode character encoding standard, includes information about the script 
- * (for example, symbols or control characters) to which the character belongs,
- * as well as semantic information such as whether a character is a digit or 
- * uppercase, lowercase, or uncased.
- * <P>
- */
-    
-
-    struct UCharDigitPair{
-        uint16_t fUnicode;
-        int8_t     fValue;
-    };
-    typedef struct UCharDigitPair UCharDigitPair;
-    struct BlockScriptMap {
-        UChar        fFirstCode;
-        UChar        fLastCode;
-    };
-    typedef struct BlockScriptMap BlockScriptMap;
-
-    
-   
-
-    static  bool_t  tablesCreated=FALSE;
-    static  bool_t  ulTablesCreated=FALSE;
-    static  bool_t  dirTablesCreated=FALSE;
-    static  void    createTables(void);
-    static  void    createUlTables(void);
-    static  void    createDirTables(void);
 /**
  * The Unicode C API allows you to query the properties associated with individual 
  * Unicode character values.  
@@ -98,38 +67,38 @@
 
 enum UCharCategory
 {
-    UNASSIGNED				= 0,
-	UPPERCASE_LETTER		= 1,
-	LOWERCASE_LETTER		= 2,
-	TITLECASE_LETTER		= 3,
-	MODIFIER_LETTER			= 4,
-	OTHER_LETTER			= 5,
-	NON_SPACING_MARK		= 6,
-	ENCLOSING_MARK			= 7,
-	COMBINING_SPACING_MARK	= 8,
-	DECIMAL_DIGIT_NUMBER	= 9,
-	LETTER_NUMBER			= 10,
-	OTHER_NUMBER			= 11,
-	SPACE_SEPARATOR			= 12,
-	LINE_SEPARATOR			= 13,
-	PARAGRAPH_SEPARATOR		= 14,
-	CONTROL					= 15,
-	FORMAT					= 16,
-	PRIVATE_USE				= 17,
-	SURROGATE				= 18,
-	DASH_PUNCTUATION		= 19,
-	START_PUNCTUATION		= 20,
-	END_PUNCTUATION			= 21,
-    CONNECTOR_PUNCTUATION	= 22,
-	OTHER_PUNCTUATION		= 23,
-	MATH_SYMBOL				= 24,
-	CURRENCY_SYMBOL			= 25,
-	MODIFIER_SYMBOL			= 26,
-	OTHER_SYMBOL			= 27,
-	INITIAL_PUNCTUATION		= 28,
-	FINAL_PUNCTUATION		= 29,
-	GENRERAL_OTHER_TYPES    = 30
-
+    U_UNASSIGNED              = 0,
+    U_UPPERCASE_LETTER        = 1,
+    U_LOWERCASE_LETTER        = 2,
+    U_TITLECASE_LETTER        = 3,
+    U_MODIFIER_LETTER         = 4,
+    U_OTHER_LETTER            = 5,
+    U_NON_SPACING_MARK        = 6,
+    U_ENCLOSING_MARK          = 7,
+    U_COMBINING_SPACING_MARK  = 8,
+    U_DECIMAL_DIGIT_NUMBER    = 9,
+    U_LETTER_NUMBER           = 10,
+    U_OTHER_NUMBER            = 11,
+    U_SPACE_SEPARATOR         = 12,
+    U_LINE_SEPARATOR          = 13,
+    U_PARAGRAPH_SEPARATOR     = 14,
+    U_CONTROL_CHAR            = 15,
+    U_FORMAT_CHAR             = 16,
+    U_PRIVATE_USE_CHAR        = 17,
+    U_SURROGATE               = 18,
+    U_DASH_PUNCTUATION        = 19,
+    U_START_PUNCTUATION       = 20,
+    U_END_PUNCTUATION         = 21,
+    U_CONNECTOR_PUNCTUATION   = 22,
+    U_OTHER_PUNCTUATION       = 23,
+    U_MATH_SYMBOL             = 24,
+    U_CURRENCY_SYMBOL         = 25,
+    U_MODIFIER_SYMBOL         = 26,
+    U_OTHER_SYMBOL            = 27,
+    U_INITIAL_PUNCTUATION     = 28,
+    U_FINAL_PUNCTUATION       = 29,
+    U_GENERAL_OTHER_TYPES     = 30,
+    U_CHAR_CATEGORY_COUNT
 };
 
 typedef enum UCharCategory UCharCategory;
@@ -138,27 +107,26 @@ typedef enum UCharCategory UCharCategory;
  */
 
 enum UCharDirection   { 
-    LEFT_TO_RIGHT               = 0, 
-    RIGHT_TO_LEFT               = 1, 
-    EUROPEAN_NUMBER             = 2,
-    EUROPEAN_NUMBER_SEPARATOR   = 3,
-    EUROPEAN_NUMBER_TERMINATOR  = 4,
-    ARABIC_NUMBER               = 5,
-    COMMON_NUMBER_SEPARATOR     = 6,
-    BLOCK_SEPARATOR             = 7,
-    SEGMENT_SEPARATOR           = 8,
-    WHITE_SPACE_NEUTRAL         = 9, 
-    OTHER_NEUTRAL               = 10, 
-	LEFT_TO_RIGHT_EMBEDDING     = 11,
-    LEFT_TO_RIGHT_OVERRIDE      = 12,
-	RIGHT_TO_LEFT_ARABIC        = 13,
-	RIGHT_TO_LEFT_EMBEDDING     = 14,
-	RIGHT_TO_LEFT_OVERRIDE      = 15,
-	POP_DIRECTIONAL_FORMAT      = 16,
-	DIR_NON_SPACING_MARK        = 17,
-	BOUNDARY_NEUTRAL            = 18
-   
-	
+    U_LEFT_TO_RIGHT               = 0, 
+    U_RIGHT_TO_LEFT               = 1, 
+    U_EUROPEAN_NUMBER             = 2,
+    U_EUROPEAN_NUMBER_SEPARATOR   = 3,
+    U_EUROPEAN_NUMBER_TERMINATOR  = 4,
+    U_ARABIC_NUMBER               = 5,
+    U_COMMON_NUMBER_SEPARATOR     = 6,
+    U_BLOCK_SEPARATOR             = 7,
+    U_SEGMENT_SEPARATOR           = 8,
+    U_WHITE_SPACE_NEUTRAL         = 9, 
+    U_OTHER_NEUTRAL               = 10, 
+    U_LEFT_TO_RIGHT_EMBEDDING     = 11,
+    U_LEFT_TO_RIGHT_OVERRIDE      = 12,
+    U_RIGHT_TO_LEFT_ARABIC        = 13,
+    U_RIGHT_TO_LEFT_EMBEDDING     = 14,
+    U_RIGHT_TO_LEFT_OVERRIDE      = 15,
+    U_POP_DIRECTIONAL_FORMAT      = 16,
+    U_DIR_NON_SPACING_MARK        = 17,
+    U_BOUNDARY_NEUTRAL            = 18,
+    U_CHAR_DIRECTION_COUNT
 };
 
 typedef enum UCharDirection UCharDirection;
@@ -166,76 +134,98 @@ typedef enum UCharDirection UCharDirection;
  * Script range as defined in the Unicode standard.
  */
 
+/* Generated from Unicode Data files */
 enum UCharScript {
-    BASIC_LATIN,
-    LATIN1_SUPPLEMENT,
-    LATIN_EXTENDED_A,
-    LATIN_EXTENDED_B,
-    IPA_EXTENSION,
-    SPACING_MODIFIER,
-    COMBINING_DIACRITICAL,
-    GREEK,
-    CYRILLIC,
-    ARMENIAN,
-    HEBREW,
-    ARABIC,
-    DEVANAGARI,
-    BENGALI,
-    GURMUKHI,
-    GUJARATI,
-    ORIYA,
-    TAMIL,
-    TELUGU,
-    KANNADA,
-    MALAYALAM,
-    THAI,
-    LAO,
-    TIBETAN,
-    GEORGIAN,
-    HANGUL_JAMO,
-    LATIN_EXTENDED_ADDITIONAL,
-    GREEK_EXTENDED,
-    GENERAL_PUNCTUATION,
-    SUPER_SUBSCRIPT,
-    CURRENCY_SYMBOL_SCRIPT,
-    SYMBOL_COMBINING_MARK,
-    LETTERLIKE_SYMBOL,
-    NUMBER_FORM,
-    ARROW,
-    MATH_OPERATOR,
-    MISC_TECHNICAL,
-    CONTROL_PICTURE,
-    OPTICAL_CHARACTER,
-    ENCLOSED_ALPHANUMERIC,
-    BOXDRAWING,
-    BLOCK_ELEMENT,
-    GEOMETRIC_SHAPE,
-    MISC_SYMBOL,
-    DINGBAT,
-    CJK_SYMBOL_PUNCTUATION,
-    HIRAGANA,
-    KATAKANA,
-    BOPOMOFO,
-    HANGUL_COMPATIBILITY_JAMO,
-    KANBUN,
-    ENCLOSED_CJK_LETTER_MONTH,
-    CJK_COMPATIBILITY,
-    CJK_UNIFIED_IDEOGRAPH,
-    HANGUL_SYLLABLE,
-    HIGH_SURROGATE,
-    HIGH_PRIVATE_USE_SURROGATE,
-    LOW_SURROGATE,
-    PRIVATE_USE_CHARACTERS,
-    CJK_COMPATIBILITY_IDEOGRAPH,
-    ALPHABETIC_PRESENTATION,
-    ARABICP_RESENTATION_A,
-    COMBINING_HALFMARK,
-    CJK_COMPATIBILITY_FORM,
-    SMALL_FORM_VARIANT,
-    ARABIC_PRESENTATION_B,
-    NO_SCRIPT,
-    HALFWIDTH_FULLWIDTH_FORM,
-    SCRIPT_COUNT
+/* Script names */
+    U_BASIC_LATIN,
+    U_LATIN_1_SUPPLEMENT,
+    U_LATIN_EXTENDED_A,
+    U_LATIN_EXTENDED_B,
+    U_IPA_EXTENSIONS,
+    U_SPACING_MODIFIER_LETTERS,
+    U_COMBINING_DIACRITICAL_MARKS,
+    U_GREEK,
+    U_CYRILLIC,
+    U_ARMENIAN,
+    U_HEBREW,
+    U_ARABIC,
+    U_SYRIAC,
+    U_THAANA,
+    U_DEVANAGARI,
+    U_BENGALI,
+    U_GURMUKHI,
+    U_GUJARATI,
+    U_ORIYA,
+    U_TAMIL,
+    U_TELUGU,
+    U_KANNADA,
+    U_MALAYALAM,
+    U_SINHALA,
+    U_THAI,
+    U_LAO,
+    U_TIBETAN,
+    U_MYANMAR,
+    U_GEORGIAN,
+    U_HANGUL_JAMO,
+    U_ETHIOPIC,
+    U_CHEROKEE,
+    U_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS,
+    U_OGHAM,
+    U_RUNIC,
+    U_KHMER,
+    U_MONGOLIAN,
+    U_LATIN_EXTENDED_ADDITIONAL,
+    U_GREEK_EXTENDED,
+    U_GENERAL_PUNCTUATION,
+    U_SUPERSCRIPTS_AND_SUBSCRIPTS,
+    U_CURRENCY_SYMBOLS,
+    U_COMBINING_MARKS_FOR_SYMBOLS,
+    U_LETTERLIKE_SYMBOLS,
+    U_NUMBER_FORMS,
+    U_ARROWS,
+    U_MATHEMATICAL_OPERATORS,
+    U_MISCELLANEOUS_TECHNICAL,
+    U_CONTROL_PICTURES,
+    U_OPTICAL_CHARACTER_RECOGNITION,
+    U_ENCLOSED_ALPHANUMERICS,
+    U_BOX_DRAWING,
+    U_BLOCK_ELEMENTS,
+    U_GEOMETRIC_SHAPES,
+    U_MISCELLANEOUS_SYMBOLS,
+    U_DINGBATS,
+    U_BRAILLE_PATTERNS,
+    U_CJK_RADICALS_SUPPLEMENT,
+    U_KANGXI_RADICALS,
+    U_IDEOGRAPHIC_DESCRIPTION_CHARACTERS,
+    U_CJK_SYMBOLS_AND_PUNCTUATION,
+    U_HIRAGANA,
+    U_KATAKANA,
+    U_BOPOMOFO,
+    U_HANGUL_COMPATIBILITY_JAMO,
+    U_KANBUN,
+    U_BOPOMOFO_EXTENDED,
+    U_ENCLOSED_CJK_LETTERS_AND_MONTHS,
+    U_CJK_COMPATIBILITY,
+    U_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A,
+    U_CJK_UNIFIED_IDEOGRAPHS,
+    U_YI_SYLLABLES,
+    U_YI_RADICALS,
+    U_HANGUL_SYLLABLES,
+    U_HIGH_SURROGATES,
+    U_HIGH_PRIVATE_USE_SURROGATES,
+    U_LOW_SURROGATES,
+    U_PRIVATE_USE_AREA,
+    U_CJK_COMPATIBILITY_IDEOGRAPHS,
+    U_ALPHABETIC_PRESENTATION_FORMS,
+    U_ARABIC_PRESENTATION_FORMS_A,
+    U_COMBINING_HALF_MARKS,
+    U_CJK_COMPATIBILITY_FORMS,
+    U_SMALL_FORM_VARIANTS,
+    U_ARABIC_PRESENTATION_FORMS_B,
+    U_SPECIALS,
+    U_HALFWIDTH_AND_FULLWIDTH_FORMS,
+    U_CHAR_SCRIPT_COUNT,
+    U_NO_SCRIPT=U_CHAR_SCRIPT_COUNT
 };
 typedef enum UCharScript UCharScript;
 
@@ -244,10 +234,11 @@ typedef enum UCharScript UCharScript;
  */
 enum UCellWidth
 {
-    ZERO_WIDTH              = 0,
-    HALF_WIDTH              = 1,
-    FULL_WIDTH              = 2,
-    NEUTRAL                 = 3
+    U_ZERO_WIDTH              = 0,
+    U_HALF_WIDTH              = 1,
+    U_FULL_WIDTH              = 2,
+    U_NEUTRAL_WIDTH           = 3,
+    U_CELL_WIDTH_COUNT
 };
 
 typedef enum UCellWidth UCellWidth;
@@ -266,7 +257,7 @@ typedef enum UCellWidth UCellWidth;
  * @see uistitle()
  * @see uislower()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_islower(UChar c);
 
 /**
@@ -279,7 +270,7 @@ u_islower(UChar c);
  * @see uistitle
  * @see utolower()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isupper(UChar c);
 
 /**
@@ -292,7 +283,7 @@ u_isupper(UChar c);
  * @see uislower()
  * @see utotitle()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_istitle(UChar c);
 
 /**
@@ -302,7 +293,7 @@ u_istitle(UChar c);
  * @param ch    the character to be tested
  * @return  true if the character is a digit; false otherwise.
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isdigit(UChar c);
 
 /**
@@ -319,7 +310,7 @@ u_isdigit(UChar c);
  * @see uislower()
  * @see uistitle()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isdefined(UChar c);
 
 /**
@@ -332,7 +323,7 @@ u_isdefined(UChar c);
  * @see uisdigit()
  * @see uisalnum()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isalpha(UChar c);
 
 /**
@@ -341,7 +332,7 @@ u_isalpha(UChar c);
  * @param ch    the character to be tested
  * @return  true if the character is a space character; false otherwise.
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isspace(UChar c);
 
 /**
@@ -352,7 +343,7 @@ u_isspace(UChar c);
  *
  * @see uisprint()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_iscntrl(UChar c);
 
 
@@ -365,7 +356,7 @@ u_iscntrl(UChar c);
  *
  * @see uiscntrl()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isprint(UChar c);
 
 /**
@@ -378,7 +369,7 @@ u_isprint(UChar c);
  * @see uisalpha()
  * @see uisdigit()
  */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isbase(UChar c);
 /**
   * Returns the linguistic direction property of a character.
@@ -388,7 +379,7 @@ u_isbase(UChar c);
   * property.
   * @see UCharDirection
   */
-CAPI UCharDirection U_EXPORT2
+U_CAPI UCharDirection U_EXPORT2
 u_charDirection(UChar c);
 
 /**
@@ -441,7 +432,7 @@ u_charDirection(UChar c);
  * consonant.  The results may be slightly off with Korean text following different
  * conventions.
  */
-CAPI uint16_t U_EXPORT2
+U_CAPI uint16_t U_EXPORT2
 u_charCellWidth(UChar c);
 
 /**
@@ -451,7 +442,7 @@ u_charCellWidth(UChar c);
  * @return a value of type int, the character category.
  * @see UCharCategory
  */
-CAPI int8_t U_EXPORT2
+U_CAPI int8_t U_EXPORT2
 u_charType(UChar c);
 
 /**
@@ -460,7 +451,7 @@ u_charType(UChar c);
  * @return the numeric value of ch in decimal radix.  This method returns
  * -1 if ch is not a valid digit character.
  */
-CAPI int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_charDigitValue(UChar c);
 
 /**
@@ -468,7 +459,7 @@ u_charDigitValue(UChar c);
  * Returns the script associated with a character.
  * @see #UCharScript
  */
-CAPI UCharScript     U_EXPORT2
+U_CAPI UCharScript     U_EXPORT2
 u_charScript(UChar    ch);
 
 /** 
@@ -486,7 +477,7 @@ u_charScript(UChar    ch);
   * @see     u_isalpha
   * @see     u_isIDPart
   */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isIDStart(UChar c);
 /**
   * A convenience method for determining if a Unicode character
@@ -511,7 +502,7 @@ u_isIDStart(UChar c);
   * @see     u_isIDIgnorable
   * @see     u_isIDStart
      */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isIDPart(UChar c);
 /**
   * A convenience method for determining if a Unicode character 
@@ -536,7 +527,7 @@ u_isIDPart(UChar c);
   *          FALSE otherwise.
   * @see     u_isIDPart
   */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isIDIgnorable(UChar c);
     /**
      * A convenience method for determining if a Unicode character
@@ -557,7 +548,7 @@ u_isIDIgnorable(UChar c);
      * @see     u_isalpha
      * @see     u_isIDStart
      */
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isJavaIDStart(UChar c);
     /**
      * A convenience method for determining if a Unicode character 
@@ -587,7 +578,7 @@ u_isJavaIDStart(UChar c);
      * @see     u_isIDPart
      */
 
-CAPI bool_t U_EXPORT2
+U_CAPI bool_t U_EXPORT2
 u_isJavaIDPart(UChar c);
 
 /**
@@ -611,7 +602,7 @@ u_isJavaIDPart(UChar c);
  * @return  the lowercase equivalent of the character, if any;
  *      otherwise the character itself.
  */
-CAPI UChar U_EXPORT2
+U_CAPI UChar U_EXPORT2
 u_tolower(UChar c);
 
 /**
@@ -628,7 +619,7 @@ u_tolower(UChar c);
  * @return  the uppercase equivalent of the character, if any;
  *      otherwise the character itself.
  */
-CAPI UChar U_EXPORT2
+U_CAPI UChar U_EXPORT2
 u_toupper(UChar c);
 /**
  * The given character is mapped to its titlecase equivalent according to Unicode
@@ -643,7 +634,7 @@ u_toupper(UChar c);
  * @return  the titlecase equivalent of the character, if any;
  *      otherwise the character itself.
  */
-CAPI UChar U_EXPORT2
+U_CAPI UChar U_EXPORT2
 u_totitle(UChar c);
 
 /**
@@ -651,7 +642,7 @@ u_totitle(UChar c);
  *The function is used to get the Unicode standard Version that is used
  *@return the Unicode stabdard Version number
  */
-CAPI const char* U_EXPORT2
+U_CAPI const char* U_EXPORT2
 u_getVersion(void);
 
 #endif /*_UCHAR*/

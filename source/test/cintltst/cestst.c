@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda            Ported for CAPI
+*     Madhu Katragadda            Ported for C API
 *********************************************************************************
 /**
  * CollationSpanishTest is a third level test class.  This tests the locale
@@ -108,9 +108,9 @@ void TestTertiary( )
 {
     
     int32_t i;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = ucol_open("es_ES", &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
     }
     log_verbose("Testing Spanish Collation with Tertiary strength\n");
@@ -126,9 +126,9 @@ void TestPrimary()
 {
     
     int32_t i;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     myCollation = ucol_open("es_ES", &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
     }
     log_verbose("Testing Spanish Collation with Primary strength\n");

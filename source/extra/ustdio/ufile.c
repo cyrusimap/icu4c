@@ -21,10 +21,11 @@
 *******************************************************************************
 */
 
+#include "uhash.h"
 #include "ustdio.h"
-#include "loccache.h"
 #include "ufile.h"
 #include "uloc.h"
+#include "loccache.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -127,7 +128,7 @@ u_fopen(const char    *filename,
     const char    *locale,
     const char    *codepage)
 {
-  UErrorCode     status = ZERO_ERROR;
+  UErrorCode     status = U_ZERO_ERROR;
   bool_t     useSysCP = (locale == 0 && codepage == 0);
   UFILE     *result = (UFILE*) malloc(sizeof(UFILE));
   if(result == 0)
@@ -168,7 +169,7 @@ u_fopen(const char    *filename,
     codepage = 0;
 
   result->fConverter = ucnv_open(codepage, &status);
-  if(FAILURE(status) || result->fConverter == 0) {
+  if(U_FAILURE(status) || result->fConverter == 0) {
     fclose(result->fFile);
     free(result);
     return 0;
@@ -182,7 +183,7 @@ u_finit(FILE        *f,
     const char    *locale,
     const char    *codepage)
 {
-  UErrorCode     status         = ZERO_ERROR;
+  UErrorCode     status         = U_ZERO_ERROR;
   bool_t     useSysCP     = (locale == 0 && codepage == 0);
   UFILE     *result     = (UFILE*) malloc(sizeof(UFILE));
   if(result == 0)
@@ -218,7 +219,7 @@ u_finit(FILE        *f,
     codepage = 0;
 
   result->fConverter = ucnv_open(codepage, &status);
-  if(FAILURE(status) || result->fConverter == 0) {
+  if(U_FAILURE(status) || result->fConverter == 0) {
     fclose(result->fFile);
     free(result);
     return 0;
@@ -269,11 +270,11 @@ u_fsetlocale(const char        *locale,
 const char*
 u_fgetcodepage(UFILE        *file)
 {
-  UErrorCode     status = ZERO_ERROR;
+  UErrorCode     status = U_ZERO_ERROR;
   const char     *codepage;
 
   codepage = ucnv_getName(file->fConverter, &status); 
-  if(FAILURE(status)) return 0;
+  if(U_FAILURE(status)) return 0;
   return codepage;
 }
 
@@ -281,7 +282,7 @@ int32_t
 u_fsetcodepage(    const char    *codepage,
         UFILE        *file)
 {
-  UErrorCode status = ZERO_ERROR;
+  UErrorCode status = U_ZERO_ERROR;
 
   /* if the codepage is 0, use the default for the locale */
   if(codepage == 0) {
@@ -292,7 +293,13 @@ u_fsetcodepage(    const char    *codepage,
 
   ucnv_close(file->fConverter);
   file->fConverter = ucnv_open(codepage, &status);
-  if(FAILURE(status))
+  if(U_FAILURE(status))
     return -1;
   return 0;
+}
+
+
+UConverter * u_fgetConverter(UFILE *file)
+{
+  return file->fConverter;
 }

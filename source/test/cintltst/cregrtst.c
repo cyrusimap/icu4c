@@ -15,7 +15,7 @@
 *
 * Modification History:
 *        Name                     Description            
-*     Madhu Katragadda            Ported for CAPI, added extra functions and tests
+*     Madhu Katragadda            Ported for C API, added extra functions and tests
 *********************************************************************************
 */
 
@@ -671,11 +671,11 @@ UChar* createTestData(Vector *select, int32_t e)
 
 void TestForwardSentenceSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -688,11 +688,11 @@ void TestForwardSentenceSelection()
 
 void TestFirstSentenceSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -704,11 +704,11 @@ void TestFirstSentenceSelection()
 
 void TestLastSentenceSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -720,11 +720,11 @@ void TestLastSentenceSelection()
 
 void TestBackwardSentenceSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -736,11 +736,11 @@ void TestBackwardSentenceSelection()
 
 void TestForwardSentenceIndexSelection()
 {
-   UErrorCode status = ZERO_ERROR;
+   UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -752,11 +752,11 @@ void TestForwardSentenceIndexSelection()
 
 void TestBackwardSentenceIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestSentenceData();
     e = ubrk_open(UBRK_SENTENCE, "en_US", testSentenceText, u_strlen(testSentenceText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -788,11 +788,11 @@ FreeTextBoundary();
 
 void TestForwardWordSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -805,11 +805,11 @@ void TestForwardWordSelection()
 
 void TestFirstWordSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -821,11 +821,11 @@ void TestFirstWordSelection()
 
 void TestLastWordSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -837,11 +837,11 @@ void TestLastWordSelection()
 
 void TestBackwardWordSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -853,11 +853,11 @@ void TestBackwardWordSelection()
 
 void TestForwardWordIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -869,11 +869,11 @@ void TestForwardWordIndexSelection()
 
 void TestBackwardWordIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestWordData();
     e = ubrk_open(UBRK_WORD, "en_US", testWordText, u_strlen(testWordText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -907,11 +907,11 @@ FreeTextBoundary();
 
 void TestForwardLineSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -922,11 +922,11 @@ void TestForwardLineSelection()
 
 void TestFirstLineSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -938,11 +938,11 @@ void TestFirstLineSelection()
 
 void TestLastLineSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -954,11 +954,11 @@ void TestLastLineSelection()
 
 void TestBackwardLineSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -970,11 +970,11 @@ void TestBackwardLineSelection()
 
 void TestForwardLineIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -986,11 +986,11 @@ void TestForwardLineIndexSelection()
 
 void TestBackwardLineIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestLineData();
     e = ubrk_open(UBRK_LINE, "en_US", testLineText, u_strlen(testLineText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1005,7 +1005,7 @@ void TestLineInvariants()
     UTextOffset i, j, k;
     UChar c;
     UBreakIterator *e;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
    UChar noBreak[10], dashes[10];
    bool_t saw2;
    UChar work[5];
@@ -1024,7 +1024,7 @@ AllocateTextBoundary();
     /* in addition to the other invariants, a line-break iterator should make sure that:
        it doesn't break around the non-breaking characters */
     errorCount=0;
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
     u_strcpy(noBreak, CharsToUCharArray("\\u00a0\\u2007\\u2011\\ufeff"));
     u_uastrcpy(work, "aaa");
     for (i = 0; i < u_strlen(s); i++) {
@@ -1038,7 +1038,7 @@ AllocateTextBoundary();
                 work[2] = s[k];
                 
                 e = ubrk_open(UBRK_LINE, "en_US", work, u_strlen(work), &status);
-                if(FAILURE(status)){
+                if(U_FAILURE(status)){
                 log_err("FAIL: Error in opening the word break Iterator in testLineInvaiants:\n %s\n", myErrorName(status));
                 return;
                 }
@@ -1064,18 +1064,18 @@ AllocateTextBoundary();
             work[1] = dashes[j];
             for (k = 0; k < u_strlen(s); k++) {
                  c = s[k];
-                if (u_charType(c) == DECIMAL_DIGIT_NUMBER ||
-                    u_charType(c) == OTHER_NUMBER ||
-                    u_charType(c) == NON_SPACING_MARK ||
-                    u_charType(c) == ENCLOSING_MARK ||
-                    u_charType(c) == CURRENCY_SYMBOL ||
+                if (u_charType(c) == U_DECIMAL_DIGIT_NUMBER ||
+                    u_charType(c) == U_OTHER_NUMBER ||
+                    u_charType(c) == U_NON_SPACING_MARK ||
+                    u_charType(c) == U_ENCLOSING_MARK ||
+                    u_charType(c) == U_CURRENCY_SYMBOL ||
                     c == '\n' || c == '\r' || c == 0x2028 || c == 0x2029 ||
                     c == 0x0003 || c == 0x00a0 || c == 0x2007 || c == 0x2011 ||
                     c == 0xfeff)
                     continue;
                 work[2] = c;
                 e = ubrk_open(UBRK_LINE, "en_US", work, u_strlen(work), &status);
-                if(FAILURE(status)){
+                if(U_FAILURE(status)){
                 log_err("FAIL: Error in opening the word break Iterator in testLineInvaiants:\n %s \n", myErrorName(status));
                 return;
                 }
@@ -1103,11 +1103,11 @@ FreeTextBoundary();
 
 void TestForwardCharacterSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1119,11 +1119,11 @@ void TestForwardCharacterSelection()
 
 void TestFirstCharacterSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1135,11 +1135,11 @@ void TestFirstCharacterSelection()
 
 void TestLastCharacterSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1151,11 +1151,11 @@ void TestLastCharacterSelection()
 
 void TestBackwardCharacterSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1167,11 +1167,11 @@ void TestBackwardCharacterSelection()
 
 void TestForwardCharacterIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1183,11 +1183,11 @@ void TestForwardCharacterIndexSelection()
 
 void TestBackwardCharacterIndexSelection()
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *e;
     addTestCharacterData();
     e = ubrk_open(UBRK_CHARACTER, "en_US", testCharacterText, u_strlen(testCharacterText), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     }
@@ -1223,11 +1223,11 @@ void TestPreceding()
     UTextOffset p1, p2, p3, p4, f, p;
     UBreakIterator *e;
     UChar words3[15];
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     u_uastrcpy(words3, "aaa bbb ccc");
     log_verbose("Testting preceding...\n");
     e  = ubrk_open(UBRK_WORD, "en_US", words3, u_strlen(words3), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in ubrk_open() for word breakiterator: %s\n", myErrorName(status));
     }
     
@@ -1251,13 +1251,13 @@ void TestPreceding()
 void TestEndBehaviour()
 {
     int32_t end, previous;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UBreakIterator* wb;
     UChar testString[5];
     u_uastrcpy(testString, "boo");
     log_verbose("Testing end behaviour\n");
     wb = ubrk_open(UBRK_WORD, "en_US", testString, u_strlen(testString), &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("FAIL: Error in opening the word break Iterator: %s\n", myErrorName(status));
         return;
     } 
@@ -1515,13 +1515,13 @@ void doBreakInvariantTest(UBreakIteratorType type, UChar* testChars)
     int l,k;
     UBreakIterator *tb;
     UTextOffset i, j;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UChar work[3]; 
     UChar breaks[10];
     UChar c;
     bool_t seen2;
     int errorCount = 0;
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
    
     u_uastrcpy(work, "aaa");
     
@@ -1546,7 +1546,7 @@ void doBreakInvariantTest(UBreakIteratorType type, UChar* testChars)
 
                 work[2] = testChars[k];
                 tb=ubrk_open(type, "en_US", work, u_strlen(work), &status);
-                if(FAILURE(status)){
+                if(U_FAILURE(status)){
                     log_err("ERROR in opening the breakIterator in doVariant Function: %s\n", myErrorName(status));
                 }
                 seen2 = FALSE;
@@ -1572,11 +1572,11 @@ void doOtherInvariantTest(UBreakIteratorType type , UChar* testChars)
     int32_t k;
     UBreakIterator *tb;
     UTextOffset i, j;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UChar work[5]; 
     UChar c;
     int32_t errorCount = 0;
-    status=ZERO_ERROR;
+    status=U_ZERO_ERROR;
    
     u_uastrcpy(work, "a\r\na");
     
@@ -1588,7 +1588,7 @@ void doOtherInvariantTest(UBreakIteratorType type , UChar* testChars)
         for (j = 0; j < u_strlen(testChars); j++) {
             work[3] = testChars[j];
             tb=ubrk_open(type, "en_US", work, u_strlen(work), &status);
-                if(FAILURE(status)){
+                if(U_FAILURE(status)){
                     log_err("ERROR in opening the breakIterator in doVariant Function: %s\n", myErrorName(status));
                     }
             for ( k = ubrk_first(tb); k != UBRK_DONE; k = ubrk_next(tb))
@@ -1612,12 +1612,12 @@ void doOtherInvariantTest(UBreakIteratorType type , UChar* testChars)
         work[1] = c;
         for (j = 0; j < u_strlen(testChars); j++) {
             c = testChars[j];
-            if ((u_charType(c) != NON_SPACING_MARK) && 
-                (u_charType(c) != ENCLOSING_MARK))
+            if ((u_charType(c) != U_NON_SPACING_MARK) && 
+                (u_charType(c) != U_ENCLOSING_MARK))
                 continue;
             work[2] = c;
             tb=ubrk_open(type, "en_US", work, u_strlen(work), &status);
-                if(FAILURE(status)){
+                if(U_FAILURE(status)){
                     log_err("ERROR in opening the breakIterator in doOtherVariant Function %s\n", myErrorName(status));
                     }
             for (k = ubrk_first(tb); k != UBRK_DONE; k = ubrk_next(tb))

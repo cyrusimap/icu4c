@@ -26,12 +26,12 @@
 #include "fmtable.h"
 #include "dcfmtsym.h"
 
-CAPI UNumberFormat*
+U_CAPI UNumberFormat*
 unum_open(    UNumberFormatStyle    style,
         const   char*        locale,
         UErrorCode*        status)
 {
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
   UNumberFormat *retVal = 0;
   
   switch(style) {
@@ -62,26 +62,26 @@ unum_open(    UNumberFormatStyle    style,
   case UNUM_SPELLOUT:
     // TBD: Add spellout support
     //retVal = (UNumberFormat*)new NumberSpelloutFormat();
-    *status = UNSUPPORTED_ERROR;
+    *status = U_UNSUPPORTED_ERROR;
     return 0;
     break;
   }
 
   if(retVal == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   return retVal;
 }
 
-CAPI UNumberFormat*
+U_CAPI UNumberFormat*
 unum_openPattern(    const    UChar*            pattern,
             int32_t            patternLength,
             const    char*        locale,
             UErrorCode*        status)
 {
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
 
   int32_t len = (patternLength == -1 ? u_strlen(pattern) : patternLength);
   const UnicodeString pat((UChar*)pattern, len, len);
@@ -94,14 +94,14 @@ unum_openPattern(    const    UChar*            pattern,
                     *status);
   
   if(syms == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   DecimalFormat *fmt = 0;
   fmt = new DecimalFormat(pat, syms, *status);
   if(fmt == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     delete syms;
     return 0;
   }
@@ -109,29 +109,29 @@ unum_openPattern(    const    UChar*            pattern,
   return (UNumberFormat*) fmt;
 }
 
-CAPI void
+U_CAPI void
 unum_close(UNumberFormat* fmt)
 {
   delete (NumberFormat*) fmt;
 }
 
-CAPI UNumberFormat*
+U_CAPI UNumberFormat*
 unum_clone(const UNumberFormat *fmt,
        UErrorCode *status)
 {
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
 
   Format *res = ((DecimalFormat*)fmt)->clone();
   
   if(res == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return 0;
   }
 
   return (UNumberFormat*) res;
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_format(    const    UNumberFormat*    fmt,
         int32_t            number,
         UChar*            result,
@@ -139,7 +139,7 @@ unum_format(    const    UNumberFormat*    fmt,
         UFieldPosition    *pos,
         UErrorCode*        status)
 {
-  if(FAILURE(*status)) return -1;
+  if(U_FAILURE(*status)) return -1;
 
   int32_t actSize;
 
@@ -160,7 +160,7 @@ unum_format(    const    UNumberFormat*    fmt,
   return actSize;  
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_formatDouble(    const    UNumberFormat*  fmt,
             double          number,
             UChar*          result,
@@ -168,7 +168,7 @@ unum_formatDouble(    const    UNumberFormat*  fmt,
             UFieldPosition  *pos, /* 0 if ignore */
             UErrorCode*     status)
 {
-  if(FAILURE(*status)) return -1;
+  if(U_FAILURE(*status)) return -1;
 
   int32_t actSize;
 
@@ -189,14 +189,14 @@ unum_formatDouble(    const    UNumberFormat*  fmt,
   return actSize;  
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_parse(    const   UNumberFormat*  fmt,
         const   UChar*          text,
         int32_t         textLength,
         int32_t         *parsePos /* 0 = start */,
         UErrorCode      *status)
 {
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
 
   int32_t len = (textLength == -1 ? u_strlen(text) : textLength);
   const UnicodeString src((UChar*)text, len, len);
@@ -213,7 +213,7 @@ unum_parse(    const   UNumberFormat*  fmt,
       *parsePos = pp.getIndex();
     else {
       *parsePos = pp.getErrorIndex();
-      *status = PARSE_ERROR;
+      *status = U_PARSE_ERROR;
     }
   }
 
@@ -223,14 +223,14 @@ unum_parse(    const   UNumberFormat*  fmt,
     : (int32_t) res.getDouble();
 }
 
-CAPI double
+U_CAPI double
 unum_parseDouble(    const   UNumberFormat*  fmt,
             const   UChar*          text,
             int32_t         textLength,
             int32_t         *parsePos /* 0 = start */,
             UErrorCode      *status)
 {
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
 
   int32_t len = (textLength == -1 ? u_strlen(text) : textLength);
   const UnicodeString src((UChar*)text, len, len);
@@ -247,7 +247,7 @@ unum_parseDouble(    const   UNumberFormat*  fmt,
       *parsePos = pp.getIndex();
     else {
       *parsePos = pp.getErrorIndex();
-      *status = PARSE_ERROR;
+      *status = U_PARSE_ERROR;
     }
   }
   
@@ -257,89 +257,75 @@ unum_parseDouble(    const   UNumberFormat*  fmt,
     : (double) res.getLong();
 }
 
-CAPI const char*
+U_CAPI const char*
 unum_getAvailable(int32_t index)
 {
   return uloc_getAvailable(index);
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_countAvailable()
 {
   return uloc_countAvailable();
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_getAttribute(const UNumberFormat*          fmt,
           UNumberFormatAttribute  attr)
 {
   switch(attr) {
   case UNUM_PARSE_INT_ONLY:
     return ((NumberFormat*)fmt)->isParseIntegerOnly();
-    break;
     
   case UNUM_GROUPING_USED:
     return ((NumberFormat*)fmt)->isGroupingUsed();
-    break;
     
   case UNUM_DECIMAL_ALWAYS_SHOWN:
     return ((DecimalFormat*)fmt)->isDecimalSeparatorAlwaysShown();    
-    break;
     
   case UNUM_MAX_INTEGER_DIGITS:
     return ((NumberFormat*)fmt)->getMaximumIntegerDigits();
-    break;
     
   case UNUM_MIN_INTEGER_DIGITS:
     return ((NumberFormat*)fmt)->getMinimumIntegerDigits();
-    break;
     
   case UNUM_INTEGER_DIGITS:
     // TBD: what should this return?
     return ((NumberFormat*)fmt)->getMinimumIntegerDigits();
-    break;
     
   case UNUM_MAX_FRACTION_DIGITS:
     return ((NumberFormat*)fmt)->getMaximumFractionDigits();
-    break;
     
   case UNUM_MIN_FRACTION_DIGITS:
     return ((NumberFormat*)fmt)->getMinimumFractionDigits();
-    break;
     
   case UNUM_FRACTION_DIGITS:
     // TBD: what should this return?
     return ((NumberFormat*)fmt)->getMinimumFractionDigits();
-    break;
 
   case UNUM_MULTIPLIER:
     return ((DecimalFormat*)fmt)->getMultiplier();    
-    break;
     
   case UNUM_GROUPING_SIZE:
     return ((DecimalFormat*)fmt)->getGroupingSize();    
-    break;
 
   case UNUM_ROUNDING_MODE:
     return ((DecimalFormat*)fmt)->getRoundingMode();
-    break;
 
   case UNUM_FORMAT_WIDTH:
     return ((DecimalFormat*)fmt)->getFormatWidth();
-    break;
 
   /** The position at which padding will take place. */
   case UNUM_PADDING_POSITION:
     return ((DecimalFormat*)fmt)->getPadPosition();
-    break;
 
   default:
-    return -1;
     break;
   }
+  return -1;
 }
 
-CAPI void
+U_CAPI void
 unum_setAttribute(    UNumberFormat*          fmt,
             UNumberFormatAttribute  attr,
             int32_t                 newValue)
@@ -407,22 +393,18 @@ unum_setAttribute(    UNumberFormat*          fmt,
   }
 }
 
-CAPI double
+U_CAPI double
 unum_getDoubleAttribute(const UNumberFormat*          fmt,
           UNumberFormatAttribute  attr)
 {
-  switch(attr) {
-  case UNUM_ROUNDING_INCREMENT:
+  if(attr==UNUM_ROUNDING_INCREMENT) {
     return ((DecimalFormat*)fmt)->getRoundingIncrement();
-    break;
-
-  default:
+  } else {
     return -1.0;
-    break;
   }
 }
 
-CAPI void
+U_CAPI void
 unum_setDoubleAttribute(    UNumberFormat*          fmt,
             UNumberFormatAttribute  attr,
             double                 newValue)
@@ -435,14 +417,14 @@ unum_setDoubleAttribute(    UNumberFormat*          fmt,
   }
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_getTextAttribute(    const    UNumberFormat*                    fmt,
             UNumberFormatTextAttribute      tag,
             UChar*                            result,
             int32_t                            resultLength,
             UErrorCode*                        status)
 {
-  if(FAILURE(*status)) return -1;
+  if(U_FAILURE(*status)) return -1;
 
   int32_t actSize = 0;
 
@@ -471,7 +453,7 @@ unum_getTextAttribute(    const    UNumberFormat*                    fmt,
     break;
 
   default:
-    *status = UNSUPPORTED_ERROR;
+    *status = U_UNSUPPORTED_ERROR;
     return -1;
     break;
   }
@@ -481,14 +463,14 @@ unum_getTextAttribute(    const    UNumberFormat*                    fmt,
   return actSize;
 }
 
-CAPI void
+U_CAPI void
 unum_setTextAttribute(    UNumberFormat*                    fmt,
             UNumberFormatTextAttribute      tag,
             const    UChar*                            newValue,
             int32_t                            newValueLength,
             UErrorCode                        *status)
 {
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   int32_t len = (newValueLength == -1 ? u_strlen(newValue) : newValueLength);
   const UnicodeString val((UChar*)newValue, len, len);
@@ -515,19 +497,19 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
     break;
 
   default:
-    *status = UNSUPPORTED_ERROR;
+    *status = U_UNSUPPORTED_ERROR;
     break;
   }
 }
 
-CAPI int32_t
+U_CAPI int32_t
 unum_toPattern(    const    UNumberFormat*          fmt,
         bool_t                  isPatternLocalized,
         UChar*                  result,
         int32_t                 resultLength,
         UErrorCode*             status)
 {
-  if(FAILURE(*status)) return -1;
+  if(U_FAILURE(*status)) return -1;
 
   int32_t actSize;
 
@@ -542,7 +524,7 @@ unum_toPattern(    const    UNumberFormat*          fmt,
   return actSize;
 }
 
-CAPI void
+U_CAPI void
 unum_getSymbols(const UNumberFormat* fmt,
         UNumberFormatSymbols *syms)
 {
@@ -586,16 +568,16 @@ unum_getSymbols(const UNumberFormat* fmt,
   syms->naN[len > 0 ? len + 1 : 0] = 0x0000;
 }
 
-CAPI void
+U_CAPI void
 unum_setSymbols(            UNumberFormat*          fmt,
                     const   UNumberFormatSymbols*   symbolsToSet,
                     UErrorCode *status)
 {
-  if(FAILURE(*status)) return;
+  if(U_FAILURE(*status)) return;
 
   DecimalFormatSymbols *syms = new DecimalFormatSymbols(*status);
   if(syms == 0) {
-    *status = MEMORY_ALLOCATION_ERROR;
+    *status = U_MEMORY_ALLOCATION_ERROR;
     return;
   }
 

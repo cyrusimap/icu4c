@@ -3,7 +3,8 @@
 *                                                                              *
 * COPYRIGHT:                                                                   *
 *   (C) Copyright Taligent, Inc.,  1997                                        *
-*   (C) Copyright International Business Machines Corporation,  1997-1998           *
+*   (C) Copyright International Business Machines Corporation,  1997-1998      *
+*   Copyright (C) 1999 Alan Liu and others. All rights reserved.               *
 *   Licensed Material - Program-Property of IBM - All Rights Reserved.         *
 *   US Government Users Restricted Rights - Use, duplication, or disclosure    *
 *   restricted by GSA ADP Schedule Contract with IBM Corp.                     *
@@ -24,6 +25,8 @@
 *                             Removed subParseLong
 *                             Removed chk
 *  02/22/99     stephen     Removed character literals for EBCDIC safety
+*   10/14/99    aliu        Updated 2-digit year parsing so that only "00" thru
+*                           "99" are recognized. {j28 4182066}
 ********************************************************************************
 */
 
@@ -184,11 +187,11 @@ SimpleDateFormat::SimpleDateFormat(const Locale& locale,
     fDefaultCenturyStart(fgSystemDefaultCentury),
     fDefaultCenturyStartYear(fgSystemDefaultCenturyYear)
 {
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
     fSymbols = new DateFormatSymbols(locale, status);
-    if (FAILURE(status))
+    if (U_FAILURE(status))
     {
-        status = ZERO_ERROR;
+        status = U_ZERO_ERROR;
         delete fSymbols;
         // This constructor doesn't fail; it uses last resort data
         fSymbols = new DateFormatSymbols(status);
@@ -262,17 +265,17 @@ void SimpleDateFormat::construct(EStyle timeStyle,
 {
     // called by several constructors to load pattern data from the resources
 
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
 
     // load up the DateTimePatters resource from the appropriate locale (throw
     // an error if for some weird reason the resource is malformed)
     ResourceBundle resources(Locale::getDataDirectory(), locale, status);
     int32_t dtCount;
     const UnicodeString *dateTimePatterns = resources.getStringArray(fgDateTimePatternsTag, dtCount, status);
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
     if (dtCount <= kDateTime)
     {
-        status = INVALID_FORMAT_ERROR;
+        status = U_INVALID_FORMAT_ERROR;
         return;
     }
 
@@ -310,7 +313,7 @@ void SimpleDateFormat::construct(EStyle timeStyle,
     else if (dateStyle != kNone) fPattern = dateTimePatterns[dateStyle];
     
     // and if it includes _neither_, that's an error
-    else status = INVALID_FORMAT_ERROR;
+    else status = U_INVALID_FORMAT_ERROR;
 
     // finally, finish initializing by creating a Calendar and a NumberFormat
     initialize(locale, status);
@@ -322,12 +325,12 @@ void
 SimpleDateFormat::initialize(const Locale& locale,
                              UErrorCode& status)
 {
-    if (FAILURE(status)) return;
+    if (U_FAILURE(status)) return;
 
     // {sfb} should this be here?
     if (fSymbols->fZoneStringsColCount < 1)
     {
-        status = INVALID_FORMAT_ERROR; // Check for bogus locale data
+        status = U_INVALID_FORMAT_ERROR; // Check for bogus locale data
         return;
     }
 
@@ -335,7 +338,7 @@ SimpleDateFormat::initialize(const Locale& locale,
     // least one row
     fCalendar = Calendar::createInstance(TimeZone::createDefault(), locale, status);
     fNumberFormat = NumberFormat::createInstance(locale, status);
-    if (fNumberFormat != NULL && SUCCESS(status))
+    if (fNumberFormat != NULL && U_SUCCESS(status))
     {
         // no matter what the locale's default number format looked like, we want
         // to modify it so that it doesn't use thousands separators, doesn't always
@@ -349,9 +352,9 @@ SimpleDateFormat::initialize(const Locale& locale,
 
         initializeDefaultCentury();
     }
-    else if (SUCCESS(status))
+    else if (U_SUCCESS(status))
     {
-        status = MISSING_RESOURCE_ERROR;
+        status = U_MISSING_RESOURCE_ERROR;
     }
 }
 
@@ -363,7 +366,7 @@ void SimpleDateFormat::initializeDefaultCentury()
     fDefaultCenturyStart        = internalGetDefaultCenturyStart();
     fDefaultCenturyStartYear    = internalGetDefaultCenturyStartYear();
 
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     fCalendar->setTime(fDefaultCenturyStart, status);
     // {sfb} throw away error
 }
@@ -373,11 +376,11 @@ void SimpleDateFormat::initializeDefaultCentury()
  */
 void SimpleDateFormat::parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& status) 
 {
-    if(FAILURE(status))
+    if(U_FAILURE(status))
         return;
         
     fCalendar->setTime(startDate, status);
-    if(SUCCESS(status)) {
+    if(U_SUCCESS(status)) {
         fDefaultCenturyStart = startDate;
         fDefaultCenturyStartYear = fCalendar->get(Calendar::YEAR, status);
     }
@@ -388,7 +391,7 @@ void SimpleDateFormat::parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& s
 UnicodeString&
 SimpleDateFormat::format(UDate date, UnicodeString& toAppendTo, FieldPosition& pos) const
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     pos.setBeginIndex(0);
     pos.setEndIndex(0);
 
@@ -403,7 +406,7 @@ SimpleDateFormat::format(UDate date, UnicodeString& toAppendTo, FieldPosition& p
     UnicodeString str;
     
     // loop through the pattern string character by character
-    for (int32_t i = 0; i < fPattern.size() && SUCCESS(status); ++i) {
+    for (int32_t i = 0; i < fPattern.size() && U_SUCCESS(status); ++i) {
         UChar ch = fPattern[i];
         
         // Use subFormat() to format a repeated pattern character
@@ -443,7 +446,7 @@ SimpleDateFormat::format(UDate date, UnicodeString& toAppendTo, FieldPosition& p
     // and if something failed (e.g., an invalid format character), reset our FieldPosition
     // to (0, 0) to show that
     // {sfb} look at this later- are these being set correctly?
-    if (FAILURE(status)) {
+    if (U_FAILURE(status)) {
         pos.setBeginIndex(0);
         pos.setEndIndex(0);
     }
@@ -514,13 +517,13 @@ SimpleDateFormat::subFormat(UnicodeString& result,
     // if the pattern character is unrecognized, signal an error and dump out
     if ((patternCharIndex = (EField)DateFormatSymbols::fgPatternChars.indexOf(ch)) == (EField)-1)
     {
-        status = INVALID_FORMAT_ERROR;
+        status = U_INVALID_FORMAT_ERROR;
         return result;
     }
 
     Calendar::EDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
     int32_t value = fCalendar->get(field, status);
-    if (FAILURE(status)) return result;
+    if (U_FAILURE(status)) return result;
 
     switch (patternCharIndex) {
     
@@ -612,9 +615,9 @@ SimpleDateFormat::subFormat(UnicodeString& result,
             else
                 zoneString += fgGmtPlus;
             
-            zoneString += zeroPaddingNumber(str, (int32_t)(value/kMillisPerHour), 2, 2);
+            zoneString += zeroPaddingNumber(str, (int32_t)(value/U_MILLIS_PER_HOUR), 2, 2);
             zoneString += 0x003A /*':'*/;
-            zoneString += zeroPaddingNumber(str, (int32_t)((value%kMillisPerHour)/kMillisPerMinute), 2, 2);
+            zoneString += zeroPaddingNumber(str, (int32_t)((value%U_MILLIS_PER_HOUR)/U_MILLIS_PER_MINUTE), 2, 2);
             
             result = zoneString;
         }
@@ -927,7 +930,7 @@ SimpleDateFormat::parse(const UnicodeString& text, ParsePosition& pos) const
     // when the two-digit year is equal to the start year, and thus might fall at the
     // front or the back of the default century.  This only works because we adjust
     // the year correctly to start with in other cases -- see subParse().
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UDate parsedDate;
     if (ambiguousYear[0]) // If this is true then the two-digit year == the default start year
     {
@@ -951,7 +954,7 @@ SimpleDateFormat::parse(const UnicodeString& text, ParsePosition& pos) const
     // If any Calendar calls failed, we pretend that we
     // couldn't parse the string, when in reality this isn't quite accurate--
     // we did parse it; the Calendar calls just failed.
-    if (FAILURE(status)) { 
+    if (U_FAILURE(status)) { 
         pos.setErrorIndex(start);
         pos.setIndex(oldStart); 
         return 0; 
@@ -1060,7 +1063,7 @@ SimpleDateFormat::subParseLong(const UnicodeString& text, ParsePosition& pos, in
 int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UChar ch, int32_t count,
                            bool_t obeyCount, bool_t ambiguousYear[]) const
 {
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     Formattable number;
     int32_t value = 0;
     int32_t i;
@@ -1117,12 +1120,15 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     case kEraField:
         return matchString(text, start, Calendar::ERA, fSymbols->fEras, fSymbols->fErasCount);
     case kYearField:
-        // If there are 4 or more YEAR pattern characters, this indicates
+        // If there are 3 or more YEAR pattern characters, this indicates
         // that the year value is to be treated literally, without any
         // two-digit year adjustments (e.g., from "01" to 2001).  Otherwise
         // we made adjustments to place the 2-digit year in the proper
-        // century -- unless the given year itself is more than two characters.
-        if (count <= 2 && (pos.getIndex() - start) <= 2)
+        // century, for parsed strings from "00" to "99".  Any other string
+        // is treated literally:  "2250", "-1", "1", "002".
+        if (count <= 2 && (pos.getIndex() - start) == 2
+            && Unicode::isDigit(text.charAt(start))
+            && Unicode::isDigit(text.charAt(start+1)))
         {
             // Assume for example that the defaultCenturyStart is 6/18/1903.
             // This means that two-digit years will be forced into the range
@@ -1287,7 +1293,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
                     // Must call set() with something -- TODO -- Fix this to
                     // use the correct DST SAVINGS for the zone.
                     delete tz;
-                    fCalendar->set(Calendar::DST_OFFSET, j >= 3 ? kMillisPerHour : 0);
+                    fCalendar->set(Calendar::DST_OFFSET, j >= 3 ? U_MILLIS_PER_HOUR : 0);
                     return (start + fSymbols->fZoneStrings[i][j].size());
                 }
             }
@@ -1296,9 +1302,9 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             // [+-]hhmm as specified by RFC 822.  This code is actually
             // a little more permissive than RFC 822.  It will try to do
             // its best with numbers that aren't strictly 4 digits long.
-            UErrorCode status = ZERO_ERROR;
+            UErrorCode status = U_ZERO_ERROR;
             DecimalFormat *fmt = new DecimalFormat("+####;-####", status);
-            if(FAILURE(status))
+            if(U_FAILURE(status))
                 return -start;
             fmt->setParseIntegerOnly(TRUE);
             // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
@@ -1327,12 +1333,12 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         // arrive here if the form GMT+/-... or an RFC 822 form was seen.
         if (sign != 0)
         {
-            offset *= kMillisPerMinute * sign;
+            offset *= U_MILLIS_PER_MINUTE * sign;
 
             if (fCalendar->getTimeZone().useDaylightTime())
             {
-                fCalendar->set(Calendar::DST_OFFSET, kMillisPerHour);
-                offset -= kMillisPerHour;
+                fCalendar->set(Calendar::DST_OFFSET, U_MILLIS_PER_HOUR);
+                offset -= U_MILLIS_PER_HOUR;
             }
             fCalendar->set(Calendar::ZONE_OFFSET, offset);
 
@@ -1391,7 +1397,7 @@ void SimpleDateFormat::translatePattern(const UnicodeString& originalPattern,
   // an error if a particular "pattern character" doesn't appear in "from".
   // Depending on the values of "from" and "to" this can convert from generic
   // to localized patterns or localized to generic.
-  if (FAILURE(status)) 
+  if (U_FAILURE(status)) 
     return;
   
   translatedPattern.remove();
@@ -1409,7 +1415,7 @@ void SimpleDateFormat::translatePattern(const UnicodeString& originalPattern,
            || (c >= 0x0041 /*'A'*/ && c <= 0x005A /*'Z'*/)) {
     UTextOffset ci = from.indexOf(c);
     if (ci == -1) {
-      status = INVALID_FORMAT_ERROR;
+      status = U_INVALID_FORMAT_ERROR;
       return;
     }
     c = to[ci];
@@ -1418,7 +1424,7 @@ void SimpleDateFormat::translatePattern(const UnicodeString& originalPattern,
     translatedPattern += c;
   }
   if (inQuote) {
-    status = INVALID_FORMAT_ERROR;
+    status = U_INVALID_FORMAT_ERROR;
     return;
   }
 }
@@ -1545,9 +1551,9 @@ SimpleDateFormat::initializeSystemDefaultCentury()
     // No point in locking as it should be idempotent.
     if (fgSystemDefaultCenturyStart == fgSystemDefaultCentury)
     {
-        UErrorCode status = ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         Calendar *calendar = Calendar::createInstance(status);
-        if (calendar != NULL && SUCCESS(status))
+        if (calendar != NULL && U_SUCCESS(status))
         {
             calendar->setTime(Calendar::getNow(), status);
             calendar->add(Calendar::YEAR, -80, status);

@@ -77,7 +77,7 @@ void MessageFormatTest( void )
     UChar *str;
     UChar* result;
     int32_t resultLengthOut,resultlength,i, patternlength;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UDate d1=1000000000.0;
     str=(UChar*)malloc(sizeof(UChar) * 7);
     u_uastrcpy(str, "MyDisk");
@@ -86,19 +86,19 @@ void MessageFormatTest( void )
     log_verbose("Testing u_formatMessage90\n");
     InitStrings();
     for (i = 0; i < cnt_testCases; i++) {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         patternlength=u_strlen(testCasePatterns[i]);
         resultLengthOut=u_formatMessage( "en_US",testCasePatterns[i], patternlength, result, resultlength, 
             &status, 1, 3456.00, d1);
-        if(status== BUFFER_OVERFLOW_ERROR)
+        if(status== U_BUFFER_OVERFLOW_ERROR)
         {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultLengthOut+1;
         result=(UChar*)realloc(result,sizeof(UChar) * resultlength);
         u_formatMessage( "en_US",testCasePatterns[i], patternlength, result, resultlength, 
             &status, 1, 3456.00, d1);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in message format on testcase %d:  %s\n", i, myErrorName(status) );
     }
     if(u_strcmp(result, testResultStrings[i])==0){
@@ -122,7 +122,7 @@ void TestSampleMessageFormat()
   UChar pattern[100], expected[100];
   int32_t resultLengthOut, resultlength;
   UDate d = 837039928046.0;
-  UErrorCode status = ZERO_ERROR;
+  UErrorCode status = U_ZERO_ERROR;
   str=(UChar*)malloc(sizeof(UChar) * 15);
   u_uastrcpy(str, "abc");    
     
@@ -132,14 +132,14 @@ void TestSampleMessageFormat()
   log_verbose("\nTesting a sample for Message format test#1\n");
   resultlength=1;
   resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, str, d);
-  if(status==BUFFER_OVERFLOW_ERROR)
+  if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-      status=ZERO_ERROR;
+      status=U_ZERO_ERROR;
       resultlength=resultLengthOut+1;
       result=(UChar*)realloc(result, sizeof(UChar) * resultlength);
       u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, str, d);
     }
-  if(FAILURE(status)){
+  if(U_FAILURE(status)){
     log_err("Error: failure in message format on test#1: %s\n", myErrorName(status));
   }
   if(u_strcmp(result, expected)==0)
@@ -163,14 +163,14 @@ void TestSampleMessageFormat()
                    &status, 
                    str,
                    235);
-  if(status==BUFFER_OVERFLOW_ERROR)
+  if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-      status=ZERO_ERROR;
+      status=U_ZERO_ERROR;
       resultlength=resultLengthOut+1;
       result=(UChar*)realloc(result, sizeof(UChar) * (resultlength+1));
       u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, str, 23);
     }
-  if(FAILURE(status)){
+  if(U_FAILURE(status)){
     log_err("Error: failure in message format on test#2 : %s\n", myErrorName(status));
   }
   if(u_strcmp(result, expected)==0)
@@ -188,14 +188,14 @@ void TestSampleMessageFormat()
   u_uastrcpy(str, "deposit");
   resultlength=0;
   resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, str, 500.00);
-  if(status==BUFFER_OVERFLOW_ERROR)
+  if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-      status=ZERO_ERROR;
+      status=U_ZERO_ERROR;
       resultlength=resultLengthOut+1;
       result=(UChar*)malloc(sizeof(UChar) * resultlength);
       u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, str, 500.00);
     }
-  if(FAILURE(status)){
+  if(U_FAILURE(status)){
     log_err("Error: failure in message format on test#3 : %s\n", myErrorName(status));
   }
   if(u_strcmp(result, expected)==0)
@@ -221,7 +221,7 @@ void TestSampleFormatAndParse()
     UCalendar *cal;
     UDate d1,d;
     UDateFormat *def1;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     double value;
     UChar ret[30];
     log_verbose("Testing format and parse\n");
@@ -231,12 +231,12 @@ void TestSampleFormatAndParse()
     tzID=(UChar*)malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "PST");
     cal=ucal_open(tzID, u_strlen(tzID), "en_US", UCAL_TRADITIONAL, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("error in ucal_open caldef : %s\n", myErrorName(status) );
     }
     ucal_setDateTime(cal, 1999, UCAL_MARCH, 18, 0, 0, 0, &status);
     d1=ucal_getMillis(cal, &status);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
             log_err("Error: failure in get millis: %s\n", myErrorName(status) );
     }
     
@@ -246,15 +246,15 @@ void TestSampleFormatAndParse()
     resultlength=1;
     result=(UChar*)malloc(sizeof(UChar) * resultlength);
     resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, d1, str, 7);
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultLengthOut+1;
         result=(UChar*)realloc(result, sizeof(UChar) * resultlength);
         u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, d1, str, 7);
         
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in message format test#4: %s\n", myErrorName(status));
     }
     if(u_strcmp(result, expected)==0)
@@ -268,12 +268,12 @@ void TestSampleFormatAndParse()
     /*try to parse this and check*/
     log_verbose("\nTesting the parse Message test#5\n");
     def1 = udat_open(UDAT_DEFAULT,UDAT_DEFAULT ,NULL, NULL, 0, &status);
-    if(FAILURE(status))
+    if(U_FAILURE(status))
     {
         log_err("error in creating the dateformat using short date and time style:\n %s\n", myErrorName(status));
     }
     u_parseMessage("en_US", pattern, u_strlen(pattern), result, u_strlen(result), &status, &d, ret, &value);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: error in parsing: test#5: %s\n", myErrorName(status));
     }
     if(value!=7.00 && u_strcmp(str,ret)!=0)
@@ -298,7 +298,7 @@ void TestSampleFormatAndParse()
 void TestMsgFormatChoice()
 {
     UChar* str;
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     UChar *result;
     UChar pattern[100];
     UChar expected[100];
@@ -312,14 +312,14 @@ void TestMsgFormatChoice()
     u_uastrcpy(expected, "The disk MyDisk contains 100 files");
     resultlength=0;
     resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, 100., str);
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultLengthOut+1;
         result=(UChar*)malloc(sizeof(UChar) * resultlength);
         u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, 100., str);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in message format on test#6 : %s\n", myErrorName(status));
     }
     if(u_strcmp(result, expected)==0)
@@ -334,14 +334,14 @@ void TestMsgFormatChoice()
     u_uastrcpy(expected, "The disk MyDisk contains no files");
     resultlength=0;
     resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, 0., str);
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultLengthOut+1;
         result=(UChar*)malloc(sizeof(UChar) * resultlength);
         u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, 0., str);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in message format on test#7 : %s\n", myErrorName(status));
     }
     if(u_strcmp(result, expected)==0)
@@ -356,14 +356,14 @@ void TestMsgFormatChoice()
     u_uastrcpy(expected, "The disk MyDisk contains one file");
     resultlength=0;
     resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, 1., str);
-    if(status==BUFFER_OVERFLOW_ERROR)
+    if(status==U_BUFFER_OVERFLOW_ERROR)
     {
-        status=ZERO_ERROR;
+        status=U_ZERO_ERROR;
         resultlength=resultLengthOut+1;
         result=(UChar*)malloc(sizeof(UChar) * resultlength);
         u_formatMessage( "en_US", pattern, u_strlen(pattern), result, resultlength, &status, 1., str);
     }
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in message format on test#8 : %s\n", myErrorName(status));
     }
     if(u_strcmp(result, expected)==0)
@@ -382,7 +382,7 @@ void TestParseMessage()
 {
     UChar pattern[100];
     UChar source[100];
-    UErrorCode status = ZERO_ERROR;
+    UErrorCode status = U_ZERO_ERROR;
     double value;
     UChar str[10];
     UChar res[10];
@@ -394,7 +394,7 @@ void TestParseMessage()
     u_uastrcpy(res,"deposited");
         
     u_parseMessage( "en_US", pattern, u_strlen(pattern), source, u_strlen(source), &status, str, &value);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in parse Message on test#9: %s\n", myErrorName(status));
     }
     if(value==500.00  && u_strcmp(str,res)==0)
@@ -411,7 +411,7 @@ void TestParseMessage()
     u_uastrcpy(res,"MyDisk");
         
     u_parseMessage( "en_US", pattern, u_strlen(pattern), source, u_strlen(source), &status, &value, str);
-    if(FAILURE(status)){
+    if(U_FAILURE(status)){
         log_err("ERROR: failure in parse Message on test#10: %s\n", myErrorName(status));
     }
     if(value==123.00 && u_strcmp(str,res)==0)
@@ -432,4 +432,3 @@ void addMsgForTest(TestNode** root)
     addTest(root, &TestParseMessage, "tsformat/cmsgtst/TestParseMessage");
 
 }
-

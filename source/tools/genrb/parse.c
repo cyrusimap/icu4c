@@ -28,6 +28,7 @@
 #include "ustr.h"
 #include "list.h"
 #include "rblist.h"
+#include "ustring.h"
 
 /* Node IDs for the state transition table. */
 enum ENode {
@@ -149,7 +150,7 @@ parse(FileStream *f,
   struct UHashtable *data;
 
 
-  if(FAILURE(*status)) return 0;
+  if(U_FAILURE(*status)) return 0;
 
   /* setup */
 
@@ -166,24 +167,24 @@ parse(FileStream *f,
 
   file = u_finit(f, status);
   list = rblist_open(status);
-  if(FAILURE(*status)) goto finish;
+  if(U_FAILURE(*status)) goto finish;
   
   /* iterate through the stream */
   for(;;) {
 
     /* get next token from stream */
     type = getNextToken(file, &token, status);
-    if(FAILURE(*status)) goto finish;
+    if(U_FAILURE(*status)) goto finish;
 
     switch(type) {
     case tok_EOF:
-      *status = (node == eInitial) ? ZERO_ERROR : INVALID_FORMAT_ERROR;
+      *status = (node == eInitial) ? U_ZERO_ERROR : U_INVALID_FORMAT_ERROR;
       setErrorText("Unexpected EOF encountered");
       goto finish;
       /*break;*/
 
     case tok_error:
-      *status = INVALID_FORMAT_ERROR;
+      *status = U_INVALID_FORMAT_ERROR;
       goto finish;
       /*break;*/
       
@@ -195,7 +196,7 @@ parse(FileStream *f,
     node = t.fNext;
     
     if(node == eError) {
-      *status = INVALID_FORMAT_ERROR;
+      *status = U_INVALID_FORMAT_ERROR;
       goto finish;
     }
     
@@ -206,10 +207,14 @@ parse(FileStream *f,
       /* Record the last string as the tag name */
     case eSetTag:
       ustr_cpy(&tag, &token, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       if(uhash_get(data, uhash_hashUString(tag.fChars)) != 0) {
-	*status = INVALID_FORMAT_ERROR;
-	setErrorText("Duplicate tag name detected");
+	 char *s;
+	*status = U_INVALID_FORMAT_ERROR;
+       s = icu_malloc(1024);
+       strcpy(s, "Duplicate tag name detected: ");
+       u_austrcpy(s+strlen(s), tag.fChars);
+       setErrorText(s);
 	goto finish;
       }
       break;
@@ -217,7 +222,7 @@ parse(FileStream *f,
       /* Record a singleton string */
     case eStr:
       if(current != 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       current = strlist_open(status);
@@ -225,7 +230,7 @@ parse(FileStream *f,
       item = make_rbitem(tag.fChars, current, status);
       rblist_add(list, item, status);
       uhash_put(data, tag.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       current = 0;
       item = 0;
       break;
@@ -233,18 +238,18 @@ parse(FileStream *f,
       /* Begin a string list */
     case eBegList:
       if(current != 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       current = strlist_open(status);
       strlist_add(current, token.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
       /* Record a comma-delimited list string */      
     case eListStr:
       strlist_add(current, token.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
       /* End a string list */
@@ -252,69 +257,69 @@ parse(FileStream *f,
       uhash_put(data, tag.fChars, status);
       item = make_rbitem(tag.fChars, current, status);
       rblist_add(list, item, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       current = 0;
       item = 0;
       break;
       
     case eBeg2dList:
       if(current != 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       current = strlist2d_open(status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
     case eEnd2dList:
       uhash_put(data, tag.fChars, status);
       item = make_rbitem(tag.fChars, current, status);
       rblist_add(list, item, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       current = 0;
       item = 0;
       break;
       
     case e2dStr:
       strlist2d_add(current, token.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
     case eNewRow:
       strlist2d_newRow(current, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
     case eBegTagged:
       if(current != 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       current = taglist_open(status);
       ustr_cpy(&subtag, &token, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
     case eEndTagged:
       uhash_put(data, tag.fChars, status);
       item = make_rbitem(tag.fChars, current, status);
       rblist_add(list, item, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       current = 0;
       item = 0;
       break;
       
     case eTaggedStr:
       taglist_add(current, subtag.fChars, token.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       break;
       
       /* Record the last string as the subtag */
     case eSubtag:
       ustr_cpy(&subtag, &token, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       if(taglist_get(current, subtag.fChars, status) != 0) {
-	*status = INVALID_FORMAT_ERROR;
+	*status = U_INVALID_FORMAT_ERROR;
 	setErrorText("Duplicate subtag found in tagged list");
 	goto finish;
       }
@@ -322,18 +327,18 @@ parse(FileStream *f,
       
     case eOpen:
       if(data != 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       ustr_cpy(&localeName, &token, status);
       rblist_setlocale(list, localeName.fChars, status);
-      if(FAILURE(*status)) goto finish;
+      if(U_FAILURE(*status)) goto finish;
       data = uhash_open(uhash_hashUString, status);
       break;
       
     case eClose:
       if(data == 0) {
-	*status = INTERNAL_PROGRAM_ERROR;
+	*status = U_INTERNAL_PROGRAM_ERROR;
 	goto finish;
       }
       break;

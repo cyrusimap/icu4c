@@ -52,11 +52,12 @@ CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@ \
 $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/common@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/i18n
-LIBS = @LIBS@ -L$(libdir) -L$(top_builddir)/common -licu-uc \
-		-L$(top_builddir)/i18n -licu-i18n
+LIBS = $(LIBICU-UC) $(LIBICU-I18N) @LIBS@
 
 OBJECTS = locbund.o loccache.o ufile.o ufmt_cmn.o uprintf.o uprntf_p.o	\
 uscanf.o uscanf_p.o uscanset.o ustdio.o
+
+HEADERS = ustdio.h
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -77,7 +78,19 @@ check: check-local
 
 all-local: $(TARGET)
 
-install-local: all-local
+install-local: all-local install-headers install-library
+
+install-library: all-local
+	$(mkinstalldirs) $(libdir)
+	$(INSTALL) $(TARGET) $(libdir)/$(TARGET)
+
+install-headers:
+	$(mkinstalldirs) $(includedir)
+	@list='$(HEADERS)'; for file in $$list; do \
+	 echo " $(INSTALL_DATA) $$file $(includedir)/$$file"; \
+	 $(INSTALL_DATA) $$file $(includedir)/$$file; \
+	done
+
 
 dist-local:
 
