@@ -19,6 +19,12 @@
 
 #include <iostream.h>
 
+#ifdef OS390
+// avoid collision with math.h/log()
+// this must be after including utypes.h so that OS390 is actually defined
+#pragma map(IntlTest::log( const UnicodeString &message ),"logos390")
+#endif
+
 #define it_out (*IntlTest::gTest)
 
 //-----------------------------------------------------------------------------

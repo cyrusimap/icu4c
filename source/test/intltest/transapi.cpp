@@ -21,22 +21,15 @@
 
 int32_t getInt(UnicodeString str)
 {
+    char buffer[20];
 	int len=str.length();
-	char *alias;
-	char *buffer=new char[len+1];
-	alias=buffer;
-	for(int i=0; i< len; i++){
-		*alias=(char)str.charAt(i);
-		alias++;
-	}
-
-	*alias='\0';
-//	printf("this is buffer %s and value is %d", buffer, atoi(buffer));
+    if(len>=20) {
+        len=19;
+    }
+    str.extract(0, len, buffer, "");
+    buffer[len]=0;
 	return atoi(buffer);
 }
-
-	    
-          
 
 //---------------------------------------------
 // runIndexedTest
@@ -220,7 +213,10 @@ void TransliteratorAPITest::TestGetDisplayName() {
             doTest(message, name, dispNames[i+1]);
             name=""; 
 		    t->getDisplayName(t->getID(), Locale::US, name);
-			message="Display name for on english locale ID:" + t->getID();
+			message.remove();
+			message.append("Display name for on english locale ID:");
+			message.append(t->getID());
+		//	message="Display name for on english locale ID:" + t->getID();
 		    doTest(message, name, dispNames[i+1]);
 			name="";
 			
@@ -267,7 +263,10 @@ void TransliteratorAPITest::TestTransliterate1(){
             //doubt here
             temp=Data[i+1];
             t->transliterate(temp);
-			message=t->getID() + "->transliterate(Replaceable) for \n\tSource:" +Data[i][1];
+            message.remove();
+            message.append(t->getID());
+            message.append("->transliterate(Replaceable) for \n\tSource:");
+            message.append(Data[i][1]);
             doTest(message, temp, Data[i+2]);
 			
          }
@@ -530,7 +529,7 @@ class TestFilter1 : public UnicodeFilter {
         return new TestFilter1(*this);
     }
     virtual bool_t contains(UChar c) const {
-       if(c=='c' || c=='a' || c=='C' || c=='A')
+       if(c==0x63 || c==0x61 || c==0x43 || c==0x41)
           return FALSE;
        else
           return TRUE;
@@ -541,7 +540,7 @@ class TestFilter2 : public UnicodeFilter {
         return new TestFilter2(*this);
     }
     virtual bool_t contains(UChar c) const {
-        if(c=='e' || c=='l')
+        if(c==0x65 || c==0x6c)
            return FALSE;
         else
            return TRUE;
@@ -552,7 +551,7 @@ class TestFilter3 : public UnicodeFilter {
         return new TestFilter3(*this);
     }
     virtual bool_t contains(UChar c) const {
-        if(c=='o' || c=='w')
+        if(c==0x6f || c==0x77)
            return FALSE;
         else
            return TRUE;
@@ -662,9 +661,9 @@ void TransliteratorAPITest::displayOutput(const UnicodeString& got, const Unicod
 			got.extractBetween(index.start, index.cursor, b);
 			got.extractBetween(index.cursor, got.length(), c);
 			log.append(a).
-				append('{').
+				append((UChar)0x7b/*{*/).
 				append(b).
-				append('|').
+				append((UChar)0x7c/*|*/).
 				append(c);
             if (got == expected) 
                 logln("OK:" + prettify(log));

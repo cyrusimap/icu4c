@@ -35,25 +35,12 @@
     /* this assumes a Western European Windows */
 #   define DEFAULT_CODEPAGE "IBM-1252"
 #elif defined(OS390)
-#   define DEFAULT_CODEPAGE "ibm-37-s390"
+#   define DEFAULT_CODEPAGE "ibm-1047-s390"
 #elif defined(OS400)
 #   define DEFAULT_CODEPAGE "ibm-37"
 #else
 #   define DEFAULT_CODEPAGE "LATIN_1"
 #endif
-
-int prv_stricmp(const char* string1, const char* string2)
-{
-  int32_t ch;
-  for(;;) {
-    ch = (int32_t)tolower(*string1) - (int32_t)tolower(*string2);
-    if(ch != 0 || *string1 == 0) {
-      return ch;
-    }
-    ++string1;
-    ++string2;
-  }
-}
 
 /*writes and entire UChar* (string) along with a BOM to a file*/
 void WriteToFile(const UChar *a, FILE *myfile); 
@@ -222,6 +209,9 @@ void TestConvert()
         }
     };
 
+    /* flush the converter cache to get a consistent state before the flushing is tested */
+    ucnv_flushCache();
+
     /*Calling all the UnicodeConverterCPP API and checking functionality*/
   
         /*Tests ucnv_getAvailableName(), getAvialableCount()*/
@@ -338,20 +328,20 @@ void TestConvert()
     if (U_FAILURE(err)){ log_err("FAILURE! %s\n", myErrorName(err));}
     
     /* Testing ucnv_getName()*/
-	/*default code page */
-	if ((prv_stricmp(ucnv_getName(someConverters[0], &err), DEFAULT_CODEPAGE)==0)&&
-    (prv_stricmp(ucnv_getName(someConverters[1], &err), DEFAULT_CODEPAGE)==0))
+    /*default code page */
+    if ((uprv_stricmp(ucnv_getName(someConverters[0], &err), DEFAULT_CODEPAGE)==0)&&
+        (uprv_stricmp(ucnv_getName(someConverters[1], &err), DEFAULT_CODEPAGE)==0))
       log_verbose("getName ok\n");
     else 
         log_err("getName failed\n");
   
     /*Testing ucnv_getDefaultName() and ucnv_setDefaultNAme()*/
-    if(prv_stricmp(ucnv_getDefaultName(), DEFAULT_CODEPAGE)==0)
+    if(uprv_stricmp(ucnv_getDefaultName(), DEFAULT_CODEPAGE)==0)
       log_verbose("getDefaultName o.k.\n");
     else
       log_err("getDefaultName failed \n");
    
-	/*change the default name by setting it */
+    /*change the default name by setting it */
     ucnv_setDefaultName("changed");
     if(strcmp(ucnv_getDefaultName(), "changed")==0)
       log_verbose("setDefaultName o.k");
@@ -389,9 +379,9 @@ void TestConvert()
 
      /*Creates a converter and testing ucnv_openCCSID(u_int code_page, platform, errstatus*/
 
-	/*     myConverter =ucnv_openCCSID(CodePageNumberToTest[codepage_index],UCNV_IBM, &err); */
-	/*	ucnv_flushCache(); */
-	myConverter =ucnv_open( "ibm-949", &err);
+    /*     myConverter =ucnv_openCCSID(CodePageNumberToTest[codepage_index],UCNV_IBM, &err); */
+    /*  ucnv_flushCache(); */
+    myConverter =ucnv_open( "ibm-949", &err);
         if (!myConverter || U_FAILURE(err))   
         {
             log_err("Error creating the convertor \n");
@@ -612,18 +602,18 @@ void TestConvert()
       /*call it first time for trapping the targetcapacity and size needed to allocate memory for the buffer uchar2 */
       targetcapacity2=0; 
       targetsize = ucnv_toUChars(myConverter,
-				 NULL,
-				 targetcapacity2,
-				 output_cp_buffer,
-				 strlen(output_cp_buffer),
-				 &err);
+                 NULL,
+                 targetcapacity2,
+                 output_cp_buffer,
+                 strlen(output_cp_buffer),
+                 &err);
       /*if there is an buffer overflow then trap the values and pass them and make the actual call*/
 
       if(err==U_BUFFER_OVERFLOW_ERROR)
       {    
          err=U_ZERO_ERROR;
          uchar2=(UChar*)malloc((targetsize) * sizeof(UChar));
-	          targetsize = ucnv_toUChars(myConverter, 
+              targetsize = ucnv_toUChars(myConverter, 
                    uchar2,
                    targetsize, 
                    output_cp_buffer,
@@ -635,13 +625,13 @@ void TestConvert()
          else
            log_verbose(" ucnv_toUChars() o.k.\n");
 
-	if(u_strcmp(uchar1,uchar2)!=0) 
-	  log_err("equality test failed with convertion routine\n");         
+    if(u_strcmp(uchar1,uchar2)!=0) 
+      log_err("equality test failed with convertion routine\n");         
       }
       else
-	{
-	  log_err("ERR: calling toUChars: Didn't get U_BUFFER_OVERFLOW .. expected it.\n");
-	}
+    {
+      log_err("ERR: calling toUChars: Didn't get U_BUFFER_OVERFLOW .. expected it.\n");
+    }
     
      /*testing for ucnv_fromUnicode() and ucnv_toUnicode() */
          /*Clean up re-usable vars*/
@@ -695,14 +685,14 @@ void TestConvert()
     /*sanity compare */
     if(uchar2 == NULL)
       {
-	log_err("uchar2 was NULL (ccapitst.c line %d), couldn't do sanity check\n", __LINE__);
+    log_err("uchar2 was NULL (ccapitst.c line %d), couldn't do sanity check\n", __LINE__);
       }
     else
       {
-	if(u_strcmp(uchar2, uchar3)==0)
-	  log_verbose("Equality test o.k.\n");
-	else
-	  log_err("Equality test failed\n");
+    if(u_strcmp(uchar2, uchar3)==0)
+      log_verbose("Equality test o.k.\n");
+    else
+      log_err("Equality test failed\n");
       }
 
     fclose(ucs_file_in);    

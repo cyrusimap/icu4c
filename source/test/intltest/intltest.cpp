@@ -20,6 +20,7 @@
 
 #include "unicode/utypes.h"
 #include "unicode/unistr.h"
+#include "unicode/ures.h"
 #include "unicode/coll.h"
 #include "unicode/smpdtfmt.h"
 
@@ -376,7 +377,7 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
             mainDirBuffer[0]='\0';
         }
         mainDir=mainDirBuffer;
-    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX)
+    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX) || defined(OS390)
         char mainDirBuffer[200];
         strcpy(mainDirBuffer, u_getDataDirectory());
         strcat(mainDirBuffer, "/../");
@@ -402,7 +403,7 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
         }
         mainDir=mainDirBuffer;
         sepChar = '\\';
-    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX)
+    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(OS390)
         mainDir = getenv("HOME");
         sepChar = '/';
     #elif defined(XP_MAC)
@@ -443,7 +444,7 @@ IntlTest::getTestDirectory()
 {
        if (_testDirectory == NULL) 
     {
-#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX)
+#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX) || defined(OS390)
       setTestDirectory("source|test|testdata|");
 #else
       setTestDirectory("icu|source|test|testdata|");
@@ -752,42 +753,44 @@ void IntlTest::errln( const UnicodeString &message )
 
 void IntlTest::LL_message( UnicodeString message, bool_t newline )
 {
-    UChar     c;
+    // string that starts with a LineFeed character and continues
+    // with spaces according to the current indentation
+    static UChar indentUChars[] = {
+        10,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32
+    };
+    UnicodeString indent(FALSE, indentUChars, 1 + LL_indentlevel);
 
-    ostream&    stream = *testout;
-    int32_t        saveFlags = stream.flags();
-    stream << hex;
+    char buffer[1000];
+    int32_t length;
 
-    int32_t len = message.length();
-    UTextOffset pos = 0;
-    bool_t gen = FALSE;
-    do{
-        if (LL_linestart) {
-            stream << '\n';
-            for (int32_t i = 0; i < LL_indentlevel; i++) stream << ' ';
-            gen = TRUE;
-            LL_linestart = FALSE;
-        }
-        if (pos >= len) break;
+    // stream out the indentation string first if necessary
+    if(LL_linestart) {
+        length = indent.extract(0, indent.length(), buffer);
+        testout->write(buffer, length);
+    }
 
-        c = message[pos++];
-        if (c >= ' ' && c <= '~') {
-            stream << (char)c;
-            gen = TRUE;
-        }else if (c == '\n') {
-            LL_linestart = TRUE;
-        }else if (c == 9) {         // tab
-            stream << "   ";
-            gen = TRUE;
-        }else{
-            stream << "[$" << c << "]";
-            gen = TRUE;
-        }
-    }while (pos < len);
+    // replace each LineFeed by the indentation string
+    message.findAndReplace(UnicodeString((UChar)10), indent);
 
-    if (gen) stream.flush();
-    stream.setf(saveFlags & ios::basefield, ios::basefield);
-    if (newline) LL_linestart = TRUE;
+    // stream out the message
+    length = message.extract(0, message.length(), buffer);
+    testout->write(buffer, length);
+
+    testout->flush();
+
+    // keep the terminating newline as a state for the next call,
+    // for use with the then active indentation
+    LL_linestart = newline;
 }
 
 /**
@@ -918,6 +921,29 @@ main(int argc, char* argv[])
         ucnv_close(cnv);
     } else {
         cout << "*** Failure! The default converter cannot be opened." << endl <<
+                "*** Check the ICU_DATA environment variable and " << endl <<
+                "*** check that the data files are present." << endl;
+        return 1;
+    }
+
+    // try more data
+    cnv = ucnv_open("iso-8859-7", &errorCode);
+    if(cnv != 0) {
+        // ok
+        ucnv_close(cnv);
+    } else {
+        cout << "*** Failure! The converter for iso-8859-7 cannot be opened." << endl <<
+                "*** Check the ICU_DATA environment variable and " << endl <<
+                "*** check that the data files are present." << endl;
+        return 1;
+    }
+
+    UResourceBundle *rb = ures_open(0, "en", &errorCode);
+    if(U_SUCCESS(errorCode)) {
+        // ok
+        ures_close(rb);
+    } else {
+        cout << "*** Failure! The \"en\" locale resource bundle cannot be opened." << endl <<
                 "*** Check the ICU_DATA environment variable and " << endl <<
                 "*** check that the data files are present." << endl;
         return 1;

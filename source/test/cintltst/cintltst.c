@@ -21,6 +21,7 @@
 #include "unicode/uchar.h"
 #include "unicode/ustring.h"
 #include "unicode/ucnv.h"
+#include "unicode/ures.h"
 
 static char* _testDirectory=NULL;
 int main ( int argc, const char **argv )
@@ -29,6 +30,7 @@ int main ( int argc, const char **argv )
 
     /* initial check for the default converter */
     UErrorCode errorCode = U_ZERO_ERROR;
+    UResourceBundle *rb;
     UConverter *cnv = ucnv_open(NULL, &errorCode);
     if(cnv != NULL) {
         /* ok */
@@ -38,6 +40,31 @@ int main ( int argc, const char **argv )
             "*** Failure! The default converter cannot be opened.\n"
             "*** Check the ICU_DATA environment variable and \n"
             "*** check that the data files are present.\n");
+        return 1;
+    }
+
+    /* try more data */
+    cnv = ucnv_open("iso-8859-7", &errorCode);
+    if(cnv != 0) {
+        /* ok */
+        ucnv_close(cnv);
+    } else {
+        fprintf(stderr,
+                "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
+                "*** Check the ICU_DATA environment variable and \n"
+                "*** check that the data files are present.\n");
+        return 1;
+    }
+
+    rb = ures_open(0, "en", &errorCode);
+    if(U_SUCCESS(errorCode)) {
+        /* ok */
+        ures_close(rb);
+    } else {
+        fprintf(stderr,
+                "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
+                "*** Check the ICU_DATA environment variable and \n"
+                "*** check that the data files are present.\n");
         return 1;
     }
 
@@ -105,7 +132,7 @@ ctest_getTestDirectory()
 {
     if (_testDirectory == NULL) 
     {
-#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX)
+#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX) || defined(OS390)
         ctest_setTestDirectory("source|test|testdata|");
 #else
         ctest_setTestDirectory("icu|source|test|testdata|");
