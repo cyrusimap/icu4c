@@ -151,8 +151,8 @@ static inline void _dbgdt(UnicodeSet* set) {
 // UnicodeString in UVector support
 //----------------------------------------------------------------
 
-static void U_CALLCONV cloneUnicodeString(UHashTok dst, UHashTok src) {
-    dst.pointer = new UnicodeString(*(UnicodeString*)src.pointer);
+static void U_CALLCONV cloneUnicodeString(UHashTok *dst, UHashTok *src) {
+    dst->pointer = new UnicodeString(*(UnicodeString*)src->pointer);
 }
 
 static int8_t U_CALLCONV compareUnicodeString(UHashTok t1, UHashTok t2) {
@@ -1068,8 +1068,10 @@ UnicodeSet& UnicodeSet::add(const UnicodeString& s) {
     if (s.length() == 0) return *this;
     int32_t cp = getSingleCP(s);
     if (cp < 0) {
-        _add(s);
-        pat.truncate(0);
+        if (!strings->contains((void*) &s)) {
+            _add(s);
+            pat.truncate(0);
+        }
     } else {
         add((UChar32)cp, (UChar32)cp);
     }

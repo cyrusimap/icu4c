@@ -44,6 +44,7 @@ scriptNames[]={
    { "CANADIAN_ABORIGINAL", USCRIPT_UCAS        },
    { "CHEROKEE",            USCRIPT_CHEROKEE    },
    { "COMMON",              USCRIPT_COMMON      },
+   { "COPTIC",              USCRIPT_COPTIC      },
    { "CYRILLIC",            USCRIPT_CYRILLIC    },
    { "DESERET",             USCRIPT_DESERET     },
    { "DEVANAGARI",          USCRIPT_DEVANAGARI  },
@@ -62,6 +63,7 @@ scriptNames[]={
    { "KANNADA",             USCRIPT_KANNADA     },
    { "KATAKANA",            USCRIPT_KATAKANA    },
    { "KHMER",               USCRIPT_KHMER       },
+   { "LAO",                 USCRIPT_LAO         },
    { "LATIN",               USCRIPT_LATIN       },
    { "MALAYALAM",           USCRIPT_MALAYALAM   },
    { "MONGOLIAN",           USCRIPT_MONGOLIAN   },
@@ -217,7 +219,7 @@ uscript_getCode(const char* nameOrAbbrOrLocale,
         /* Do not propagate error codes from just not finding a locale bundle. */
         UErrorCode localErrorCode = U_ZERO_ERROR;
         UResourceBundle* resB = ures_open(u_getDataDirectory(),nameOrAbbrOrLocale,&localErrorCode);
-        if(U_SUCCESS(localErrorCode)&& localErrorCode != U_USING_DEFAULT_ERROR){
+        if(U_SUCCESS(localErrorCode)&& localErrorCode != U_USING_DEFAULT_WARNING){
             UResourceBundle* resD = ures_getByKey(resB,kLocaleScript,NULL,&localErrorCode);
             int index =0;
             if(U_SUCCESS(localErrorCode) ){
