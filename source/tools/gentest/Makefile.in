@@ -63,7 +63,7 @@ check: all check-local
 
 all-local: $(TARGET) 
 
-install-local:
+install-local: all-local
 
 dist-local:
 
