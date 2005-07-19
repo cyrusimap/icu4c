@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -23,15 +23,11 @@ private:
     /**
      * Test the API of DateFormatSymbols; primarily a simple get/set set.
      */
-    void TestSymbols(/* char *par */);
+    void testSymbols(/* char *par */);
     /**
      * Test getMonths.
      */
     void TestGetMonths(void);
-    void TestGetMonths2(void);
-
-    void TestGetWeekdays2(void);
-    void TestGetEraNames(void);
 };
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
