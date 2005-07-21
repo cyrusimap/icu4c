@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 2001-2004, International Business Machines Corporation and
+ * Copyright (c) 2001-2005, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*******************************************************************************
@@ -652,7 +652,7 @@ static int ucaTest(void *collator, const int object, const UChar *source, const 
 
 /*
 static int winTest(void *collator, const int object, const UChar *source, const int sLen, const UChar *target, const int tLen) {
-#ifdef WIN32
+#ifdef U_WINDOWS
   LCID lcid = (LCID)collator;
   return CompareString(lcid, 0, source, sLen, target, tLen);
 #else
@@ -760,8 +760,8 @@ static void logFailure (const char *platform, const char *test,
   uint32_t i = 0;
 
   char sEsc[256], s[256], tEsc[256], t[256], b[256], output[512], relation[256];
-  static int maxOutputLength = 0;
-  int outputLength;
+  static int32_t maxOutputLength = 0;
+  int32_t outputLength;
 
   *sEsc = *tEsc = *s = *t = 0;
   if(error == TRUE) {
@@ -830,7 +830,7 @@ static void logFailure (const char *platform, const char *test,
   strcat(output, getRelationSymbol(realRes, realStrength, relation));
   strcat(output, tEsc);
 
-  outputLength = strlen(output);
+  outputLength = (int32_t)strlen(output);
   if(outputLength > maxOutputLength) {
     maxOutputLength = outputLength;
     U_ASSERT(outputLength < sizeof(output));
@@ -4616,11 +4616,39 @@ static void TestTailorNULL( void ) {
 
     rlen = u_unescape(rule, rlz, RULE_BUFFER_LEN);
     coll = ucol_openRules(rlz, rlen, UCOL_DEFAULT, UCOL_DEFAULT,NULL, &status);
-    res = ucol_strcoll(coll, &a, 1, &null, 1);
-    if(res != UCOL_LESS) {
-        log_err("NULL was not tailored properly!\n");
+
+    if(U_FAILURE(status)) {
+        log_err("Could not open default collator!\n");
+    } else {
+        res = ucol_strcoll(coll, &a, 1, &null, 1);
+
+        if(res != UCOL_LESS) {
+            log_err("NULL was not tailored properly!\n");
+        }
     }
+
     ucol_close(coll);
+}
+
+static void
+TestThaiSortKey(void)
+{
+  UChar yamakan = 0x0E4E;
+  UErrorCode status = U_ZERO_ERROR;
+  uint8_t key[256];
+  int32_t keyLen = 0;
+  uint8_t expectedKey[256] = { 0x01, 0xd9, 0xb2, 0x01, 0x05, 0x00 };
+  UCollator *coll = ucol_open("th", &status);
+  if(U_FAILURE(status)) {
+    log_err("Could not open a collator, exiting (%s)\n", u_errorName(status));
+  }
+
+  keyLen = ucol_getSortKey(coll, &yamakan, 1, key, 256);
+  if(strcmp((char *)key, (char *)expectedKey)) {
+    log_err("Yamakan key is different from ICU 262!\n");
+  }
+
+  ucol_close(coll);
 }
 
 #define TEST(x) addTest(root, &x, "tscoll/cmsccoll/" # x)
@@ -4686,6 +4714,7 @@ void addMiscCollTest(TestNode** root)
     TEST(TestBeforeTightening);
     /*TEST(TestMoreBefore);*/
     TEST(TestTailorNULL);
+    TEST(TestThaiSortKey);
 }
 
 #endif /* #if !UCONFIG_NO_COLLATION */

@@ -60,7 +60,7 @@ U_NAMESPACE_BEGIN
 * And in German,
 * <pre>
 * \code
-*        "&#x00E6;b"-> the first key is key('a'), the second key is key('e'), and
+*        "æb"-> the first key is key('a'), the second key is key('e'), and
 *        the third key is key('b').
 * \endcode
 * </pre>
