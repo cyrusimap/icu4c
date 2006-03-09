@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 1999-2005, International Business Machines Corporation and
+# Copyright (c) 1999-2006, International Business Machines Corporation and
 # others. All Rights Reserved.
 
 # runConfigureICU: This script will run the "configure" script for the appropriate platform
@@ -45,7 +45,6 @@ The following names can be supplied as the argument for platform:
     MacOSX              Use the GNU gcc/g++ compilers on MacOS X (Darwin)
     QNX                 Use the QNX QCC compiler on QNX/Neutrino
     Solaris             Use the Sun cc/CC compilers on Solaris
-    Solaris/W4.2        Use the Sun Workshop 4.2 CC (old) compiler on Solaris
     Solaris/GCC         Use the GNU gcc/g++ compilers on Solaris
     SolarisX86          Use the Sun cc/CC compilers on Solaris x86
     TRU64V5.1/CXX       Use the Compaq cxx compiler on Tru64 (OSF)
@@ -145,14 +144,6 @@ case $platform in
         RELEASE_CFLAGS="-xO4 -xlibmil"
         RELEASE_CXXFLAGS="-O4 -xlibmil"
         ;;
-    Solaris/W4.2)
-        THE_OS=SOLARIS
-        THE_COMP="Sun's CC"
-        CC=`which cc`; export CC
-        CXX=`which CC`; export CXX
-        RELEASE_CFLAGS="-xO4 -xlibmil"
-        RELEASE_CXXFLAGS="-O4 -xlibmil +d"
-        ;;
     Solaris/GCC)
         THE_OS=SOLARIS
         THE_COMP="the GNU C++"
@@ -166,8 +157,6 @@ case $platform in
         THE_COMP="Sun's CC"
         CC=`which cc`; export CC
         CXX=`which CC`; export CXX
-        CXX_FLAGS="-w";export CXX_FLAGS
-        C_FLAGS="-w";export C_FLAGS
         LDFLAGS="-L -lCrun";export LDFLAGS
         RELEASE_CFLAGS=-xO3
         RELEASE_CXXFLAGS=-O3
@@ -229,11 +218,11 @@ case $platform in
         THE_COMP="Microsoft Visual C++"
         CC=cl; export CC
         CXX=cl; export CXX
-        RELEASE_CFLAGS='/O2 /Ob2'
-        RELEASE_CXXFLAGS='/O2 /Ob2'
-        # The real debug flags are defined by the mh file because configure can't handle them.
-        DEBUG_CFLAGS=
-        DEBUG_CXXFLAGS=
+        RELEASE_CFLAGS='/O2 /Ob2 /Op'
+        RELEASE_CXXFLAGS='/O2 /Ob2 /Op'
+        DEBUG_CFLAGS='/Zi'
+        DEBUG_CXXFLAGS='/Zi'
+        DEBUG_LDFLAGS='/DEBUG'
         ;;
     Cygwin/ICL)
         THE_OS="Windows with Cygwin"
@@ -243,9 +232,9 @@ case $platform in
         # The Intel compiler has optimization bugs. So we disable optimization.
         RELEASE_CFLAGS='/Od'
         RELEASE_CXXFLAGS='/Od'
-        # The real debug flags are defined by the mh file because configure can't handle them.
-        DEBUG_CFLAGS=
-        DEBUG_CXXFLAGS=
+        DEBUG_CFLAGS='/Zi'
+        DEBUG_CXXFLAGS='/Zi'
+        DEBUG_LDFLAGS='/DEBUG'
         ;;
     MacOSX)
         THE_OS="MacOS X (Darwin)"
@@ -265,14 +254,6 @@ case $platform in
         CC=cc; export CC
         CXX=cxx; export CXX
         ;;
-#    ALPHA/LINUXCCC)
-#        THE_OS="Linux"
-#        THE_COMP="Compaq's CC"
-#        CC=ccc; export CC
-#        CXX=cxx; export CXX
-#        RELEASE_CFLAGS='-O4'
-#        RELEASE_CXXFLAGS='-O4'
-#        ;;
     QNX)
         THE_OS="QNX"
         THE_COMP="QNX cc"
@@ -296,11 +277,11 @@ case $platform in
         ;;
     zOS)
         THE_OS="z/OS (OS/390)"
-        THE_COMP="z/OS 1.2 (through OS/390 v2r10) C/C++"
+        THE_COMP="z/OS C/C++"
         CC=cc; export CC
         CXX=cxx; export CXX
-        export RELEASE_CFLAGS='-2'
-        export RELEASE_CXXFLAGS='-2'
+        export RELEASE_CFLAGS="-2 -Wc,'inline(auto,noreport,500,2500)'"
+        export RELEASE_CXXFLAGS="-2 -Wc,'inline(auto,noreport,300,2500)'"
         ;;
     zOSV1R2)
         THE_OS="z/OS 1.2"
@@ -309,11 +290,11 @@ case $platform in
         CXX=cxx; export CXX
         export COMPILE_LINK_ENVVAR='_CXX_CVERSION=0x41020000 _C89_CVERSION=0x41020000 _CC_CVERSION=0x41020000 _CXX_PVERSION=0x41020000 _C89_PVERSION=0x41020000 _CC_PVERSION=0x41020000'
         export _CXX_CVERSION=0x41020000 _C89_CVERSION=0x41020000 _CC_CVERSION=0x41020000 _CXX_PVERSION=0x41020000 _C89_PVERSION=0x41020000 _CC_PVERSION=0x41020000
-        export LDFLAGS=-Wl,"compat=pm3"
-        export CFLAGS='-Wc,"target(zOSV1R2)"'
-        export CXXFLAGS='-Wc,"target(zOSV1R2)"'
-        export RELEASE_CFLAGS='-2'
-        export RELEASE_CXXFLAGS='-2'
+        export LDFLAGS="-Wl,'compat=pm3'"
+        export CFLAGS="-Wc,'target(zOSV1R2)'"
+        export CXXFLAGS="-Wc,'target(zOSV1R2)'"
+        export RELEASE_CFLAGS="-2 -Wc,'inline(auto,noreport,500,2500)'"
+        export RELEASE_CXXFLAGS="-2 -Wc,'inline(auto,noreport,300,2500)'"
         ;;
     OS390V2R10)
         THE_OS="OS/390 2.10"
@@ -322,11 +303,11 @@ case $platform in
         CXX=cxx; export CXX
         export COMPILE_LINK_ENVVAR='_CXX_CVERSION=0x220A0000 _C89_CVERSION=0x220A0000 _CC_CVERSION=0x220A0000 _CXX_PVERSION=0x220A0000 _C89_PVERSION=0x220A0000 _CC_PVERSION=0x220A0000'
         export _CXX_CVERSION=0x220A0000 _C89_CVERSION=0x220A0000 _CC_CVERSION=0x220A0000 _CXX_PVERSION=0x220A0000 _C89_PVERSION=0x220A0000 _CC_PVERSION=0x220A0000
-        export LDFLAGS=-Wl,"compat=pm3"
-        export CFLAGS='-Wc,"target(OSV2R10)"'
-        export CXXFLAGS='-Wc,"target(OSV2R10)"'
-        export RELEASE_CFLAGS='-2'
-        export RELEASE_CXXFLAGS='-2'
+        export LDFLAGS="-Wl,'compat=pm3'"
+        export CFLAGS="-Wc,'target(OSV2R10)'"
+        export CXXFLAGS="-Wc,'target(OSV2R10)'"
+        export RELEASE_CFLAGS="-2 -Wc,'inline(auto,noreport,500,2500)'"
+        export RELEASE_CXXFLAGS="-2 -Wc,'inline(auto,noreport,300,2500)'"
         ;;
     *)
         >&2 echo "$me: unrecognized platform \"$platform\" (use --help for help)"

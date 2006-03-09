@@ -25,6 +25,10 @@
 #include "ustr_imp.h"
 #include "ustr_cnv.h"
 
+#define _STACK_BUFFER_CAPACITY 1000
+#define _BUFFER_CAPACITY_MULTIPLIER 2
+
+#if !defined(U_WCHAR_IS_UTF16) && !defined(U_WCHAR_IS_UTF32)
 static U_INLINE UBool 
 u_growAnyBufferFromStatic(void *context,
                        void **pBuffer, int32_t *pCapacity, int32_t reqCapacity,
@@ -49,10 +53,6 @@ u_growAnyBufferFromStatic(void *context,
     return (UBool)(newBuffer!=NULL);
 }
 
-#define _STACK_BUFFER_CAPACITY 1000
-#define _BUFFER_CAPACITY_MULTIPLIER 2
-
-#if !defined(U_WCHAR_IS_UTF16) && !defined(U_WCHAR_IS_UTF32)
 /* helper function */
 static wchar_t* 
 _strToWCS(wchar_t *dest, 
@@ -315,7 +315,7 @@ _strFromWCS( UChar   *dest,
             if(retVal == -1){
                 *pErrorCode = U_ILLEGAL_CHAR_FOUND;
                 goto cleanup;
-            }else if(retVal == cStackCap){
+            }else if(retVal >= (cStackCap-1)){
                 /* Should rarely occur */
                 u_growAnyBufferFromStatic(cStack,(void**)&pCSrc,&cStackCap,
                     cStackCap * _BUFFER_CAPACITY_MULTIPLIER, 0, sizeof(char));

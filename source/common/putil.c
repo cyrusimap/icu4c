@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2006, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -36,12 +36,15 @@
 ******************************************************************************
 */
 
-#ifndef PTX
-
 /* Define _XOPEN_SOURCE for Solaris and friends. */
 /* NetBSD needs it to be >= 4 */
 #ifndef _XOPEN_SOURCE
+#if __STDC_VERSION__ >= 199901L
+/* It is invalid to compile an XPG3, XPG4, XPG4v2 or XPG5 application using c99 */
+#define _XOPEN_SOURCE 600
+#else
 #define _XOPEN_SOURCE 4
+#endif
 #endif
 
 /* Define __USE_POSIX and __USE_XOPEN for Linux and glibc. */
@@ -51,8 +54,6 @@
 #ifndef __USE_XOPEN
 #define __USE_XOPEN
 #endif
-
-#endif /* PTX */
 
 /* include ICU headers */
 #include "unicode/utypes.h"
@@ -1212,7 +1213,8 @@ extern U_IMPORT char *U_TZNAME[];
 #if defined(U_DARWIN)   /* For Mac OS X */
 #define TZZONELINK      "/etc/localtime"
 #define TZZONEINFO      "/usr/share/zoneinfo/"
-static char *gTimeZoneBuffer = NULL; /* Heap allocated */
+static char gTimeZoneBuffer[MAXPATHLEN + 2];
+static char *gTimeZoneBufferPtr = NULL;
 #endif
 
 U_CAPI const char* U_EXPORT2
@@ -1223,17 +1225,26 @@ uprv_tzname(int n)
     if (id != NULL) {
         return id;
     }
-#endif
-
-#if defined(U_DARWIN)
+#elif defined(U_DARWIN)
     int ret;
-
     char *tzenv;
 
     tzenv = getenv("TZFILE");
     if (tzenv != NULL) {
         return tzenv;
     }
+
+    /* Caller must handle threading issues */
+    if (gTimeZoneBufferPtr == NULL) {
+        ret = readlink(TZZONELINK, gTimeZoneBuffer, sizeof(gTimeZoneBuffer));
+        if (0 < ret) {
+            gTimeZoneBuffer[ret] = 0;
+            if (uprv_strncmp(gTimeZoneBuffer, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
+                return (gTimeZoneBufferPtr = gTimeZoneBuffer + sizeof(TZZONEINFO) - 1);
+            }
+        }
+    }
+#endif
 
 #if 0
     /* TZ is often set to "PST8PDT" or similar, so we cannot use it. Alan */
@@ -1243,23 +1254,6 @@ uprv_tzname(int n)
     }
 #endif
     
-    /* Caller must handle threading issues */
-    if (gTimeZoneBuffer == NULL) {
-        gTimeZoneBuffer = (char *) uprv_malloc(MAXPATHLEN + 2);
-
-        ret = readlink(TZZONELINK, gTimeZoneBuffer, MAXPATHLEN + 2);
-        if (0 < ret) {
-            gTimeZoneBuffer[ret] = '\0';
-            if (uprv_strncmp(gTimeZoneBuffer, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
-                return (gTimeZoneBuffer += sizeof(TZZONEINFO) - 1);
-            }
-        }
-
-        uprv_free(gTimeZoneBuffer);
-        gTimeZoneBuffer = NULL;
-    }
-#endif
-
 #ifdef U_TZNAME
     return U_TZNAME[n];
 #else
@@ -1384,7 +1378,7 @@ u_getDataDirectory(void) {
     There may also be some platforms where environment variables
     are not allowed.
     */
-#   if !defined(ICU_NO_USER_DATA_OVERRIDE) && (!defined(UCONFIG_NO_FILE_IO) || !UCONFIG_NO_FILE_IO)
+#   if !defined(ICU_NO_USER_DATA_OVERRIDE) && !UCONFIG_NO_FILE_IO
     /* First try to get the environment variable */
     path=getenv("ICU_DATA");
 #   endif
@@ -1810,6 +1804,81 @@ The leftmost codepage (.xxx) wins.
 
 }
 
+#if U_POSIX_LOCALE
+/*
+Due to various platform differences, one platform may specify a charset,
+when they really mean a different charset. Remap the names so that they are
+compatible with ICU.
+*/
+static const char*
+remapPlatformDependentCodepage(const char *locale, const char *name) {
+    if (locale != NULL && *locale == 0) {
+        /* Make sure that an empty locale is handled the same way. */
+        locale = NULL;
+    }
+    if (name == NULL) {
+        return NULL;
+    }
+#if defined(U_AIX)
+    if (uprv_strcmp(name, "IBM-943") == 0) {
+        /* Use the ASCII compatible ibm-943 */
+        name = "Shift-JIS";
+    }
+    else if (uprv_strcmp(name, "IBM-1252") == 0) {
+        /* Use the windows-1252 that contains the Euro */
+        name = "IBM-5348";
+    }
+#elif defined(U_SOLARIS)
+    if (locale != NULL && uprv_strcmp(name, "EUC") == 0) {
+        /* Solaris underspecifies the "EUC" name. */
+        if (uprv_strcmp(locale, "zh_CN") == 0) {
+            name = "EUC-CN";
+        }
+        else if (uprv_strcmp(locale, "zh_TW") == 0) {
+            name = "EUC-TW";
+        }
+        else if (uprv_strcmp(locale, "ko_KR") == 0) {
+            name = "EUC-KR";
+        }
+    }
+#elif defined(U_DARWIN)
+    if (locale == NULL && *name == 0) {
+        /*
+        No locale was specified, and an empty name was passed in.
+        This usually indicates that nl_langinfo didn't return valid information.
+        Mac OS X uses UTF-8 by default (especially the locale data and console).
+        */
+        name = "UTF-8";
+    }
+#endif
+    /* return NULL when "" is passed in */
+    if (*name == 0) {
+        name = NULL;
+    }
+    return name;
+}
+
+static const char*  
+getCodepageFromPOSIXID(const char *localeName, char * buffer, int32_t buffCapacity)
+{
+    char localeBuf[100];
+    const char *name = NULL;
+    char *variant = NULL;
+
+    if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
+        size_t localeCapacity = uprv_min(sizeof(localeBuf), (name-localeName)+1);
+        uprv_strncpy(localeBuf, localeName, localeCapacity);
+        localeBuf[localeCapacity-1] = 0; /* ensure NULL termination */
+        name = uprv_strncpy(buffer, name+1, buffCapacity);
+        buffer[buffCapacity-1] = 0; /* ensure NULL termination */
+        if ((variant = (uprv_strchr(name, '@'))) != NULL) {
+            *variant = 0;
+        }
+        name = remapPlatformDependentCodepage(localeBuf, name);
+    }
+    return name;
+}
+#endif
 
 static const char*  
 int_getDefaultCodepage()
@@ -1850,9 +1919,8 @@ int_getDefaultCodepage()
 
 #elif U_POSIX_LOCALE
     static char codesetName[100];
-    char *name = NULL;
-    char *euro = NULL;
     const char *localeName = NULL;
+    const char *name = NULL;
 
     uprv_memset(codesetName, 0, sizeof(codesetName));
 
@@ -1863,34 +1931,20 @@ int_getDefaultCodepage()
        Maybe the application used setlocale already.
        Normally this won't work. */
     localeName = setlocale(LC_CTYPE, NULL);
-    if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
-        /* strip the locale name and look at the suffix only */
-        name = uprv_strncpy(codesetName, name+1, sizeof(codesetName));
-        codesetName[sizeof(codesetName)-1] = 0;
-        if ((euro = (uprv_strchr(name, '@'))) != NULL) {
-           *euro = 0;
-        }
-        /* if we can find the codset name from setlocale, return that. */
-        if (*name) {
-            return name;
-        }
+    name = getCodepageFromPOSIXID(localeName, codesetName, sizeof(codesetName));
+    if (name) {
+        /* if we can find the codeset name from setlocale, return that. */
+        return name;
     }
     /* else "C" was probably returned. That's underspecified. */
 
     /* Use setlocale a little more forcefully.
        The application didn't use setlocale */
     localeName = setlocale(LC_CTYPE, "");
-    if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
-        /* strip the locale name and look at the suffix only */
-        name = uprv_strncpy(codesetName, name+1, sizeof(codesetName));
-        codesetName[sizeof(codesetName)-1] = 0;
-        if ((euro = (uprv_strchr(name, '@'))) != NULL) {
-           *euro = 0;
-        }
-        /* if we can find the codset name from setlocale, return that. */
-        if (*name) {
-            return name;
-        }
+    name = getCodepageFromPOSIXID(localeName, codesetName, sizeof(codesetName));
+    if (name) {
+        /* if we can find the codeset name from setlocale, return that. */
+        return name;
     }
     /* else "C" or something like it was returned. That's still underspecified. */
 
@@ -1898,10 +1952,12 @@ int_getDefaultCodepage()
     if (*codesetName) {
         uprv_memset(codesetName, 0, sizeof(codesetName));
     }
-    /* When available, check nl_langinfo first because it usually gives more
-       useful names. It depends on LC_CTYPE and not LANG or LC_ALL */
+    /* When available, check nl_langinfo because it usually gives more
+       useful names. It depends on LC_CTYPE and not LANG or LC_ALL.
+       nl_langinfo may use the same buffer as setlocale. */
     {
         const char *codeset = nl_langinfo(U_NL_LANGINFO_CODESET);
+        codeset = remapPlatformDependentCodepage(NULL, codeset);
         if (codeset != NULL) {
             uprv_strncpy(codesetName, codeset, sizeof(codesetName));
             codesetName[sizeof(codesetName)-1] = 0;
@@ -1911,27 +1967,19 @@ int_getDefaultCodepage()
 #endif
 
     /* Try a locale specified by the user.
-       This is usually underspecified and usually checked by setlocale already. */
-    if (*codesetName) {
-        uprv_memset(codesetName, 0, sizeof(codesetName));
-    }
+       This is usually underspecified and usually checked by setlocale already.
+       We're getting desperate to find something useful.
+     */
     localeName = uprv_getPOSIXID();
-    if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
-        /* strip the locale name and look at the suffix only */
-        name = uprv_strncpy(codesetName, name+1, sizeof(codesetName));
-        codesetName[sizeof(codesetName)-1] = 0;
-        if ((euro = (uprv_strchr(name, '@'))) != NULL) {
-           *euro = 0;
-        }
-        /* if we can find the codset name, return that. */
-        if (*name) {
-            return name;
-        }
+    name = getCodepageFromPOSIXID(localeName, codesetName, sizeof(codesetName));
+    if (name) {
+        /* if we can find the codeset name, return that. */
+        return name;
     }
 
     if (*codesetName == 0)
     {
-        /* if the table lookup failed, return US ASCII (ISO 646). */
+        /* Everything failed. Return US ASCII (ISO 646). */
         uprv_strcpy(codesetName, "US-ASCII");
     }
     return codesetName;

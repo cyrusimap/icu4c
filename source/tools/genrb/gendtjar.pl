@@ -35,9 +35,14 @@ sub main(){
              "--jar=s" => \$jarDir,
              "--icu4j-root=s" => \$icu4jDir,
              "--version=s" => \$version,
-             "--verbose"   => \$verbose
+             "--verbose"   => \$verbose,
+             "--help"      => \$help
              );
     $cwd = abs_path(getcwd);
+    
+    if($help){
+        usage();
+    }
     unless (defined $icuRootDir){
         $icuRootDir =abs_path($cwd."/../../..");
     }
@@ -58,7 +63,7 @@ sub main(){
     
     $path=$ENV{'PATH'};
     
-    if($platform eq "cygwin"){
+    if(($platform eq "cygwin") || ($platform eq "linux")){
         $icuBinDir .= "/source/bin";
         $icuLibDir = abs_path($icuBinDir."/../lib");
         $path .=":$icuBinDir:$icuLibDir";
@@ -67,6 +72,16 @@ sub main(){
         $ENV{'LD_LIBRARY_PATH'} = $libpath;
         
         #print ("#####  LD_LIBRARY_PATH = $ENV{'LD_LIBRARY_PATH'}\n");
+    
+    }elsif($platform eq "aix"){
+    
+        $icuBinDir .= "/source/bin";
+        $icuLibDir = abs_path($icuBinDir."/../lib");
+        $path .=":$icuBinDir:$icuLibDir";
+
+        $libpath = $ENV{'LIBPATH'}.":$icuLibDir";
+        $ENV{'LIBPATH'} = $libpath;
+        #print ("#####  LIBPATH = $ENV{'LIBPATH'}\n");
     }elsif($platform eq "darwin"){ 
         $icuBinDir .= "/source/bin";
         $icuLibDir = abs_path($icuBinDir."/../lib");
@@ -74,8 +89,7 @@ sub main(){
         
         $libpath = $ENV{'DYLD_LIBRARY_PATH'}.":$icuLibDir";
         $ENV{'DYLD_LIBRARY_PATH'} = $libpath;
-        
-        
+       
     }elsif($platform eq "MSWin32"){
         $icuBinDir =$icuRootDir."/bin";
         $path .=$icuBinDir;
@@ -127,7 +141,7 @@ sub buildICU{
     unlink($icuBuildDir."../"); 
     unlink($icuTestDataDir."../"); 
     
-    if(($platform eq "cygwin")||($platform eq "darwin")){
+    if(($platform eq "cygwin")||($platform eq "darwin")||($platform eq "linux")){
         # make all in ICU
         cmd("make all", $verbose);
         chdir($icuSrcDataDir);
@@ -135,6 +149,13 @@ sub buildICU{
         chdir($icuTestDataDir."../../");
         #print($icuTestDataDir."../../\n");
         cmd("make", $verbose);
+    }elsif($platform eq "aix"){
+        # make all in ICU
+        cmd("gmake all", $verbose);
+        chdir($icuSrcDataDir);
+        cmd("gmake uni-core-data", $verbose);
+        chdir($icuTestDataDir."../../");
+        cmd("gmake", $verbose);
     }elsif($platform eq "MSWin32"){
         #devenv.com $projectFileName \/build $configurationName > \"$cLogFile\" 2>&1
         cmd("devenv.com allinone/allinone.sln /useenv /build Debug", $verbose);
@@ -201,39 +222,52 @@ sub copyData{
     local($icu4jDir, $icu4jImpl, $icu4jDevDataDir, $tempDir) =@_;
     print("INFO: Copying $tempDir/icudata.jar to $icu4jDir/src/$icu4jImpl\n");
     copy("$tempDir/icudata.jar", "$icu4jDir/src/$icu4jImpl"); 
-    print("INFO: Copying $tempDir/testData.jar $icu4jDir/src/$icu4jDevDataDir\n");
-    copy("$tempDir/testData.jar","$icu4jDir/src/$icu4jDevDataDir");
+    print("INFO: Copying $tempDir/testdata.jar $icu4jDir/src/$icu4jDevDataDir\n");
+    copy("$tempDir/testdata.jar","$icu4jDir/src/$icu4jDevDataDir");
 }
 #-----------------------------------------------------------------------
 sub convertData{
     local($icuDataDir, $icuswap, $tempDir, $icu4jDataDir)  =@_;
     my $dir = $tempDir."/".$icu4jDataDir;
     # create the temp directory
-    mkpath("$tempDir/$icu4jDataDir");
+    mkpath($dir) ;
     # cd to the temp directory
     chdir($tempDir);
-
+    my $endian = checkPlatformEndianess();
     my @list;
     opendir(DIR,$icuDataDir);
     #print $icuDataDir;
     @list =  readdir(DIR);
     closedir(DIR);
     my $op = $icuswap;
-    print "INFO: {Command: $op $icuDataDir/*.*}\n";
+    #print "####### $endian ############\n";
+    if($endian eq "l"){
+        print "INFO: {Command: $op $icuDataDir/*.*}\n";
+    }else{
+       print "INFO: {Command: copy($icuDataDir/*.*, $tempDir/$icu4jDataDir/*)}\n";
+    } 
+    
     $i=0;
     # now convert
     foreach $item (@list){
         next if($item eq "." || $item eq "..");
         next if($item =~ /^t_.*$\.res/ ||$item =~ /^translit_.*$\.res/   || $item =~ /$\.cnv/ ||
-               $item=~/$\.crs/ || $item=~ /$\.txt/ || $item=~ /^zoneinfo/  ||
+               $item=~/$\.crs/ || $item=~ /$\.txt/ ||
                $item=~/icudata\.res/ || $item=~/$\.exp/ || $item=~/$\.lib/ || $item=~/$\.obj/ ||
                $item=~/cnvalias\.icu/ || $item=~/$\.lst/);
         if(-d "$icuDataDir/$item"){
-            convertData("$icuDataDir/$item/", $icuswap, $tempDir, "$icu4jDataDir./$item/");
+            convertData("$icuDataDir/$item/", $icuswap, $tempDir, "$icu4jDataDir/$item/");
             next;
         }
-        $command = $icuswap." $icuDataDir/$item $tempDir/$icu4jDataDir/$item";
-        cmd($command, $verbose);
+        if($endian eq "l"){
+           $command = $icuswap." $icuDataDir/$item $tempDir/$icu4jDataDir/$item";
+           cmd($command, $verbose);
+        }else{
+           $rc = copy("$icuDataDir/$item", "$tempDir/$icu4jDataDir/$item");
+           if($rc==1){
+             #die "ERROR: Could not copy $icuDataDir/$item to $tempDir/$icu4jDataDir/$item, $!";
+           }
+        }
 
     }
     chdir("..");
@@ -244,17 +278,17 @@ sub convertTestData{
     local($icuDataDir, $icuswap, $tempDir, $icu4jDataDir)  =@_;
     my $dir = $tempDir."/".$icu4jDataDir;
     # create the temp directory
-    mkpath("$tempDir/$icu4jDataDir");
+    mkpath($dir);
     # cd to the temp directory
     chdir($tempDir);
     my $op = $icuswap;
     print "INFO: {Command: $op $icuDataDir/*.*}\n";
     my @list;
-    opendir(DIR,$icuDataDir);
+    opendir(DIR,$icuDataDir) or die "ERROR: Could not open the $icuDataDir directory for reading $!";
     #print $icuDataDir;
     @list =  readdir(DIR);
     closedir(DIR);
-
+    my $endian = checkPlatformEndianess();
     $i=0;
     # now convert
     foreach $item (@list){
@@ -266,8 +300,13 @@ sub convertTestData{
         if($item =~ /^testdata_/){
             $file = $item;
             $file =~ s/testdata_//g;
-            $command = "$icuswap $icuDataDir/$item $tempDir/$icu4jDataDir/$file";
-            cmd($command, $verbose);
+            if($endian eq "l"){ 
+                $command = "$icuswap $icuDataDir/$item $tempDir/$icu4jDataDir/$file";
+                cmd($command, $verbose);
+            }else{
+                #print("Copying $icuDataDir/$item $tempDir/$icu4jDataDir/$file\n");
+                copy("$icuDataDir/$item", "$tempDir/$icu4jDataDir/$file");
+            }
         }
 
     }
@@ -309,6 +348,7 @@ Options:
         --icu4j-root=<directory>
         --version=<ICU4C version>
         --verbose
+        --help
 e.g:
 gendtjar.pl --icu-root=\\work\\icu --jar=\\jdk1.4.1\\bin --icu4j-root=\\work\\icu4j --version=3.0
 END

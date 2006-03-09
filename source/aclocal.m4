@@ -88,6 +88,18 @@ else
   $1_TRUE='#'
 fi])
 
+dnl ICU_PROG_LINK - Make sure that the linker is usable
+AC_DEFUN(ICU_PROG_LINK,
+[
+case "${host}" in
+    *-*-cygwin*|*-*-mingw*)
+        if test "$GCC" != yes && test -n "`link --version 2>&1 | grep 'GNU coreutils'`"; then
+            AC_MSG_ERROR([link.exe is not a valid linker. Your PATH is incorrect.
+                  Please follow the directions in ICU's readme.])
+        fi;;
+    *);;
+esac])
+
 dnl AC_SEARCH_LIBS_FIRST(FUNCTION, SEARCH-LIBS [, ACTION-IF-FOUND
 dnl            [, ACTION-IF-NOT-FOUND [, OTHER-LIBRARIES]]])
 dnl Search for a library defining FUNC, then see if it's not already available.
@@ -177,6 +189,27 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
                 ENABLE_64BIT_LIBS=no
             fi
             ;;
+        x86_64-*-cygwin)
+            if test "$GCC" = yes; then
+                if test -n "`$CXX -dumpspecs 2>&1 && $CC -dumpspecs 2>&1 | grep -v __LP64__`"; then
+                    ENABLE_64BIT_LIBS=yes
+                else
+                    ENABLE_64BIT_LIBS=no
+                fi
+            else
+                ENABLE_64BIT_LIBS=no
+                OLD_CPPFLAGS="${CPPFLAGS}"
+                OLD_LDFLAGS="${LDFLAGS}"
+                CPPFLAGS="${CPPFLAGS} /DWIN64"
+                LDFLAGS="${LDFLAGS} /MACHINE:AMD64"
+                AC_TRY_RUN(int main(void) {return 0;},
+                   ENABLE_64BIT_LIBS=yes, ENABLE_64BIT_LIBS=no, ENABLE_64BIT_LIBS=no)
+                if test "$ENABLE_64BIT_LIBS" = no; then
+                    CPPFLAGS="${OLD_CPPFLAGS}"
+                    LDFLAGS="${OLD_LDFLAGS}"
+                fi
+            fi
+            ;;
         *-*-aix*|powerpc64-*-linux*)
             if test "$ac_cv_prog_gcc" = no; then
                 # Note: Have not tested 64-bitness with gcc.
@@ -228,12 +261,11 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
             OLD_CFLAGS="${CFLAGS}"
             OLD_CXXFLAGS="${CXXFLAGS}"
             OLD_LDFLAGS="${LDFLAGS}"
-            CFLAGS="${CFLAGS} -Wc,lp64,expo"
-            CXXFLAGS="${CXXFLAGS} -Wc,lp64,expo"
+            CFLAGS="${CFLAGS} -Wc,lp64"
+            CXXFLAGS="${CXXFLAGS} -Wc,lp64"
             LDFLAGS="${LDFLAGS} -Wl,lp64"
             AC_TRY_RUN(int main(void) {return 0;},
-               ENABLE_64BIT_LIBS=yes, ENABLE_64BIT_LIBS=no,
-ENABLE_64BIT_LIBS=no)
+               ENABLE_64BIT_LIBS=yes, ENABLE_64BIT_LIBS=no, ENABLE_64BIT_LIBS=no)
             if test "$ENABLE_64BIT_LIBS" = no; then
                 CFLAGS="${OLD_CFLAGS}"
                 CXXFLAGS="${OLD_CXXFLAGS}"

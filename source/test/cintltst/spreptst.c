@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 2003, International Business Machines
+ *   Copyright (C) 2003-2006, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -37,6 +37,7 @@ static void Test_nfs4_mixed_prep_data(void);
 static void Test_nfs4_cs_prep(void);
 static void Test_nfs4_cis_prep(void);
 static void Test_nfs4_mixed_prep(void);
+static void TestBEAMWarning(void);
 
 void 
 addUStringPrepTest(TestNode** root)
@@ -47,6 +48,7 @@ addUStringPrepTest(TestNode** root)
    addTest(root, &Test_nfs4_cs_prep,         "spreptst/Test_nfs4_cs_prep");
    addTest(root, &Test_nfs4_cis_prep,        "spreptst/Test_nfs4_cis_prep");
    addTest(root, &Test_nfs4_mixed_prep,      "spreptst/Test_nfs4_mixed_prep");
+   addTest(root, &TestBEAMWarning,           "spreptst/TestBEAMWarning");
 }
 
 static void 
@@ -290,6 +292,12 @@ unescapeData(const char* src, int32_t srcLen,
 
 static void Test_nfs4_cis_prep(void){
     int32_t i=0;
+    UErrorCode loadStatus = U_ZERO_ERROR;
+    loadTestData(&loadStatus);
+    if (U_FAILURE(loadStatus)) {
+        log_err("Test could not initialize. Got %s\n", u_errorName(loadStatus));
+        return;
+    }
 
     for(i=0;i< (int32_t)(sizeof(conformanceTestCases)/sizeof(conformanceTestCases[0]));i++){
         const char* src = conformanceTestCases[i].in;
@@ -403,6 +411,13 @@ static const char* mixed_prep_data[] ={
 
 static void 
 Test_nfs4_mixed_prep(void){
+    UErrorCode loadStatus = U_ZERO_ERROR;
+    loadTestData(&loadStatus);
+    if (U_FAILURE(loadStatus)) {
+        log_err("Test could not initialize. Got %s\n", u_errorName(loadStatus));
+        return;
+    }
+
     {
         int32_t i=0;
         char src[MAX_BUFFER_SIZE];
@@ -550,6 +565,22 @@ Test_nfs4_cs_prep(void){
     }
 }
 
+
+
+static void TestBEAMWarning(){
+    UErrorCode status = U_ZERO_ERROR;
+    UParseError parseError;
+    UStringPrepProfile* profile = NULL;
+    /* get the test data path */
+    const char *testdatapath = NULL;
+    UChar src =0x0000;
+    testdatapath = loadTestData(&status);
+    /* open the profile */
+    profile = usprep_open(testdatapath, "nfscis",  &status);
+    usprep_prepare(profile,&src , 0, NULL, 0, USPREP_DEFAULT, &parseError, &status);
+
+    usprep_close(profile);
+}
 #endif
 
 /*
