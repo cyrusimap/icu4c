@@ -79,8 +79,6 @@ static void TestISCII(void);
 static void TestCoverageMBCS(void);
 static void TestJitterbug2346(void);
 static void TestJitterbug2411(void);
-static void TestJB5275(void);
-static void TestJB5275_1(void);
 #endif
 
 static void TestRoundTrippingAllUTF(void);
@@ -278,8 +276,7 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestJitterbug255, "tsconv/nucnvtst/TestJitterbug255");
    addTest(root, &TestEBCDICUS4XML, "tsconv/nucnvtst/TestEBCDICUS4XML");
    addTest(root, &TestISCII, "tsconv/nucnvtst/TestISCII");
-   addTest(root, &TestJB5275, "tsconv/nucnvtst/TestJB5275");
-   addTest(root, &TestJB5275_1, "tsconv/nucnvtst/TestJB5275_1");
+
 #if !UCONFIG_NO_COLLATION
    addTest(root, &TestJitterbug981, "tsconv/nucnvtst/TestJitterbug981");
 #endif
@@ -5278,92 +5275,4 @@ static void TestJitterbug1293(){
     }
     ucnv_close(conv);
 }
-static void TestJB5275_1(){
 
-    static const char* data = "\x3B\xB3\x0A" /* Easy characters */
-                                "\xC0\xE9\xBF\xE9\xE8\xD8\x0A" /* Gurmukhi test */
-                                /* Switch script: */
-                                "\xEF\x43\xC0\xE9\xBF\xE9\xE8\xD8\x0A" /* Bengali test */
-                                "\x3B\xB3\x0A" /* Easy characters - new line, so should default!*/
-                                "\xEF\x40\x3B\xB3\x0A";
-    static const UChar expected[] ={ 
-            0x003b, 0x0a15, 0x000a, /* Easy characters */
-            0x0a22, 0x0a3c, 0x0a5c, 0x0a4d, 0x0a39, 0x000a, /* Gurmukhi test */
-            0x09dd, 0x09dc, 0x09cd, 0x09b9, 0x000a, /* Switch script: to Bengali*/ 
-            0x003b, 0x0a15, 0x000a, /* Easy characters - new line, so should default!*/
-            0x003b, 0x0a15, 0x000a /* Back to Gurmukhi*/
-    };
-        
-    UErrorCode status = U_ZERO_ERROR;
-    UConverter* conv = ucnv_open("iscii-gur", &status);
-    UChar dest[100] = {'\0'};
-    UChar* target = dest;
-    UChar* targetLimit = dest+100;
-    const char* source = data;
-    const char* sourceLimit = data+strlen(data);
-    const UChar* exp = expected;
-    log_verbose("Testing switching back to default script when new line is encountered.\n");
-    ucnv_toUnicode(conv, &target, targetLimit, &source, sourceLimit, NULL, TRUE, &status);
-    if(U_FAILURE(status)){
-        log_err("conversion failed: %s \n", u_errorName(status));
-    }
-    targetLimit = target;
-    target = dest;
-    printUSeq(target, targetLimit-target);
-    while(target<targetLimit){
-        if(*exp!=*target){
-            log_err("did not get the expected output. \\u%04X != \\u%04X (got)\n", *exp, *target);
-        }
-        target++;
-        exp++;
-    }
-    ucnv_close(conv);
-}
-
-static void TestJB5275(){
-    static const char* data = 
-    /* "\xEF\x42\xEF\x41\xA4\xD5\xE5\xB3\xEA\x0A"  unsupported sequence \xEF\x41 */
-    /* "\xEF\x42\xEF\x41\xD4\xDA\xB3\xE8\xEA\x0A"  unsupported sequence \xEF\x41  */
-    /* "\xEF\x44\xEF\x41\xC8\xE1\x8B\xDB\xB3\xE8 \xB3\xE4\xC1\xE8\x0A"  unsupported sequence \xEF\x41 */
-        "\xEF\x4B\xC0\xE9\xBF\xE9\xE8\xD8\x0A"  /* Gurmukhi test */
-        "\xEF\x4A\xC0\xD4\xBF\xD4\xE8\xD8\x0A"  /* Gujarati test */
-        "\xEF\x48\x38\xB3\x0A"  /* Kannada test */
-        "\xEF\x49\x39\xB3\x0A"  /* Malayalam test */
-        "\xEF\x4A\x3A\xB3\x0A"  /* Gujarati test */
-        "\xEF\x4B\x3B\xB3\x0A"  /* Punjabi test */
-        /* "\xEF\x4C\x3C\xB3\x0A"  unsupported sequence \xEF\x41 */;
-    static const UChar expected[] ={ 
-        0x0A22, 0x0A3C, 0x0A5C, 0x0A4D, 0x0A39, 0x000A, /* Gurmukhi test */
-        0x0AA2, 0x0AB5, 0x0AA1, 0x0AB5, 0x0ACD, 0x0AB9, 0x000A,     /* Gujarati test */
-        0x0038, 0x0C95, 0x000A, /* Kannada test */
-        0x0039, 0x0D15, 0x000A, /* Malayalam test */
-        0x003A, 0x0A95, 0x000A, /* Gujarati test */
-        0x003B, 0x0A15, 0x000A, /* Punjabi test */
-    };
-        
-    UErrorCode status = U_ZERO_ERROR;
-    UConverter* conv = ucnv_open("iscii", &status);
-    UChar dest[100] = {'\0'};
-    UChar* target = dest;
-    UChar* targetLimit = dest+100;
-    const char* source = data;
-    const char* sourceLimit = data+strlen(data);
-    const UChar* exp = expected;
-    ucnv_toUnicode(conv, &target, targetLimit, &source, sourceLimit, NULL, TRUE, &status);
-    if(U_FAILURE(status)){
-        log_err("conversion failed: %s \n", u_errorName(status));
-    }
-    targetLimit = target;
-    target = dest;
-
-    printUSeq(target, targetLimit-target);
-    
-    while(target<targetLimit){
-        if(*exp!=*target){
-            log_err("did not get the expected output. \\u%04X != \\u%04X (got)\n", *exp, *target);
-        }
-        target++;
-        exp++;
-    }
-    ucnv_close(conv);
-}
