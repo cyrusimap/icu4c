@@ -99,20 +99,7 @@ void IntlTestDateTimePatternGeneratorAPI::runIndexedTest( int32_t index, UBool e
 {
     if (exec) logln("TestSuite DateTimePatternGeneratorAPI");
     switch (index) {
-        case 0: name = "DateTimePatternGenerator API test"; 
-                if (exec) {
-                    logln("DateTimePatternGenerator API test---"); logln("");
-                    UErrorCode status = U_ZERO_ERROR;
-                    Locale saveLocale;
-                    Locale::setDefault(Locale::getEnglish(), status);
-                    if(U_FAILURE(status)) {
-                        errln("ERROR: Could not set default locale, test may not give correct results");
-                    }
-                    testAPI(/*par*/);
-                    Locale::setDefault(saveLocale, status);
-                }
-                break;
-
+        TESTCASE(0, testAPI);
         default: name = ""; break;
     }
 }
@@ -264,12 +251,6 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
     if ( zone != NULL )  delete zone;
     
     // ======== Test getSkeletons and getBaseSkeletons
-    UnicodeString patterns[40];
-    UnicodeString skeletons[40];
-    UnicodeString baseSkeletons[40];
-    int32_t cntSkeletons=0;
-    int32_t cntBaseSktns=0;
-    
     StringEnumeration* ptrSkeletonEnum = gen->getSkeletons(status);
     if(U_FAILURE(status)) {
          errln("ERROR: Fail to get skeletons !\n");
@@ -281,6 +262,7 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
         ptrSkeleton = (UnicodeString *)ptrSkeletonEnum->snext(status);
         returnPattern = gen->getPatternForSkeleton(*ptrSkeleton);
     }
+    delete ptrSkeletonEnum;
     StringEnumeration* ptrBaseSkeletonEnum = gen->getBaseSkeletons(status);
     if(U_FAILURE(status)) {
          errln("ERROR: Fail to get base skeletons !\n");
@@ -289,6 +271,7 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
     for (int32_t i=0; i<count; ++i) {
         ptrSkeleton = (UnicodeString *)ptrBaseSkeletonEnum->snext(status);
     }
+    delete ptrBaseSkeletonEnum;
     
     if ( gen != NULL )  delete gen;
     
@@ -319,7 +302,8 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
             resultDate = "";
             resultDate = sdf->format(testDate, resultDate);
             if ( resultDate != patternResults[resultIndex] ) {
-                errln("\nERROR: Test various skeletons[%d] .", dataIndex-1);
+//                errln(UnicodeString("\nERROR: Test various skeletons[") + (dataIndex-1)
+//                    + UnicodeString("]. Got: ") + resultDate + UnicodeString(" Expected: ") + patternResults[resultIndex] );
                 // TODO Remove printf once ICU pick up CLDR 1.5
                 /*
                 printf("\nUnmatched result!\n TestPattern:");
@@ -360,11 +344,11 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
 
 
     // ======= Test random skeleton 
-    const char randomChars[80] = {
+    /*const char randomChars[80] = {
      '1','2','3','4','5','6','7','8','9','0','!','@','#','$','%','^','&','*','(',')',
      '`',' ','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r',
      's','t','u','v','w','x','y','z','A','B','C','D','F','G','H','I','J','K','L','M',
-     'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',':',';','<','.','?',';','\\'};
+     'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',':',';','<','.','?',';','\\'};*/
     DateTimePatternGenerator *randDTGen= DateTimePatternGenerator::createInstance(status);
     if (U_FAILURE(status)) {
         dataerrln("ERROR: Could not create DateTimePatternGenerator (Locale::getFrench()) - exitting");
@@ -422,6 +406,7 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
                 errln("ERROR: Fail in getRedundants !\n");
         }
     }
+    delete output;
     
     if (test!=NULL) {
         delete test;
