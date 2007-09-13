@@ -3,7 +3,6 @@
 
 <html lang="en-US" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
   <head>
-    <meta name="generator" content="HTML Tidy, see www.w3.org" />
 
     <title>ReadMe for ICU</title>
     <meta name="COPYRIGHT" content=
@@ -34,7 +33,7 @@
      <abbr title="International Components for Unicode">ICU</abbr> 3.8
     ReadMe</h1>
 
-    <p>Version: 2007-August-23<br />
+    <p>Version: 2007 September 12<br />
      Copyright &copy; 1997-2007 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
@@ -218,80 +217,13 @@
     this release, see the <a href="http://www.icu-project.org/download/">ICU 3.8
     download page</a>.</p>
 
-    <h3><a name="News_app_packaging" id="News_app_packaging">Changes to packaging
-    resource bundles</a></h3>
+    <h3><a name="News_timezone" id="News_timezone">Changes to timezone formatting
+    and parsing</a></h3>
 
-    <p>Since ICU 3.0, the old style of packaging was deprecated, and an alternate
-    packaging mode was made available. In this release, this compatibility mode
-    of packaging has been removed from ICU. If you're using the genrb -P or -t
-    options, you are probably using the older compatible mode of data packaging.
-    This compatibility file naming mode was removed for portability and
-    performance reasons.</p>
-
-    <p>Code changes should not be required to use the newer data file naming
-    scheme, but you will need to update your makefile scripts, if you're using
-    the older data file naming scheme. The example of using the new data file
-    naming scheme can be found in <a href="source/samples/ufortune/">the ufortune
-    sample program</a>.</p>
-
-    <table border="1" cellpadding="0" summary=
-    "The following are examples of the file naming schemes.">
-      <caption>
-        The following are examples of the file naming schemes.
-      </caption>
-
-      <tr>
-        <th scope="col">Old File Naming Scheme</th>
-
-        <th scope="col">Current File Naming Scheme</th>
-      </tr>
-
-      <tr>
-        <td>MyApp_root.res</td>
-
-        <td>MyApp/root.res</td>
-      </tr>
-
-      <tr>
-        <td>MyApp_en.res</td>
-
-        <td>MyApp/en.res</td>
-      </tr>
-    </table>
-
-    <h3><a name="News_wchar_t" id="News_wchar_t">Changes to wchar_t type for the
-    Microsoft Visual Studio builds</a></h3>
-
-    <p>Previous versions of ICU built with Microsoft Visual Studio were not built
-    with the /Zc:wchar_t compiler option. ICU now builds with this option turned
-    on by default. This allows the built libraries to be compatible with Visual
-    Studio 2005, and this makes it easier for ICU users to use MFC in their
-    projects, which requires this option to be turned by default. If you do not
-    use the C++ API of ICU, you are not affected by this change.</p>
-
-    <p>If you receive any errors while linking ICU into your project, please make
-    sure that you have set "Treat wchar_t as Built-in Type" to "Yes
-    (/Zc:wchar_t)" in your project files.</p>
-
-    <h3><a name="News_scanf" id="News_scanf">Changes to scanf and storing
-    floating point types</a></h3>
-
-    <p>In order to improve interoperability with standard scanf implementations,
-    the icuio library's implementations of scanf has changed the default scanf
-    type from <tt>double</tt> to <tt>float</tt>. This is a breaking change
-    requires you to change your code if you are using the icuio library's scanf
-    to read <tt>double</tt> or <tt>float</tt> values with %e, %f or %g. As a
-    reminder, these scanf functions in the icuio library are still marked
-    draft.</p>
-
-    <h3><a name="News_data_package" id="News_data_package">Source download
-    contains .dat package for ICU data</a></h3>
-
-    <p>The ICU4C 3.8 source downloads contain a pre-built .dat package with ICU's
-    data rather than the data source files. This is to simplify the build process
-    for the majority of users and to reduce platform porting issues. If you need
-    the data source files for customization, then please download the ICU source
-    code from <a href="http://www.icu-project.org/repository/">subversion</a>.</p>
+    <p>In ICU 3.8, the behavior of date formatting and parsing has changed
+    significantly, perhaps requiring recoding on your part depending on your
+    usage. For more information, see <a href="http://icu-project.org/userguide/formatDateTime.html">
+	Formatting Dates and Times</a> in the User Guide.</p>
 
     <h2><a name="Download" href="#Download" id="Download">How To Download the
     Source Code</a></h2>
@@ -668,6 +600,14 @@
         <td>Windows 2000 with Cygwin</td>
 
         <td>Microsoft Visual C++ .NET 2003 (7.1)</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
+        <td>Windows Vista x86</td>
+
+        <td>Microsoft Visual C++ .NET 2005 (8.0)</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -1254,14 +1194,19 @@ Data set name type  : PDS</samp>
       <li>
         Create i5/OS target library. This library will be the target for the
         resulting modules, programs and service programs. You will specify this
-        library on the OUTPUTDIR environment variable. 
+        library on the OUTPUTDIR environment variable.
 <pre>
 <samp>CRTLIB LIB(<i>libraryname</i>)
 ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
 </pre>
       </li>
 
-      <li>Run <tt>'CHGJOB CCSID(37)'</tt></li>
+      <li>
+      Set up the following environment variables and job characteristics in your build process
+<pre>
+<samp>ADDENVVAR ENVVAR(MAKE) VALUE('/usr/bin/gmake')
+CHGJOB CCSID(37)</samp>
+</pre>
 
       <li>Run <tt>'QSH'</tt></li>
 
@@ -1277,14 +1222,11 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
 
       <li>Run <tt>'gmake'</tt> to build ICU.</li>
 
-      <li>Run <tt>'gmake check'</tt> to build and run the tests.</li>
-
-      <li>The "utility/MultithreadTest" test in intltest may have failed during
-      <tt>'gmake check'</tt>. In order to make this test pass, please use
-      <tt>'gmake check QIBM_MULTI_THREADED=Y'</tt> after you built the tests with
-      <tt>'gmake check'</tt> from the previous step. You can look at the <a href=
+      <li>Run <tt>'gmake check QIBM_MULTI_THREADED=Y'</tt> to build and run the tests.
+      You can look at the <a href=
       "http://publib.boulder.ibm.com/infocenter/iseries/v5r3/index.jsp?topic=/apis/concept4.htm">
-      iSeries Information Center</a> for more details.</li>
+      iSeries Information Center</a> for more details regarding the running of multiple threads
+      on i5/OS.</li>
     </ol>
     <!-- end build environment -->
 

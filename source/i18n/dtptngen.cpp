@@ -377,10 +377,11 @@ DateTimePatternGenerator::addCLDRData(const Locale& locale) {
     UnicodeString conflictingPattern;
     UDateTimePatternConflict conflictingStatus;
     const char *key=NULL;
+    int32_t i;
 
     UnicodeString defaultItemFormat(TRUE, UDATPG_ItemFormat, LENGTHOF(UDATPG_ItemFormat)-1);  // Read-only alias.
 
-    for (int32_t i=0; i<UDATPG_FIELD_COUNT; ++i ) {
+    for (i=0; i<UDATPG_FIELD_COUNT; ++i ) {
         appendItemNames[i]=CAP_F;
         if (i<10) {
             appendItemNames[i]+=(UChar)(i+0x30);
@@ -432,7 +433,7 @@ DateTimePatternGenerator::addCLDRData(const Locale& locale) {
     key=NULL;
     err = U_ZERO_ERROR;
     fBundle = ures_getByKeyWithFallback(gregorianBundle, DT_DateTimeFieldsTag, NULL, &err);
-    for (int32_t i=0; i<MAX_RESOURCE_FIELD; ++i) {
+    for (i=0; i<MAX_RESOURCE_FIELD; ++i) {
         err = U_ZERO_ERROR;
         patBundle = ures_getByKeyWithFallback(fBundle, Resource_Fields[i], NULL, &err);
         fieldBundle = ures_getByKeyWithFallback(patBundle, "dn", NULL, &err);
@@ -457,7 +458,7 @@ DateTimePatternGenerator::addCLDRData(const Locale& locale) {
         int32_t len;
         const UChar *retPattern;
         key=NULL;
-        for(int32_t i=0; i<numberKeys; ++i) {
+        for(i=0; i<numberKeys; ++i) {
             retPattern=ures_getNextString(patBundle, &len, &key, &err);
             UnicodeString format=UnicodeString(retPattern);
             UnicodeString retKey=UnicodeString(key, -1, US_INV);
@@ -486,7 +487,7 @@ DateTimePatternGenerator::addCLDRData(const Locale& locale) {
             const UChar *retPattern;
             key=NULL;
 
-            for(int32_t i=0; i<numberKeys; ++i) {
+            for(i=0; i<numberKeys; ++i) {
                 retPattern=ures_getNextString(patBundle, &len, &key, &err);
                 UnicodeString format=UnicodeString(retPattern);
                 UnicodeString retKey=UnicodeString(key, -1, US_INV);
@@ -1255,11 +1256,12 @@ DateTimeMatcher::set(const UnicodeString& pattern, FormatParser* fp) {
 
 void
 DateTimeMatcher::set(const UnicodeString& pattern, FormatParser* fp, PtnSkeleton& skeletonResult) {
-    for (int32_t i=0; i<UDATPG_FIELD_COUNT; ++i) {
-        skeleton.type[i]=NONE;
+    int32_t i;
+    for (i=0; i<UDATPG_FIELD_COUNT; ++i) {
+        skeletonResult.type[i]=NONE;
     }
     fp->set(pattern);
-    for (int32_t i=0; i < fp->itemNumber; i++) {
+    for (i=0; i < fp->itemNumber; i++) {
         UnicodeString field = fp->items[i];
         if ( field.charAt(0) == LOW_A ) {
             continue;  // skip 'a'
@@ -1299,7 +1301,6 @@ DateTimeMatcher::getBasePattern(UnicodeString &result ) {
             result += skeleton.baseOriginal[i];
         }
     }
-    return;
 }
 
 UnicodeString
@@ -1349,7 +1350,6 @@ DateTimeMatcher::copyFrom(const PtnSkeleton& newSkeleton) {
         this->skeleton.original[i]=newSkeleton.original[i];
         this->skeleton.baseOriginal[i]=newSkeleton.baseOriginal[i];
     }
-    return;
 }
 
 void
@@ -1360,7 +1360,6 @@ DateTimeMatcher::copyFrom() {
         this->skeleton.original[i].remove();
         this->skeleton.baseOriginal[i].remove();
     }
-    return;
 }
 
 UBool
@@ -1530,7 +1529,6 @@ void
 DistanceInfo::setTo(DistanceInfo &other) {
     missingFieldMask = other.missingFieldMask;
     extraFieldMask= other.extraFieldMask;
-    return;
 }
 
 PatternMapIterator::PatternMapIterator() {
