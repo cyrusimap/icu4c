@@ -56,10 +56,6 @@ public:
      * tests MesageFormat functionality with a format including a ChoiceFormat
      **/
     void testMsgFormatChoice(/* char* par */);
-    /** 
-     * tests MesageFormat functionality with a PluralFormat.
-     **/
-    void testMsgFormatPlural(/* char* par */);
 
     /**
      * Verify that MessageFormat accomodates more than 10 arguments
