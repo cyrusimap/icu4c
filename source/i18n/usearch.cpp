@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2001-2008 IBM and others. All rights reserved.
+*   Copyright (C) 2001-2009 IBM and others. All rights reserved.
 **********************************************************************
 *   Date        Name        Description
 *  07/02/2001   synwee      Creation.
@@ -1073,7 +1073,6 @@ inline UBool isOutOfBounds(int32_t textlength, int32_t offset)
     return offset < 0 || offset > textlength;
 }
 
-#if BOYER_MOORE
 /**
 * Checks for identical match
 * @param strsrch string search data
@@ -1135,6 +1134,7 @@ inline UBool checkIdentical(const UStringSearch *strsrch, int32_t start,
     return U_SUCCESS(status) && result;
 }
 
+#if BOYER_MOORE
 /**
 * Checks to see if the match is repeated
 * @param strsrch string search data
@@ -3407,12 +3407,20 @@ U_CAPI void U_EXPORT2 usearch_reset(UStringSearch *strsrch)
         UBool      shift;
         uint32_t   varTop;
 
+        // **** hack to deal w/ how processed CEs encode quaternary ****
+        UCollationStrength newStrength = ucol_getStrength(strsrch->collator);
+        if ((strsrch->strength < UCOL_QUATERNARY && newStrength >= UCOL_QUATERNARY) ||
+            (strsrch->strength >= UCOL_QUATERNARY && newStrength < UCOL_QUATERNARY)) {
+                sameCollAttribute = FALSE;
+        }
+
         strsrch->strength    = ucol_getStrength(strsrch->collator);
         ceMask = getMask(strsrch->strength);
         if (strsrch->ceMask != ceMask) {
             strsrch->ceMask = ceMask;
             sameCollAttribute = FALSE;
         }
+
         // if status is a failure, ucol_getAttribute returns UCOL_DEFAULT
         shift = ucol_getAttribute(strsrch->collator, UCOL_ALTERNATE_HANDLING, 
                                   &status) == UCOL_SHIFTED;
@@ -3789,7 +3797,7 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch  *strsrch,
         found = TRUE;
         //  Inner loop checks for a match beginning at each
         //  position from the outer loop.
-        for (patIx=0; patIx<strsrch->pattern.CELength; patIx++) {
+        for (patIx=0; patIx<strsrch->pattern.PCELength; patIx++) {
             int64_t patCE = strsrch->pattern.PCE[patIx];
             targetCEI = ceb.get(targetIx+patIx);
             //  Compare CE from target string with CE from the pattern.
@@ -3818,8 +3826,8 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch  *strsrch,
         //     an acceptable character range.
         //
         const CEI *firstCEI = ceb.get(targetIx);
-        const CEI *lastCEI  = ceb.get(targetIx + strsrch->pattern.CELength - 1);
-        const CEI *nextCEI  = ceb.get(targetIx + strsrch->pattern.CELength);
+        const CEI *lastCEI  = ceb.get(targetIx + strsrch->pattern.PCELength - 1);
+        const CEI *nextCEI  = ceb.get(targetIx + strsrch->pattern.PCELength);
 
      // targetCEI = ceb.get(targetIx+strsrch->pattern.CELength);
      // maxLimit = targetCEI->lowIndex;
@@ -3884,6 +3892,10 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch  *strsrch,
         }
 
         if (isBreakBoundary(strsrch, mLimit)) {
+            found = FALSE;
+        }
+
+        if (! checkIdentical(strsrch, mStart, mLimit)) {
             found = FALSE;
         }
 
@@ -4006,10 +4018,10 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch  *strsrch,
         found = TRUE;
         //  Inner loop checks for a match beginning at each
         //  position from the outer loop.
-        for (patIx = strsrch->pattern.CELength - 1; patIx >= 0; patIx -= 1) {
+        for (patIx = strsrch->pattern.PCELength - 1; patIx >= 0; patIx -= 1) {
             int64_t patCE = strsrch->pattern.PCE[patIx];
 
-            targetCEI = ceb.getPrevious(targetIx + strsrch->pattern.CELength - 1 - patIx);
+            targetCEI = ceb.getPrevious(targetIx + strsrch->pattern.PCELength - 1 - patIx);
             //  Compare CE from target string with CE from the pattern.
             //    Note that the target CE will be UCOL_NULLORDER if we reach the end of input,
             //    which will fail the compare, below.
@@ -4035,7 +4047,7 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch  *strsrch,
         //  There still is a chance of match failure if the CE range not correspond to
         //     an acceptable character range.
         //
-        const CEI *firstCEI = ceb.getPrevious(targetIx + strsrch->pattern.CELength - 1);
+        const CEI *firstCEI = ceb.getPrevious(targetIx + strsrch->pattern.PCELength - 1);
         const CEI *lastCEI  = ceb.getPrevious(targetIx);
         const CEI *nextCEI  = targetIx > 0? ceb.getPrevious(targetIx - 1) : NULL;
 
@@ -4099,6 +4111,10 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch  *strsrch,
 
         // Make sure the end of the match is on a break boundary
         if (isBreakBoundary(strsrch, mLimit)) {
+            found = FALSE;
+        }
+
+        if (! checkIdentical(strsrch, mStart, mLimit)) {
             found = FALSE;
         }
 
